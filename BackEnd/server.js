@@ -23,8 +23,18 @@ app.get("/", (req, res) => {
 });
 
 
-const db = require("./app/models/index");
-db.sequelize.sync();
+const { sequelize } = require("./models/data.model");
+sequelize.sync();
+const authRouter = require("./controllers/auth")
+
+
+/////////
+app.use("/auth", authRouter)
+
+
+
+
+
 /// For dropiing existing tables in database
 
 
