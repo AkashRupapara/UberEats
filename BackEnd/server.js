@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 
 const { sequelize } = require("./models/data.model");
 sequelize.sync();
-const authRouter = require("./controllers/auth")
+const authRouter = require("./routes/auth")
 
 
 /////////
