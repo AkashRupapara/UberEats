@@ -10,7 +10,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // eslint-disable-next-line camelcase
 const {
-  customers, restaurants, restaurant_dishtypes, sequelize,
+  customers,
+  restaurants,
+  restaurant_dishtypes,
+  sequelize,
 } = require('../models/data.model');
 
 function isValidEmailAddress(emailAddress) {
@@ -22,9 +25,8 @@ function isValidEmailAddress(emailAddress) {
 router.post('/register', async (req, res) => {
   try {
     // Get user input
-    const {
-      email, password, name, dob, city, state, country, nname, contact,
-    } = req.body;
+    // eslint-disable-next-line object-curly-newline
+    const { email, password, name, dob, city, state, country, nname, contact } = req.body;
 
     // Validate user input
     if (!(name && email && password)) {
@@ -46,7 +48,12 @@ router.post('/register', async (req, res) => {
     // Encrypt user password
     const encryptedPassword = await bcrypt.hash(password, 10);
 
-    if (!isValidEmailAddress(email)) return res.json({ status: 'error', message: 'Please Enter Valid Email Address.' });
+    if (!isValidEmailAddress(email)) {
+      return res.json({
+        status: 'error',
+        message: 'Please Enter Valid Email Address.',
+      });
+    }
     // Create user in our database---------------
     const customer = await customers.create({
       c_name: name,
@@ -55,10 +62,10 @@ router.post('/register', async (req, res) => {
       c_dob: dob,
       c_city: city,
       c_state: state,
+      c_zipcode: req.body.zipcode,
       c_country: country,
       c_nick_name: nname,
       c_contact_no: contact,
-
     });
 
     // Create token
@@ -162,7 +169,17 @@ router.post('/resregister', async (req, res) => {
   try {
     // Get user input
     const {
-      email, password, name, city, state, desc, contact, dish_types, del_type, start, end,
+      email,
+      password,
+      name,
+      city,
+      state,
+      desc,
+      contact,
+      dish_types,
+      del_type,
+      start,
+      end,
     } = req.body;
 
     // Validate user input
@@ -188,21 +205,31 @@ router.post('/resregister', async (req, res) => {
       const t = await sequelize.transaction();
       try {
         // const t = await sequelize.transaction()
-        const restaurant = await restaurants.create({
-          r_name: name,
-          r_email: email,
-          r_password: encryptedPassword,
-          r_city: city,
-          r_state: state,
-          r_desc: desc,
-          r_contact: contact,
-          r_del_type: del_type,
-          r_start: start,
-          r_end: end,
-        }, { transaction: t });
+        const restaurant = await restaurants.create(
+          {
+            r_name: name,
+            r_email: email,
+            r_password: encryptedPassword,
+            r_address_line: req.body.address_line,
+            r_city: city,
+            r_state: state,
+            r_zipcode: req.body.zipcode,
+            r_desc: desc,
+            r_contact_no: contact,
+            r_delivery_type: del_type,
+            r_start: start,
+            r_end: end,
+          },
+          { transaction: t },
+        );
 
-        const dishTypes = dish_types.map((ele) => ({ r_id: restaurant.r_id, rdt_type: ele }));
-        const dishType = await restaurant_dishtypes.bulkCreate(dishTypes, { transaction: t });
+        const dishTypes = dish_types.map((ele) => ({
+          r_id: restaurant.r_id,
+          rdt_type: ele,
+        }));
+        const dishType = await restaurant_dishtypes.bulkCreate(dishTypes, {
+          transaction: t,
+        });
         token = jwt.sign(
           { r_id: restaurant.r_id, email, role: 'restaurant' },
           'UberEats',
@@ -214,11 +241,11 @@ router.post('/resregister', async (req, res) => {
         res.status(201).json(token);
       } catch (error) {
         await t.rollback();
-        console.error(error);
+        res.status(404).send(error);
       }
     }
   } catch (err) {
-    console.log(err);
+    res.status(404).send(err);
   }
 });
 

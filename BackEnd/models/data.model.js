@@ -27,11 +27,17 @@ const restaurants = sequelize.define('restaurants', {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  r_address_line: {
+    type: Sequelize.TEXT,
+  },
   r_city: {
     type: Sequelize.STRING,
   },
   r_state: {
     type: Sequelize.STRING,
+  },
+  r_zipcode: {
+    type: Sequelize.INTEGER,
   },
   r_desc: {
     type: Sequelize.TEXT,
@@ -64,7 +70,7 @@ const restaurant_dishtypes = sequelize.define('restaurant_dishtypes', {
   },
 });
 
-restaurants.hasMany(restaurant_dishtypes, { foreignKey: 'r_id' });
+restaurants.hasMany(restaurant_dishtypes, { foreignKey: 'r_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const customers = sequelize.define('customers', {
   c_id: {
@@ -115,6 +121,8 @@ const dishes = sequelize.define('dishes', {
   d_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
   d_name: {
     type: Sequelize.STRING,
@@ -137,21 +145,20 @@ const dishes = sequelize.define('dishes', {
     values: ['Appetizer', 'Salads', 'Main Course', 'Desserts', 'Beverages'],
     allowNull: false,
   },
-  // d_cusine: {
-
-  // },
   d_type: {
     type: Sequelize.ENUM,
     values: ['Veg', 'Non-Veg', 'Vegan'],
   },
 });
 
-restaurants.hasMany(dishes, { foreignKey: 'r_id' });
+restaurants.hasMany(dishes, { foreignKey: 'r_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const orders = sequelize.define('orders', {
   o_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
   o_status: {
     type: Sequelize.ENUM,
@@ -188,53 +195,67 @@ const order_dishes = sequelize.define('order_dishes', {
   od_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
 });
 
-orders.hasMany(order_dishes, { foreignKey: 'o_id' });
-dishes.hasMany(order_dishes, { foreignKey: 'd_id' });
+orders.hasMany(order_dishes, { foreignKey: 'o_id', onDelete: 'cascade', onUpdate: 'cascade' });
+dishes.hasMany(order_dishes, { foreignKey: 'd_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const fvrts = sequelize.define('fvrts', {
   f_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
 });
 
-customers.hasMany(fvrts, { foreignKey: 'c_id' });
-restaurants.hasMany(fvrts, { foreignKey: 'r_id' });
+customers.hasMany(fvrts, { foreignKey: 'c_id', onDelete: 'cascade', onUpdate: 'cascade' });
+restaurants.hasMany(fvrts, { foreignKey: 'r_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
-customers.hasMany(orders, { foreignKey: 'c_id' });
-restaurants.hasMany(orders, { foreignKey: 'r_id' });
+customers.hasMany(orders, { foreignKey: 'c_id', onDelete: 'cascade', onUpdate: 'cascade' });
+restaurants.hasMany(orders, { foreignKey: 'r_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const customer_address = sequelize.define('customer_address', {
   ca_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  ca_address: {
+  ca_address_line: {
     type: Sequelize.TEXT,
+    allowNull: false,
+  },
+  ca_zipcode: {
+    type: Sequelize.INTEGER,
     allowNull: false,
   },
 });
 
-customers.hasMany(customer_address, { foreignKey: 'c_id' });
+customers.hasMany(customer_address, { foreignKey: 'c_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const carts = sequelize.define('carts', {
   cart_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
 });
 
-customers.hasMany(carts, { foreignKey: 'c_id' });
-dishes.hasMany(carts, { foreignKey: 'd_id' });
-restaurants.hasMany(carts, { foreignKey: 'r_id' });
+customers.hasMany(carts, { foreignKey: 'c_id', onDelete: 'cascade', onUpdate: 'cascade' });
+dishes.hasMany(carts, { foreignKey: 'd_id', onDelete: 'cascade', onUpdate: 'cascade' });
+restaurants.hasMany(carts, { foreignKey: 'r_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const restaurant_imgs = sequelize.define('restaurant_imgs', {
   ri_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
   ri_img: {
     type: Sequelize.STRING,
@@ -246,12 +267,14 @@ const restaurant_imgs = sequelize.define('restaurant_imgs', {
   },
 });
 
-restaurants.hasMany(restaurant_imgs, { foreignKey: 'r_id' });
+restaurants.hasMany(restaurant_imgs, { foreignKey: 'r_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 const dish_imgs = sequelize.define('dish_imgs', {
   di_id: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
   },
   di_img: {
     type: Sequelize.STRING,
@@ -263,7 +286,7 @@ const dish_imgs = sequelize.define('dish_imgs', {
   },
 });
 
-dishes.hasMany(dish_imgs, { foreignKey: 'd_id' });
+dishes.hasMany(dish_imgs, { foreignKey: 'd_id', onDelete: 'cascade', onUpdate: 'cascade' });
 
 module.exports = {
   sequelize,
