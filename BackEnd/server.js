@@ -1,13 +1,12 @@
-const express = require("express");
-const cors = require("cors");
+/* eslint-disable prefer-const */
+const express = require('express');
+const cors = require('cors');
 
 const app = express();
 
-var corsOptions = {
-  origin: "http://localhost:8081"
+let corsOptions = {
+  origin: 'http://localhost:8081',
 };
-
-
 
 app.use(cors(corsOptions));
 
@@ -18,26 +17,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to bezkoder application.' });
 });
 
+const { sequelize } = require('./models/data.model');
 
-const { sequelize } = require("./models/data.model");
 sequelize.sync();
-const authRouter = require("./routes/auth")
+const authRouter = require('./routes/auth');
+const { checkAuth } = require('./config/checkAuthority');
+const restaurant = require('./routes/restuarant');
 
+app.use(checkAuth);
 
-/////////
-app.use("/auth", authRouter)
+app.use('/auth', authRouter);
+app.use('/restaurant', restaurant);
 
-
-
-
-
-/// For dropiing existing tables in database
-
-
+/// For dropping existing tables in database
 // db.sequelize.sync({ force: true }).then(() => {
 //     console.log("Drop and re-sync db.");
 //   });
@@ -47,5 +43,3 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
-
-
