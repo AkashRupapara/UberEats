@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable camelcase */
 /* eslint-disable no-unused-vars */
 /* eslint-disable indent */
@@ -8,9 +9,17 @@ const {
   restaurants,
   sequelize,
   restaurant_dishtypes,
+  dishes,
+  dish_imgs,
 } = require('../models/data.model');
 
 const router = express.Router();
+function isValidEmailAddress(emailAddress) {
+  // eslint-disable-next-line no-useless-escape
+  const regex =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return regex.test(String(emailAddress).toLowerCase());
+}
 
 router.put('/:rid', async (req, res) => {
   try {
@@ -22,6 +31,27 @@ router.put('/:rid', async (req, res) => {
     });
 
     if (!rest) return res.status(404).send('Restaurant Not Found');
+
+    if (!isValidEmailAddress(req.body.email)) {
+      return res.json({
+        status: 'error',
+        message: 'Enter Valid Email Address.',
+      });
+    }
+
+    if (req.body.email && req.body.email !== rest.r_email) {
+      const checkRest = await restaurants.findOne({
+        where: {
+          r_email: req.body.email,
+        },
+      });
+
+      if (checkRest) {
+        return res
+          .status(403)
+          .send('Restaurant already exist with given email');
+      }
+    }
     const t = await sequelize.transaction();
 
     try {
@@ -44,21 +74,23 @@ router.put('/:rid', async (req, res) => {
         },
         { transaction: t },
       );
-      const dishTypes = req.body.dish_types.map((ele) => ({
-        r_id: restId,
-        rdt_type: ele,
-      }));
-      await restaurant_dishtypes.destroy(
-        {
-          where: {
-            r_id: restId,
+      if (req.body.dih_types) {
+        const dishTypes = req.body.dish_types.map((ele) => ({
+          r_id: restId,
+          rdt_type: ele,
+        }));
+        await restaurant_dishtypes.destroy(
+          {
+            where: {
+              r_id: restId,
+            },
           },
-        },
-        { transaction: t },
-      );
-      const dishType = await restaurant_dishtypes.bulkCreate(dishTypes, {
-        transaction: t,
-      });
+          { transaction: t },
+        );
+        const dishType = await restaurant_dishtypes.bulkCreate(dishTypes, {
+          transaction: t,
+        });
+      }
       await t.commit();
     } catch (err) {
       await t.rollback();
@@ -92,4 +124,22 @@ router.delete('/:rid', async (req, res) => {
   }
 });
 
+router.get('/:rid', async (req, res) => {
+  const restId = req.params.rid;
+  if (!restId) return res.status(404).send('Provide Restaurant ID');
+
+  const rest = await restaurants.findOne({
+    include: [
+      {
+        model: dishes,
+        include: dish_imgs,
+      },
+    ],
+    where: {
+      r_id: restId,
+    },
+  });
+
+  return res.status(200).send(rest);
+});
 module.exports = router;

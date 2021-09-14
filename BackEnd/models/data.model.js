@@ -163,6 +163,7 @@ const orders = sequelize.define('orders', {
   o_status: {
     type: Sequelize.ENUM,
     values: [
+      'Inititalized',
       'Placed',
       'Preparing',
       'Ready',

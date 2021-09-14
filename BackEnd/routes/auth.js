@@ -26,7 +26,8 @@ router.post('/register', async (req, res) => {
   try {
     // Get user input
     // eslint-disable-next-line object-curly-newline
-    const { email, password, name, dob, city, state, country, nname, contact } = req.body;
+    const { email, password, name, dob, city, state, country, nname, contact } =
+      req.body;
 
     // Validate user input
     if (!(name && email && password)) {
@@ -164,10 +165,9 @@ router.post('/reslogin', async (req, res) => {
   }
 });
 
-/// Restaurant Login API
+/// Restaurant Register API
 router.post('/resregister', async (req, res) => {
   try {
-    // Get user input
     const {
       email,
       password,
@@ -186,7 +186,12 @@ router.post('/resregister', async (req, res) => {
     if (!(name && email && password)) {
       res.status(400).send('All input is required');
     }
-
+    if (!isValidEmailAddress(email)) {
+      return res.json({
+        status: 'error',
+        message: 'Please Enter Valid Email Address.',
+      });
+    }
     // check if Restaurant already exist
     // Validate if user exist in our database
     const oldRes = await restaurants.findOne({
@@ -222,14 +227,16 @@ router.post('/resregister', async (req, res) => {
           },
           { transaction: t },
         );
+        if (dish_types) {
+          const dishTypes = dish_types.map((ele) => ({
+            r_id: restaurant.r_id,
+            rdt_type: ele,
+          }));
+          const dishType = await restaurant_dishtypes.bulkCreate(dishTypes, {
+            transaction: t,
+          });
+        }
 
-        const dishTypes = dish_types.map((ele) => ({
-          r_id: restaurant.r_id,
-          rdt_type: ele,
-        }));
-        const dishType = await restaurant_dishtypes.bulkCreate(dishTypes, {
-          transaction: t,
-        });
         token = jwt.sign(
           { r_id: restaurant.r_id, email, role: 'restaurant' },
           'UberEats',
