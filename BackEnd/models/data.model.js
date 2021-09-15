@@ -43,7 +43,7 @@ const restaurants = sequelize.define('restaurants', {
     type: Sequelize.TEXT,
   },
   r_contact_no: {
-    type: Sequelize.BIGINT(11),
+    type: Sequelize.STRING,
   },
   r_delivery_type: {
     type: Sequelize.ENUM,
@@ -113,7 +113,7 @@ const customers = sequelize.define('customers', {
     type: Sequelize.STRING,
   },
   c_contact_no: {
-    type: Sequelize.BIGINT(11),
+    type: Sequelize.STRING,
   },
 });
 

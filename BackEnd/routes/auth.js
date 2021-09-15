@@ -8,6 +8,8 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { body, validationResult } = require('express-validator');
+
 // eslint-disable-next-line camelcase
 const {
   customers,
@@ -16,19 +18,32 @@ const {
   sequelize,
 } = require('../models/data.model');
 
-function isValidEmailAddress(emailAddress) {
-  // eslint-disable-next-line no-useless-escape
-  const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return regex.test(String(emailAddress).toLowerCase());
-}
+const validator = () => [
+  body('email').exists().isEmail(),
+  body('password').exists().isString(),
+  body('name').exists().isString(),
+  body('dob').exists().isDate(),
+  body('city').exists().isString(),
+  body('state').exists().isString(),
+  body('country').exists().isString(),
+  body('nname').exists().isString(),
+  body('contact').exists().isNumeric(),
+];
+
 /// Customer Registration API
-router.post('/register', async (req, res) => {
+router.post('/register', ...validator(), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
+    return;
+  }
   try {
     // Get user input
     // eslint-disable-next-line object-curly-newline
     const { email, password, name, dob, city, state, country, nname, contact } =
       req.body;
 
+    if (contact.toString().length() !== 10) return res.status(400).send('Invalid Phone Number');
     // Validate user input
     if (!(name && email && password)) {
       res.status(400).send('All input is required');
@@ -49,12 +64,6 @@ router.post('/register', async (req, res) => {
     // Encrypt user password
     const encryptedPassword = await bcrypt.hash(password, 10);
 
-    if (!isValidEmailAddress(email)) {
-      return res.json({
-        status: 'error',
-        message: 'Please Enter Valid Email Address.',
-      });
-    }
     // Create user in our database---------------
     const customer = await customers.create({
       c_name: name,
@@ -81,7 +90,7 @@ router.post('/register', async (req, res) => {
     customer.token = token;
     res.status(201).json(token);
   } catch (err) {
-    console.log(err);
+    return res.status(400).send(err);
   }
 });
 

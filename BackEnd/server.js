@@ -34,6 +34,8 @@ const { checkAuth } = require('./config/checkAuthority');
 const restaurant = require('./routes/restuarant');
 const dishes = require('./routes/dishes');
 const customers = require('./routes/customers');
+const cart = require('./routes/cart');
+
 
 app.use('/auth', authRouter);
 
@@ -42,6 +44,7 @@ app.use(checkAuth);
 app.use('/restaurant', restaurant);
 app.use('/dishes', dishes);
 app.use('/customers', customers);
+app.use('/cart', cart);
 
 /// For dropping existing tables in database
 // db.sequelize.sync({ force: true }).then(() => {

@@ -50,7 +50,7 @@ router.post('/newdish', async (req, res) => {
           transaction: t,
         });
         t.commit();
-        res.status(201).send({});
+        res.status(201).send('Dish Added');
       } else {
         res.status(403).send('Dish Already Exist');
       }
