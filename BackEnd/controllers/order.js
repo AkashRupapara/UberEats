@@ -117,7 +117,8 @@ const placeOrder = async (req, res) => {
 };
 
 const updateOrder = async (req, res) => {
-  const { status, oid } = req.body;
+  const { status } = req.body;
+  const { oid } = req.params;
 
   try {
     const updateStatus = await orders.update(
@@ -133,7 +134,7 @@ const updateOrder = async (req, res) => {
     if (updateStatus[0] !== 1) {
       return res.status(404).send('Order Not found');
     }
-    return res.status(201).send({ error: 'Order Status Updated' });
+    return res.status(201).send({ msg: 'Order Status Updated' });
   } catch (err) {
     return res.status(404).send(err);
   }

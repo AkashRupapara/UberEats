@@ -3,7 +3,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const { customers } = require('../models/data.model');
+const { customers, orders, customer_address } = require('../models/data.model');
 
 const createCustomer = async (req, res) => {
   try {
@@ -91,12 +91,9 @@ const customerLogin = async (req, res) => {
 
 const updateCustomer = async (req, res) => {
   const custID = req.headers.id;
-
   if (String(custID) !== String(req.params.cid)) return res.status(401).send('Unauthorised');
 
-  const {
-    name, email, about, profile_img, dob, city, state, country, nname, contact,
-  } = req.body;
+  const { name, email, about, profile_img, dob, city, state, country, nname, contact } = req.body;
 
   const cust = await customers.findOne({
     where: {
@@ -137,6 +134,61 @@ const updateCustomer = async (req, res) => {
     return res.status(201).send('Customer Updated');
   } catch (err) {
     return res.status(404).send(err);
+  }
+};
+
+const addAddress = async (req, res) => {
+  try {
+    const custId = req.headers.id;
+    const { role } = req.headers;
+    const { address, zipcode } = req.body;
+
+    if (!custId || role === 'restaurant') {
+      return res.status(401).send({ error: 'Unauthorised Access' });
+    }
+    if (role === 'customer') {
+      const findExistAddress = await customer_address.findOne({
+        where: {
+          c_id: custId,
+          ca_address_line: address,
+          ca_zipcode: zipcode,
+        },
+      });
+
+      if (findExistAddress) {
+        return res.status(409).send({ error: 'Address Already Exists' });
+      }
+      await customer_address.create({
+        ca_address_line: address,
+        ca_zipcode: zipcode,
+        c_id: custId,
+      });
+    }
+    res.status(201).send({ msg: 'Address Added' });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+const getAddress = async (req, res) => {
+  console.log(req.headers.id);
+  console.log('herer');
+  const custId = req.headers.id;
+
+  try {
+    const custAddr = await customer_address.findAll({
+      where: {
+        c_id: custId,
+      },
+    });
+
+    if (custAddr.length === 0) {
+      return res.staus(404).send({ error: 'No Addresses Found' });
+    }
+    return res.status(201).send(custAddr);
+  } catch (err) {
+    console.log('sahdjadbsahjbdhj');
+    res.status(500).send(err);
   }
 };
 
@@ -186,7 +238,19 @@ const getCustomerById = async (req, res) => {
 };
 
 const getAllCustomers = async (req, res) => {
-  const custs = await customers.findAll();
+  const rid = req.headers.id;
+
+  const custs = await orders.findAll({
+    attributes: ['c_id'],
+    include: [
+      {
+        model: customers,
+      },
+    ],
+    where: {
+      r_id: rid,
+    },
+  });
   return res.status(201).send(custs);
 };
 
@@ -198,4 +262,6 @@ module.exports = {
   getCustomerProfile,
   getCustomerById,
   getAllCustomers,
+  addAddress,
+  getAddress,
 };

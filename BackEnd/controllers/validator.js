@@ -57,9 +57,10 @@ const dishDetailsValidator = () => [
     .optional({ nullable: true })
     .isString()
     .withMessage('Enter Valid Ingredient Details'),
-  body('desc').optional({ nullable: true }).isFloat().withMessage('Enter Valid Price'),
-  body('category').optional({ nullable: true }).isFloat().withMessage('Enter Valid Price'),
-  body('type').optional({ nullable: true }).isFloat().withMessage('Enter Valid Price'),
+  body('price').optional({ nullable: true }).isFloat().withMessage('Enter Valid Price'),
+  body('desc').optional({ nullable: true }).isString().withMessage('Enter Valid Description'),
+  body('category').optional({ nullable: true }).isString().withMessage('Enter Valid Price'),
+  body('type').optional({ nullable: true }).isString().withMessage('Enter Valid Price'),
 ];
 
 const validator = async (req, res, next) => {

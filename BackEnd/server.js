@@ -15,6 +15,7 @@ app.use(express.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
+const { getAccessMiddleware } = require('u-server-utils');
 
 const { sequelize } = require('./models/data.model');
 
@@ -28,10 +29,12 @@ const dishes = require('./routes/dishes');
 const customers = require('./routes/customers');
 const cart = require('./routes/cart');
 const orders = require('./routes/orders');
+const accessControl = require('./controllers/accessController');
 
 app.use('/auth', authRouter);
 
 app.use(validateToken);
+app.use(getAccessMiddleware(accessControl));
 
 app.use('/restaurant', restaurant);
 app.use('/dishes', dishes);

@@ -9,8 +9,6 @@ const {
   updateRestaurant,
   deleteRestaurant,
   getRestaurantDetails,
-  createRestaurant,
-  restaurantLogin,
 } = require('../controllers/restaurant');
 const { restaurantValidationRules, validator } = require('../controllers/validator');
 

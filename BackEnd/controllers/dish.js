@@ -4,9 +4,7 @@ const { dishes, dish_imgs, sequelize } = require('../models/data.model');
 
 const createDish = async (req, res) => {
   try {
-    const {
-      name, ingredients, price, desc, category, type, imgs,
-    } = req.body;
+    const { name, ingredients, price, desc, category, type, imgs } = req.body;
     const restID = req.headers.id;
 
     if (!(name && price && category && type)) {
@@ -59,16 +57,15 @@ const createDish = async (req, res) => {
 };
 
 const updateDish = async (req, res) => {
-  const {
-    name, ingredients, price, desc, category, type, imgs,
-  } = req.body;
+  const { name, ingredients, price, desc, category, type, imgs } = req.body;
   const dishId = req.params.did;
-  const restID = req.headers.id;
+  const restId = req.headers.id;
 
   if (!dishId) return res.status(403).send('Provide all Details');
   const existDish = await dishes.findOne({
     where: {
       d_id: dishId,
+      r_id: restId,
     },
   });
 
@@ -78,7 +75,7 @@ const updateDish = async (req, res) => {
     const findDishName = await dishes.findOne({
       where: {
         d_name: name,
-        r_id: restID,
+        r_id: restId,
       },
     });
 
@@ -157,6 +154,9 @@ const getAllDishes = async (req, res) => {
       r_id: rid,
     },
   });
+  if (dishDetails.lenght === 0) {
+    return res.status(404).send({ error: 'No Dishes Found' });
+  }
   return res.status(201).send(dishDetails);
 };
 
