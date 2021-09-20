@@ -93,7 +93,9 @@ const updateCustomer = async (req, res) => {
   const custID = req.headers.id;
   if (String(custID) !== String(req.params.cid)) return res.status(401).send('Unauthorised');
 
-  const { name, email, about, profile_img, dob, city, state, country, nname, contact } = req.body;
+  const {
+    name, email, about, profile_img, dob, city, state, country, nname, contact,
+  } = req.body;
 
   const cust = await customers.findOne({
     where: {
