@@ -16,35 +16,28 @@ app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-// simple route
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to bezkoder application.' });
-});
-
-// const swaggerUi = require('swagger-ui-express');
-
 const { sequelize } = require('./models/data.model');
 
 // sequelize.sync({ alter: true });
 sequelize.sync();
 
 const authRouter = require('./routes/auth');
-const { checkAuth } = require('./config/checkAuthority');
-
+const { validateToken } = require('./config/validateToken');
 const restaurant = require('./routes/restuarant');
 const dishes = require('./routes/dishes');
 const customers = require('./routes/customers');
 const cart = require('./routes/cart');
-
+const orders = require('./routes/orders');
 
 app.use('/auth', authRouter);
 
-app.use(checkAuth);
+app.use(validateToken);
 
 app.use('/restaurant', restaurant);
 app.use('/dishes', dishes);
 app.use('/customers', customers);
 app.use('/cart', cart);
+app.use('/orders', orders);
 
 /// For dropping existing tables in database
 // db.sequelize.sync({ force: true }).then(() => {

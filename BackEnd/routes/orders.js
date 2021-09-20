@@ -1,10 +1,20 @@
+/* eslint-disable consistent-return */
+/* eslint-disable camelcase */
 const express = require('express');
-const jwtDecode = require('jwt-decode');
-
-const { orders, order_dishes, sequelize } = require('../models/data.model');
+const {
+  createOrder,
+  placeOrder,
+  updateOrder,
+  getOrders,
+  getOrderById,
+} = require('../controllers/order');
 
 const router = express.Router();
 
-router.post('/neworder', async (req,res) => {
+router.post('/neworder', createOrder);
+router.put('/finalorder', placeOrder);
+router.put('/updatestatus', updateOrder);
+router.get('/', getOrders);
+router.get('/:oid', getOrderById);
 
-});
+module.exports = router;
