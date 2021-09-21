@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const { customers, orders, customer_address } = require('../models/data.model');
 
@@ -173,8 +173,6 @@ const addAddress = async (req, res) => {
 };
 
 const getAddress = async (req, res) => {
-  console.log(req.headers.id);
-  console.log('herer');
   const custId = req.headers.id;
 
   try {
@@ -189,7 +187,6 @@ const getAddress = async (req, res) => {
     }
     return res.status(201).send(custAddr);
   } catch (err) {
-    console.log('sahdjadbsahjbdhj');
     res.status(500).send(err);
   }
 };

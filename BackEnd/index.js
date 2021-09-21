@@ -42,12 +42,6 @@ app.use('/customers', customers);
 app.use('/cart', cart);
 app.use('/orders', orders);
 
-/// For dropping existing tables in database
-// db.sequelize.sync({ force: true }).then(() => {
-//     console.log("Drop and re-sync db.");
-//   });
-
-// set port, listen for requests
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
