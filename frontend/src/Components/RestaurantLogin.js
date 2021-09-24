@@ -5,28 +5,30 @@ import { Button, SHAPE } from 'baseui/button';
 import { Input } from 'baseui/input';
 import axiosInstance from '../axiosConfig';
 import { useDispatch } from 'react-redux';
-import { loginCustomerRequest, loginCustomerSuccess, loginCustomerFailure } from '../actions/customer';
+import { loginRestaurantRequest, loginRestaurantSuccess, loginRestaurantFailure } from '../actions/restaurant'
 
-function CustomerLogin() {
+function RestaurantLogin() {
   const [emailId, setEmailId] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const history = useHistory();
 
   const dispatch = useDispatch();
 
-  const customerLogin = async (e) => {
-    dispatch(loginCustomerRequest());
+  const RestaurantLogin = async (e) => {
+    dispatch(loginRestaurantRequest());
     e.preventDefault();
     try {
       const data = {
         email: emailId,
         password: password,
       }
-      const response = await axiosInstance.post('auth/login', data)
-      dispatch(loginCustomerSuccess(response));
+      const response = await axiosInstance.post('auth/reslogin', data)
+      dispatch(loginRestaurantSuccess(response));
       localStorage.setItem('token', response.data.token)
+      history.push("/restaurant/dashboard");
     } catch (err) {
       console.log(err)
-      dispatch(loginCustomerFailure(err));
+      dispatch(loginRestaurantFailure(err));
     }
 
   }
@@ -34,8 +36,8 @@ function CustomerLogin() {
   return (
     <div className="flexbox-container login">
       <img src={logo} alt="Logo" style={{ width: '20%' }} />
-      <h1 style={{  fontFamily: 'sans-serif' }}> Welcome Back </h1>
-      <form onSubmit={customerLogin}>
+      <h1 style={{  fontFamily: 'sans-serif' }}> Welcome Back Restaurant Manager </h1>
+      <form onSubmit={RestaurantLogin}>
         <div style={{ width: '40vw', margin: '2%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <p> Email Id </p>
           <Input
@@ -63,9 +65,9 @@ function CustomerLogin() {
         </div>
       </form>
       <br></br>
-      <p style={{fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large'}}> New to UberEats? <a href="/customerRegister" style={{color: 'green', textDecoration: 'none'}}> Create an account </a></p>
+      <p style={{fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large'}}> New to UberEats? <a href="/restaurantRegister" style={{color: 'green', textDecoration: 'none'}}> Create an account </a></p>
     </div>
   );
 }
 
-export default CustomerLogin;
+export default RestaurantLogin;

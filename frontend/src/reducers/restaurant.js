@@ -3,23 +3,23 @@ const initState = {
     error: '',
 };
 
-const customerReducer = (state = initState, action) => {
+const restaurantReducer = (state = initState, action) => {
     switch (action.type) {
-        case 'CUSTOMER_LOGIN_REQUEST':
+        case 'RESTAURANT_LOGIN_REQUEST':
             return state;
-        case 'CUSTOMER_LOGIN_SUCCESS':
+        case 'RESTAURANT_LOGIN_SUCCESS':
             return { ...state, token: action.payload.data.token };
-        case 'CUSTOMER_LOGIN_FAILURE':
+        case 'RESTAURANT_LOGIN_FAILURE':
             return { ...state, error: action.payload };
-        case 'CUSTOMER_REGISTER_REQUEST':
+        case 'RESTAURANT_REGISTER_REQUEST':
             return state;
-        case 'CUSTOMER_REGISTER_SUCCESS':
+        case 'RESTAURANT_REGISTER_SUCCESS':
             return { ...state, token: action.payload.data.token };
-        case 'CUSTOMER_REGISTER_FAILURE':
+        case 'RESTAURANT_REGISTER_FAILURE':
             return { ...state, error: action.payload };
         default:
             return state;
     }
 };
 
-export default customerReducer;
+export default restaurantReducer;

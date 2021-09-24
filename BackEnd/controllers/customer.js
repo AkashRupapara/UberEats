@@ -25,7 +25,7 @@ const createCustomer = async (req, res) => {
     });
 
     if (oldCust) {
-      return res.status(409).send('User Already Exist. Please Login');
+      return res.status(409).send({error :'User Already Exist. Please Login'});
     }
 
     // Encrypt user password

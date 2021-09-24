@@ -1,14 +1,19 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
-import {Client as Styletron} from 'styletron-engine-atomic';
-import {Provider as StyletronProvider} from 'styletron-react';
-import {LightTheme, BaseProvider, styled} from 'baseui';
-import {StatefulInput} from 'baseui/input';
-const engine = new Styletron();
+import { Client as Styletron } from 'styletron-engine-atomic';
+import { Provider as StyletronProvider } from 'styletron-react';
+import { LightTheme, BaseProvider, styled } from 'baseui';
+import { StatefulInput } from 'baseui/input';
 
-const Home = React.lazy(() => import('./Components/Home'));
-const CustomerLogin = React.lazy(() => import('./Components/CustomerLogin'));
+import Home from './Components/Home';
+import CustomerLogin from './Components/CustomerLogin';
+import CustomerRegistration from './Components/CustomerRegistration';
+import { Toaster } from 'react-hot-toast'
+import RestaurantRegistration from './Components/RestaurantRegistration';
+import RestaurantLogin from './Components/RestaurantLogin';
+
+const engine = new Styletron();
 
 function App() {
   return (
@@ -16,12 +21,17 @@ function App() {
       <StyletronProvider value={engine}>
         <BaseProvider theme={LightTheme}>
           <React.Suspense fallback={<span> Loading...</span>}>
+            <Toaster />
             <Router>
               <Switch>
-                <Route path="/customerLogin" render={() => <CustomerLogin />} />
-                <Route path="/" render={() => <Home />} />
+                <Route path="/customerLogin" component={CustomerLogin} />
+                <Route path="/customerRegister" component={CustomerRegistration} />
+                <Route path="/restaurantLogin" component={ RestaurantLogin } />
+                <Route path="/restaurantRegister" component={RestaurantRegistration} />
+                {/* <Route path="/restaurant/dashboard" component={RestaurantDashboard} /> */}
+                <Route path="/" component={Home} />
               </Switch>
-              
+
             </Router>
           </React.Suspense>
         </BaseProvider>
