@@ -90,6 +90,7 @@ const createOrder = async (req, res) => {
 };
 
 const placeOrder = async (req, res) => {
+  console.log("Here");
   const { type, address, id } = req.body;
   try {
     const updateOrder = await orders.update(

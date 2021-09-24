@@ -50,7 +50,7 @@ const createCustomer = async (req, res) => {
     });
     // save customer token
     customer.token = token;
-    return res.status(201).json(token);
+    return res.status(201).json({token});
   } catch (err) {
     return res.status(400).send(err);
   }
@@ -81,7 +81,7 @@ const customerLogin = async (req, res) => {
           expiresIn: '2h',
         });
         cust.token = token;
-        res.status(201).json(token);
+        res.status(201).json({token});
       } else {
         return res.json({ success: false, message: 'passwords do not match' });
       }

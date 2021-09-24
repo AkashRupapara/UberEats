@@ -8,6 +8,7 @@ import {StatefulInput} from 'baseui/input';
 const engine = new Styletron();
 
 const Home = React.lazy(() => import('./Components/Home'));
+const CustomerLogin = React.lazy(() => import('./Components/CustomerLogin'));
 
 function App() {
   return (
@@ -17,8 +18,10 @@ function App() {
           <React.Suspense fallback={<span> Loading...</span>}>
             <Router>
               <Switch>
+                <Route path="/customerLogin" render={() => <CustomerLogin />} />
                 <Route path="/" render={() => <Home />} />
               </Switch>
+              
             </Router>
           </React.Suspense>
         </BaseProvider>

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
-const { dishes, dish_imgs, sequelize } = require('../models/data.model');
+const { dishes, dish_imgs, sequelize, restaurants } = require('../models/data.model');
 
 const createDish = async (req, res) => {
   try {
@@ -128,13 +128,27 @@ const deleteDish = async (req, res) => {
   const dishId = req.params.did;
   if (!dishId) return res.status(404).send('Dish Does not Exist');
 
+  const restId = req.headers.id;
+  const findDish = await dishes.findOne({
+    where: {
+      r_id: restId,
+      d_id: dishId,
+    }
+  });
+
+  console.log(findDish)
+
   try {
-    await dishes.destroy({
-      where: {
-        d_id: dishId,
-      },
-    });
-    res.status(201).send('Dish Deleted');
+    if (findDish) {
+      await findDish.destroy({
+        where: {
+          d_id: dishId,
+        },
+      });
+      return res.status(201).send({ error: 'Dish Deleted' });
+    } else {
+      return res.status(404).send({ error: 'Dish Not Found' })
+    }
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -142,9 +156,12 @@ const deleteDish = async (req, res) => {
 
 const getDishById = async (req, res) => {
   const dishId = req.params.did;
+  const restId = req.headers.id;
+
+
   const dish = await dishes.findOne({
     include: dish_imgs,
-    where: { d_id: dishId },
+    where: { d_id: dishId, r_id: restId },
   });
 
   if (!dish) return res.status(404).send('Dish not found');
@@ -154,6 +171,7 @@ const getDishById = async (req, res) => {
 const getAllDishes = async (req, res) => {
   const rid = req.headers.id;
   const dishDetails = await dishes.findAll({
+    include: dish_imgs,
     where: {
       r_id: rid,
     },

@@ -20,7 +20,7 @@ const createRestaurant = async (req, res) => {
 
     // Validate user input
     if (!(name && email && password)) {
-      res.status(400).send('All input is required');
+      res.status(400).send({error: 'All input is required'});
     }
     // check if Restaurant already exist
     // Validate if user exist in our database
@@ -31,7 +31,7 @@ const createRestaurant = async (req, res) => {
     });
 
     if (oldRes) {
-      res.status(409).send('Restaurant Already Exist. Please Login');
+      res.status(409).send({error: 'Restaurant Already Exist. Please Login'});
     } else {
       // Encrypt user password
       const encryptedPassword = await bcrypt.hash(password, 10);
@@ -71,7 +71,7 @@ const createRestaurant = async (req, res) => {
           expiresIn: '2h',
         });
         await t.commit();
-        res.status(201).json(token);
+        res.status(201).json({token});
       } catch (error) {
         await t.rollback();
         res.status(404).send(error);
@@ -109,7 +109,7 @@ const restaurantLogin = async (req, res) => {
         });
         // save customer token
         rest.token = token;
-        return res.status(201).json(token);
+        return res.status(201).json({token});
       }
       // response is OutgoingMessage object that server response http request
       return res.json({ success: false, message: 'passwords do not match' });
