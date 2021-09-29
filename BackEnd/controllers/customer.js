@@ -3,7 +3,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const { customers, orders, customer_address } = require('../models/data.model');
+const { customers, orders, customer_address, fvrts, restaurants} = require('../models/data.model');
 
 const createCustomer = async (req, res) => {
   try {
@@ -218,6 +218,7 @@ const getCustomerProfile = async (req, res) => {
     },
   });
 
+  console.log(cust)
   if (!cust) {
     return res.status(404).send('Customer does not exists');
   }
@@ -253,6 +254,85 @@ const getAllCustomers = async (req, res) => {
   return res.status(201).send(custs);
 };
 
+const addToFavorites = async (req, res) => {
+  const custId = req.headers.id;
+  const restId = req.body.rid;
+  if(!custId){
+    return res.status(404).send({error: 'Customer Id Not FOund'});
+  }
+
+  
+  try{
+    const findRest = await restaurants.findOne({
+      where: {
+        r_id: restId,
+      }
+    });
+  
+    if(!findRest){
+      return res.status(404).send({error: 'Restaurant do not exist'});
+    }
+  
+    const existingFvrt = await fvrts.findOne({
+      where: {
+        c_id: custId,
+        r_id: restId,
+      }
+    });
+    
+    if(existingFvrt){
+      return res.status(409).send({error: 'Restaurant is already added to fvrts'});
+    }
+    const addFavorite = await fvrts.create({
+      r_id: restId,
+      c_id: custId
+    });
+  } catch(err){
+    return res.status(500).send(err);
+  }
+  
+  return res.status(200).send({message: 'Added to Favorites'})
+}
+
+const deleteFromFavorites = async (req, res) => {
+  const custId = req.headers.id;
+  const restId = req.params.rid;
+  if(!custId){
+    return res.status(404).send({error: 'Customer Id Not FOund'});
+  }
+
+  try{
+    await fvrts.destroy({
+      r_id: restId,
+      c_id: custId
+    });
+  } catch(err){
+    return res.status(500).send(err);
+  }
+  
+  return res.status(200).send({message: 'Removed from Favorites'})
+}
+
+const getAllFavorites = async (req, res) => {
+  const custId = req.headers.id;
+  console.log('HERERE')
+  if(!custId){
+    return res.status(404).send({error: 'Customer Id Not Found'});
+  }
+
+  try {
+    const custFvrts = await fvrts.findAll({
+      c_id: custId,
+    });
+
+    return res.status(200).send(custFvrts);
+  } catch (err) {
+    return res.status(500).send(err);
+
+  }
+}
+
+
 module.exports = {
   createCustomer,
   customerLogin,
@@ -263,4 +343,7 @@ module.exports = {
   getAllCustomers,
   addAddress,
   getAddress,
+  addToFavorites,
+  deleteFromFavorites,
+  getAllFavorites,
 };

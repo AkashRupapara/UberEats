@@ -35,7 +35,7 @@ const accessControl = require('./controllers/accessController');
 app.use('/auth', authRouter);
 
 app.use(validateToken);
-app.use(getAccessMiddleware(accessControl));
+// app.use(getAccessMiddleware(accessControl));
 
 app.use('/restaurant', restaurant);
 app.use('/dishes', dishes);

@@ -24,4 +24,6 @@ module.exports = {
   'PUT /restaurant/(.+)': ['restaurant'],
   'DELETE /restaurant/(.+)': ['admin'],
   'GET /restaurant/(.+)': ['restaurant', 'customer'],
+
+  
 };

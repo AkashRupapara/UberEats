@@ -8,6 +8,7 @@ const {
   dish_imgs,
   dishes,
   sequelize,
+  restaurant_imgs,
 } = require('../models/data.model');
 
 // const { body, validationResult } = require('express-validator');
@@ -20,7 +21,7 @@ const createRestaurant = async (req, res) => {
 
     // Validate user input
     if (!(name && email && password)) {
-      res.status(400).send({error: 'All input is required'});
+      res.status(400).send({ error: 'All input is required' });
     }
     // check if Restaurant already exist
     // Validate if user exist in our database
@@ -31,7 +32,7 @@ const createRestaurant = async (req, res) => {
     });
 
     if (oldRes) {
-      res.status(409).send({error: 'Restaurant Already Exist. Please Login'});
+      res.status(409).send({ error: 'Restaurant Already Exist. Please Login' });
     } else {
       // Encrypt user password
       const encryptedPassword = await bcrypt.hash(password, 10);
@@ -71,7 +72,7 @@ const createRestaurant = async (req, res) => {
           expiresIn: '2h',
         });
         await t.commit();
-        res.status(201).json({token});
+        res.status(201).json({ token });
       } catch (error) {
         await t.rollback();
         res.status(404).send(error);
@@ -109,7 +110,7 @@ const restaurantLogin = async (req, res) => {
         });
         // save customer token
         rest.token = token;
-        return res.status(201).json({token});
+        return res.status(201).json({ token });
       }
       // response is OutgoingMessage object that server response http request
       return res.json({ success: false, message: 'passwords do not match' });
@@ -118,8 +119,10 @@ const restaurantLogin = async (req, res) => {
 };
 
 const updateRestaurant = async (req, res) => {
+
   try {
     const restId = req.params.rid;
+    const imgLink = req.body.link;
     const rest = await restaurants.findOne({
       where: {
         r_id: restId,
@@ -161,7 +164,7 @@ const updateRestaurant = async (req, res) => {
         },
         { transaction: t },
       );
-      if (req.body.dih_types) {
+      if (req.body.dish_types) {
         const dishTypes = req.body.dish_types.map((ele) => ({
           r_id: restId,
           rdt_type: ele,
@@ -178,7 +181,10 @@ const updateRestaurant = async (req, res) => {
           transaction: t,
         });
       }
+
+
       await t.commit();
+      return res.status(200).send({ message: 'Restaurant Updated' });
     } catch (err) {
       await t.rollback();
       res.status(404).send(err);
@@ -211,6 +217,49 @@ const deleteRestaurant = async (req, res) => {
   }
 };
 
+const addRestaurantImage = async (req, res) => {
+  const restId = req.headers.id;
+  const imgLink = req.body.link;
+  if (imgLink) {
+    const addImage = await restaurant_imgs.create(
+      {
+        ri_img: imgLink,
+        r_id: restId,
+        ri_alt_text: 'Restaurant Image',
+      },
+    );
+    return res.status(200).send(addImage);
+  }else {
+    return res.status(500).send({error: 'Could not add Image'});
+  }
+
+  
+};
+
+const deleteRestaurantImage = async (req, res) => {
+  const restId = req.headers.id;
+  const id = req.params.imgId;
+
+  const img = await restaurant_imgs.findOne({
+    where: {
+      ri_id: id,
+      r_id: restId,
+    },
+  });
+
+  if(!img){
+    return res.status(404).send({error: 'Image not found'});
+  }
+
+  try{
+    await img.destroy();
+    return res.status(200).send({message: 'Restaurant Image deleted'});
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+  
+};
+
 const getRestaurantDetails = async (req, res) => {
   const restId = req.params.rid;
   if (!restId) return res.status(404).send('Provide Restaurant ID');
@@ -218,9 +267,14 @@ const getRestaurantDetails = async (req, res) => {
   const restDetails = await restaurants.findOne({
     include: [
       {
+        model: restaurant_dishtypes,
+      },
+      {
+        model: restaurant_imgs,
+      },{
         model: dishes,
         include: dish_imgs,
-      },
+      }
     ],
     where: {
       r_id: restId,
@@ -234,4 +288,6 @@ module.exports = {
   updateRestaurant,
   deleteRestaurant,
   getRestaurantDetails,
+  deleteRestaurantImage,
+  addRestaurantImage,
 };

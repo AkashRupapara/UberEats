@@ -6,6 +6,7 @@ import { Input } from 'baseui/input';
 import axiosInstance from '../axiosConfig';
 import { useDispatch } from 'react-redux';
 import { loginRestaurantRequest, loginRestaurantSuccess, loginRestaurantFailure } from '../actions/restaurant'
+import { useHistory } from 'react-router';
 
 function RestaurantLogin() {
   const [emailId, setEmailId] = React.useState('');

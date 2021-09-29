@@ -9,6 +9,8 @@ const {
   updateRestaurant,
   deleteRestaurant,
   getRestaurantDetails,
+  deleteRestaurantImage,
+  addRestaurantImage,
 } = require('../controllers/restaurant');
 const { restaurantValidationRules, validator } = require('../controllers/validator');
 
@@ -19,4 +21,6 @@ router.put('/:rid', restaurantValidationRules(), validator, updateRestaurant);
 // Delete Restaurant
 router.delete('/:rid', deleteRestaurant);
 router.get('/:rid', getRestaurantDetails);
+router.post('/restImages/', addRestaurantImage)
+router.delete('/restImages/:imgId', deleteRestaurantImage);
 module.exports = router;

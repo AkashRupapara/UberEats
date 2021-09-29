@@ -37,6 +37,7 @@ const restaurantValidationRules = () => [
   body('state').optional({ nullable: true }).isString().withMessage('Enter Valid State'),
   body('zipcode').optional({ nullable: true }).isNumeric().withMessage('Enter Valid Zipcode'),
   body('del_type').optional({ nullable: true }).isString().withMessage('Enter Valid Delivery Type'),
+  body('link').optional({ nullable: true }).isString().withMessage('Enter Valid Image Link'),
   body('contact')
     .optional({ nullable: true })
     .isString()

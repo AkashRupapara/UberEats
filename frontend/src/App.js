@@ -12,6 +12,9 @@ import CustomerRegistration from './Components/CustomerRegistration';
 import { Toaster } from 'react-hot-toast'
 import RestaurantRegistration from './Components/RestaurantRegistration';
 import RestaurantLogin from './Components/RestaurantLogin';
+import RestaurantDashboard from './Components/RestaurantDashboard'
+import MediaUploader from './Components/MediaUploader';
+import UpdateRestaurant from './Components/UpdateRestaurant';
 
 const engine = new Styletron();
 
@@ -28,7 +31,10 @@ function App() {
                 <Route path="/customerRegister" component={CustomerRegistration} />
                 <Route path="/restaurantLogin" component={ RestaurantLogin } />
                 <Route path="/restaurantRegister" component={RestaurantRegistration} />
-                {/* <Route path="/restaurant/dashboard" component={RestaurantDashboard} /> */}
+                <Route path="/restaurant/dashboard" component={RestaurantDashboard} />
+                <Route path="/restaurant/update" component={UpdateRestaurant} />
+                <Route path="/mediaUploader" component={MediaUploader} />
+                
                 <Route path="/" component={Home} />
               </Switch>
 
