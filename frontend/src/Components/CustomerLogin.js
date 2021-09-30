@@ -6,6 +6,7 @@ import { Input } from 'baseui/input';
 import axiosInstance from '../axiosConfig';
 import { useDispatch } from 'react-redux';
 import { loginCustomerRequest, loginCustomerSuccess, loginCustomerFailure } from '../actions/customer';
+const jwt = require('jsonwebtoken')
 
 function CustomerLogin() {
   const [emailId, setEmailId] = React.useState('');
@@ -22,7 +23,12 @@ function CustomerLogin() {
         password: password,
       }
       const response = await axiosInstance.post('auth/login', data)
-      dispatch(loginCustomerSuccess(response));
+      const tokenData = jwt.decode(response.data.token);
+      
+      const id = tokenData.c_id;
+
+      dispatch(loginCustomerSuccess(id, response.data.token));
+
       localStorage.setItem('token', response.data.token)
     } catch (err) {
       console.log(err)

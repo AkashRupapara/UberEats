@@ -5,10 +5,10 @@ import { Button, SHAPE } from 'baseui/button';
 import { Input } from 'baseui/input';
 import axiosInstance from '../axiosConfig';
 import { useDispatch } from 'react-redux';
-import { registerRestaurantRequest, registerRestaurantSuccess, registerRestaurantFailure} from '../actions/restaurant'
-import {Datepicker} from 'baseui/datepicker';
+import { registerRestaurantRequest, registerRestaurantSuccess, registerRestaurantFailure } from '../actions/restaurant'
+import { Datepicker } from 'baseui/datepicker';
 import toast from 'react-hot-toast';
-
+const jwt = require('jsonwebtoken')
 
 function RestaurantRegistration() {
     const [emailId, setEmailId] = React.useState('');
@@ -35,10 +35,16 @@ function RestaurantRegistration() {
                 name: name,
             }
             const response = await axiosInstance.post('auth/resregister', data)
-            dispatch(registerRestaurantSuccess(response));
+
+            const tokenData = jwt.decode(response.data.token);
+
+            const id = tokenData.r_id;
+
+            dispatch(registerRestaurantSuccess(id, response.data.token));
+
             localStorage.setItem('token', response.data.token)
         } catch (err) {
-            toast.error(err.response.data.error)                    
+            toast.error(err.response.data.error)
             dispatch(registerRestaurantFailure(err.response.data.error));
         }
     }
@@ -86,7 +92,7 @@ function RestaurantRegistration() {
                 </div>
             </form>
             <br></br>
-            <p style={{ fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large' }}> Already use UberEats ? <a href="/restaurantLogin" style={{color: 'green', textDecoration: 'none'}}> login </a></p>
+            <p style={{ fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large' }}> Already use UberEats ? <a href="/restaurantLogin" style={{ color: 'green', textDecoration: 'none' }}> login </a></p>
         </div>
     );
 }

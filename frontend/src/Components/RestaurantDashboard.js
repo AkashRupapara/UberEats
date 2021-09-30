@@ -6,10 +6,22 @@ import axiosInstance from '../axiosConfig';
 import SimpleImageSlider from "react-simple-image-slider";
 // import '../../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import '../../node_modules/react-responsive-carousel/lib/styles/carousel.css'
-import { Button, Card, Col, Row } from 'react-bootstrap';
+import { Button, Col, Card, Container, Row, CardGroup } from 'react-bootstrap';
 import Footer from './Footer';
 import RestaurantNavbar from './RestaurantNavbar';
+import { H1, H2, H3, H4, H5, H6 } from 'baseui/typography';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
+import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
+import { faClock } from '@fortawesome/free-solid-svg-icons'
+import { faUtensils } from '@fortawesome/free-solid-svg-icons'
+import { StyledBody, StyledAction } from 'baseui/card';
+
+
+
 const Carousel = require('react-responsive-carousel').Carousel
+
+
 
 // import { Carousel } from 'react-responsive-carousel';
 
@@ -58,7 +70,6 @@ const RestaurantDashboard = () => {
     };
     const [images, setimages] = useState([]);
     const [restDetails, setRestDetails] = useState({});
-    console.log(images);
 
     useEffect(() => {
         const token = localStorage.getItem("token")
@@ -116,6 +127,7 @@ const RestaurantDashboard = () => {
             });
 
             restData["dishType"] = dishTypes;
+            restData["dishes"] = res.data.dishes;
 
             setRestDetails({
                 ...restDetails,
@@ -128,6 +140,9 @@ const RestaurantDashboard = () => {
 
     }, [])
 
+    console.log("lalalalala")
+
+    console.log(restDetails.dishes)
     return (
         <div>
             <RestaurantNavbar />
@@ -139,42 +154,50 @@ const RestaurantDashboard = () => {
                     </div>
                 ))}
             </Carousel>
-            <center>
-                <Card className="text-center" style={{ width: "50%", borderRadius: "20px" }}>
-                    <Card.Header><h3>Description</h3></Card.Header>
-                    <Card.Body>
-                        <Card.Title><h2><b>{restDetails.name}</b></h2></Card.Title>
-                        <Card.Text >
-                            <i>
-                                <Row>
-                                    <Col>
-                                        <h3>:: <u>Description </u>:: </h3>
-                                        <h4>{restDetails.desc}</h4>
-                                    </Col>
-                                    <Col>
-                                        <h3>:: <u> Address </u> :: </h3>
-                                        <h4>{restDetails.address}</h4>
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col>
-                                        <h3>:: <u> Timings </u> :: </h3>
-                                        <h4>{restDetails.openTime}</h4>
-                                    </Col>
-                                    <Col>
-                                        <h3>:: <u> Dish Types Available </u> :: </h3>
-                                        <h4>{restDetails.dishType}</h4>
-                                    </Col>
-                                </Row>
-                            </i>
-                        </Card.Text>
-                    </Card.Body>
-                    {/* <Card.Footer className="text-muted">2 days ago</Card.Footer> */}
-                </Card>
-            </center>
+            <div style={{ textAlign: "left", marginLeft: "2%" }}>
+                <H2> {restDetails.name} ({restDetails.deliveryType})</H2>
+                <H4>{restDetails.desc}</H4>
+                <H4>
+                    <FontAwesomeIcon icon={faMapMarkerAlt} />  {restDetails.address}</H4>
+
+                <H4><FontAwesomeIcon icon={faClock} /> {restDetails.openTime}</H4>
+
+                <H4> <FontAwesomeIcon icon={faUtensils} />  {restDetails.dishType}</H4>
+            </div>
+            <div>
+                <H3> DISHES </H3>
+                <Container fluid>
+                    <Row>
+                        {restDetails.dishes?.length > 0 ? (
+                            restDetails.dishes.map((ele) => (
+                                <Col xs={3} key={index} style={{ marginTop: '30px' }}>
+                                    <Card>
+                                        <Card.Img variant="top" src={ele.dish_imgs[0].di_img} style={{height: "300px"}} />
+                                        <Card.Body>
+                                            <Card.Title>{ele.d_name}</Card.Title>
+                                            <Card.Text>
+                                                Ingredients: {ele.d_ingredients} <br></br>
+                                                Description: {ele.d_desc} <br></br>
+                                                Dish Type: {ele.d_type}<br></br>
+                                                Category: {ele.d_category}
+                                            </Card.Text>
+                                        </Card.Body>
+                                        <Card.Footer>
+                                            <H3>$ {ele.d_price} </H3>
+                                            <button> Hello </button>
+                                        </Card.Footer>
+                                    </Card>
+                                </Col>
+                        ))): <div></div>}
+                    </Row>
+                </Container>
+                
+
+            </div>
+
             <Footer />
         </div>
     );
 }
 
-export default RestaurantDashboard;
+export default RestaurantDashboard

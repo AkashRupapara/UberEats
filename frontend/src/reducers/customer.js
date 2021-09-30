@@ -1,21 +1,23 @@
+import { CUSTOMER_LOGIN_SUCCESS, CUSTOMER_LOGIN_FAILURE, CUSTOMER_LOGIN_REQUEST, CUSTOMER_REGISTER_FAILURE, CUSTOMER_REGISTER_REQUEST, CUSTOMER_REGISTER_SUCCESS } from "../actions/types";
+
 const initState = {
-    token: '',
+    customer: {},
     error: '',
 };
 
 const customerReducer = (state = initState, action) => {
     switch (action.type) {
-        case 'CUSTOMER_LOGIN_REQUEST':
+        case CUSTOMER_LOGIN_REQUEST:
             return state;
-        case 'CUSTOMER_LOGIN_SUCCESS':
-            return { ...state, token: action.payload.data.token };
-        case 'CUSTOMER_LOGIN_FAILURE':
+        case CUSTOMER_LOGIN_SUCCESS:
+            return { ...state, customer: action.payload };
+        case CUSTOMER_LOGIN_FAILURE:
             return { ...state, error: action.payload };
-        case 'CUSTOMER_REGISTER_REQUEST':
+        case CUSTOMER_REGISTER_REQUEST:
             return state;
-        case 'CUSTOMER_REGISTER_SUCCESS':
-            return { ...state, token: action.payload.data.token };
-        case 'CUSTOMER_REGISTER_FAILURE':
+        case CUSTOMER_REGISTER_SUCCESS:
+            return { ...state, customer: action.payload };
+        case CUSTOMER_REGISTER_FAILURE:
             return { ...state, error: action.payload };
         default:
             return state;

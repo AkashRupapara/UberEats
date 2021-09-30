@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 import { registerCustomerRequest, registerCustomerSuccess, registerCustomerFailure } from '../actions/customer';
 import {Datepicker} from 'baseui/datepicker';
 import toast from 'react-hot-toast';
-
+const jwt = require('jsonwebtoken')
 
 function CustomerRegistration() {
     const [emailId, setEmailId] = React.useState('');
@@ -35,7 +35,11 @@ function CustomerRegistration() {
                 name: name,
             }
             const response = await axiosInstance.post('auth/register', data)
-            dispatch(registerCustomerSuccess(response));
+            const tokenData = jwt.decode(response.data.token);
+            const id = tokenData.c_id;
+
+            dispatch(registerCustomerSuccess(id, response.data.token));
+            
             localStorage.setItem('token', response.data.token)
         } catch (err) {
             toast.error(err.response.data.error)                    

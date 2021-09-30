@@ -13,6 +13,7 @@ import {
 
 import "../assets/css/restaurantHome.css";
 import axiosInstance from "../axiosConfig";
+import {H1, H2, H3, H4, H5, H6} from 'baseui/typography';
 
 
 import "../../node_modules/react-responsive-carousel/lib/styles/carousel.css";
@@ -74,78 +75,9 @@ function UpdateRestaurant() {
             .then((res) => {
                 console.log(res.data);
                 setimages(res.data.restaurant_imgs);
-                const restData = {};
-                restData["name"] = res.data.r_name;
-                let address =
-                    res.data.r_address_line +
-                    ", " +
-                    res.data.r_city +
-                    ", " +
-                    res.data.r_state +
-                    " - " +
-                    res.data.r_zipcode;
-                restData["address"] = address;
-                restData["desc"] = res.data.r_desc;
-                restData["contactNo"] =
-                    res.data.r_contact;
+                setformDetails(res.data)
 
-                if (res.data.r_delivery_type === "both") {
-                    restData["deliveryType"] =
-                        "Pickup and Delivery";
-                } else {
-                    restData["deliveryType"] =
-                        res.data.r_delivery_type;
-                }
-
-                let splitStartTime =
-                    res.data.r_start.split(":");
-
-                let startTime;
-                if (parseInt(splitStartTime[0]) >= 12) {
-                    startTime =
-                        String(splitStartTime[0] - 12) +
-                        ":" +
-                        String(splitStartTime[1] + " PM");
-                } else {
-                    startTime =
-                        String(splitStartTime[0]) +
-                        ":" +
-                        String(splitStartTime[1] + " AM");
-                }
-
-                let splitEndTime =
-                    res.data.r_end.split(":");
-                let endTime;
-                if (parseInt(splitEndTime[0]) >= 12) {
-                    endTime =
-                        String(splitEndTime[0] - 12) +
-                        ":" +
-                        String(splitEndTime[1] + " PM");
-                } else {
-                    endTime =
-                        String(splitEndTime[0]) +
-                        ":" +
-                        String(splitEndTime[1] + " AM");
-                }
-
-                let timings =
-                    startTime + " to " + endTime;
-                restData["openTime"] = timings;
-
-                let dishTypes = "";
-                res.data.restaurant_dishtypes.forEach(
-                    (ele) => {
-                        dishTypes =
-                            dishTypes + ele.rdt_type + " ";
-                    }
-                );
-
-                restData["dishType"] = dishTypes;
-
-                setRestDetails({
-                    ...restDetails,
-                    ...restData,
-                });
+            
             });
         // setRestName(response.data.r_name)
         // console.log(response.data.restaurant_imgs)
@@ -156,7 +88,7 @@ function UpdateRestaurant() {
         e.preventDefault();
 
         const dishTypes = [];
-        const newDishType = formDetails.dish_type.forEach(ele => {
+         formDetails.dish_type.forEach(ele => {
             dishTypes.push(ele.dish_type);
         });
 
@@ -200,6 +132,9 @@ function UpdateRestaurant() {
 
     };
 
+    console.log("PRINT")
+
+    console.log(formDetails);
     return (
         <div>
             <RestaurantNavbar />
@@ -224,7 +159,7 @@ function UpdateRestaurant() {
                 </Col>
                 <Col>
                     <h2>
-                        <b> Details </b>
+                        <H2> Details </H2>
                     </h2>
                     <form onSubmit={updateRest}>
                         <FormControl label="Restaurant Name">
