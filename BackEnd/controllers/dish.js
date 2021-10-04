@@ -4,9 +4,7 @@ const { dishes, dish_imgs, sequelize, restaurants } = require('../models/data.mo
 
 const createDish = async (req, res) => {
   try {
-    const {
-      name, ingredients, price, desc, category, type, imgs,
-    } = req.body;
+    const { name, ingredients, price, desc, category, type, imgs } = req.body;
     const restID = req.headers.id;
 
     if (!(name && price && category && type)) {
@@ -59,9 +57,7 @@ const createDish = async (req, res) => {
 };
 
 const updateDish = async (req, res) => {
-  const {
-    name, ingredients, price, desc, category, type, imgs,
-  } = req.body;
+  const { name, ingredients, price, desc, category, type, imgs } = req.body;
   const dishId = req.params.did;
   const restId = req.headers.id;
 
@@ -133,10 +129,10 @@ const deleteDish = async (req, res) => {
     where: {
       r_id: restId,
       d_id: dishId,
-    }
+    },
   });
 
-  console.log(findDish)
+  console.log(findDish);
 
   try {
     if (findDish) {
@@ -146,9 +142,8 @@ const deleteDish = async (req, res) => {
         },
       });
       return res.status(201).send({ error: 'Dish Deleted' });
-    } else {
-      return res.status(404).send({ error: 'Dish Not Found' })
     }
+    return res.status(404).send({ error: 'Dish Not Found' });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -157,7 +152,6 @@ const deleteDish = async (req, res) => {
 const getDishById = async (req, res) => {
   const dishId = req.params.did;
   const restId = req.headers.id;
-
 
   const dish = await dishes.findOne({
     include: dish_imgs,

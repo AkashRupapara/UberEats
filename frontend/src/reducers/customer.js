@@ -7,17 +7,17 @@ const initState = {
 
 const customerReducer = (state = initState, action) => {
     switch (action.type) {
-        case CUSTOMER_LOGIN_REQUEST:
-            return state;
-        case CUSTOMER_LOGIN_SUCCESS:
-            return { ...state, customer: action.payload };
-        case CUSTOMER_LOGIN_FAILURE:
-            return { ...state, error: action.payload };
         case CUSTOMER_REGISTER_REQUEST:
             return state;
         case CUSTOMER_REGISTER_SUCCESS:
             return { ...state, customer: action.payload };
         case CUSTOMER_REGISTER_FAILURE:
+            return { ...state, error: action.payload };
+        case CUSTOMER_LOGIN_REQUEST:
+            return state;
+        case CUSTOMER_LOGIN_SUCCESS:
+            return { ...state, customer: action.payload };
+        case CUSTOMER_LOGIN_FAILURE:
             return { ...state, error: action.payload };
         default:
             return state;
