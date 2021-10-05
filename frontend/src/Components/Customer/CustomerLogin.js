@@ -1,11 +1,11 @@
 import React from 'react';
-import logo from '../assets/images/ubereats.png';
-import '../assets/css/home.css'
+import logo from '../../assets/images/ubereats.png';
+import '../../assets/css/home.css'
 import { Button, SHAPE } from 'baseui/button';
 import { Input } from 'baseui/input';
-import axiosInstance from '../axiosConfig';
+import axiosInstance from '../../axiosConfig';
 import { useDispatch } from 'react-redux';
-import { loginCustomerRequest, loginCustomerSuccess, loginCustomerFailure } from '../actions/customer';
+import { loginCustomerRequest, loginCustomerSuccess, loginCustomerFailure } from '../../actions/customer';
 const jwt = require('jsonwebtoken')
 
 function CustomerLogin() {

@@ -1,7 +1,8 @@
 import React from 'react'
 import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.css';
-import restLogo from '../assets/images/ubereats-restaurant-logo.png'
+import restLogo from '../../assets/images/ubereats-restaurant-logo.png'
+import '../../assets/css/restaurantHome.css';
 
 const RestaurantNavbar = () => {
     return (

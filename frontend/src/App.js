@@ -7,14 +7,14 @@ import { LightTheme, BaseProvider, styled } from 'baseui';
 import { StatefulInput } from 'baseui/input';
 
 import Home from './Components/Home';
-import CustomerLogin from './Components/CustomerLogin';
-import CustomerRegistration from './Components/CustomerRegistration';
+import CustomerLogin from './Components/Customer/CustomerLogin';
+import CustomerRegistration from './Components/Customer/CustomerRegistration';
 import { Toaster } from 'react-hot-toast'
-import RestaurantRegistration from './Components/RestaurantRegistration';
-import RestaurantLogin from './Components/RestaurantLogin';
-import RestaurantDashboard from './Components/RestaurantDashboard'
+import RestaurantRegistration from './Components/Restaurant/RestaurantRegistration';
+import RestaurantLogin from './Components/Restaurant/RestaurantLogin';
+import RestaurantDashboard from './Components/Restaurant/RestaurantDashboard'
 import MediaUploader from './Components/MediaUploader';
-import UpdateRestaurant from './Components/UpdateRestaurant';
+import UpdateRestaurant from './Components/Restaurant/UpdateRestaurant';
 
 const engine = new Styletron();
 
@@ -22,7 +22,7 @@ function App() {
   return (
     <div className="App">
       <StyletronProvider value={engine}>
-        <BaseProvider theme={LightTheme}>
+        <BaseProvider theme={LightTheme} zIndex={1500}>
           <React.Suspense fallback={<span> Loading...</span>}>
             <Toaster />
             <Router>

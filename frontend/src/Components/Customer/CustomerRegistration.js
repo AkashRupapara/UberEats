@@ -1,11 +1,11 @@
 import React from 'react';
-import logo from '../assets/images/ubereats.png';
-import '../assets/css/home.css'
+import logo from '../../assets/images/ubereats.png';
+import '../../assets/css/home.css'
 import { Button, SHAPE } from 'baseui/button';
 import { Input } from 'baseui/input';
-import axiosInstance from '../axiosConfig';
+import axiosInstance from '../../axiosConfig';
 import { useDispatch } from 'react-redux';
-import { registerCustomerRequest, registerCustomerSuccess, registerCustomerFailure } from '../actions/customer';
+import { registerCustomerRequest, registerCustomerSuccess, registerCustomerFailure } from '../../actions/customer';
 import {Datepicker} from 'baseui/datepicker';
 import toast from 'react-hot-toast';
 const jwt = require('jsonwebtoken')

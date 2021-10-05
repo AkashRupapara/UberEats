@@ -7,14 +7,13 @@ import {
     Redirect,
     useHistory,
 } from "react-router";
+import '../../assets/css/restaurantHome.css';
 
 import { uploadFile } from 'react-s3'
-import axiosInstance from "../axiosConfig";
+import axiosInstance from "../../axiosConfig";
 import { H1, H2, H3, H4, H5, H6 } from 'baseui/typography';
 import { FileUploader } from 'baseui/file-uploader';
 
-
-import "../../node_modules/react-responsive-carousel/lib/styles/carousel.css";
 import {
     Button,
     Col,
@@ -55,7 +54,7 @@ function UpdateRestaurant() {
         {}
     );
 
-    const [isLoading, setLoading] = useState(false);
+    const [isUpdating, setUpdating] = useState(false);
 
 
     const getRestData = () => {
@@ -90,7 +89,6 @@ function UpdateRestaurant() {
                     tempArr.push({ dish_type: ele.rdt_type })
                 });
 
-                console.log("ASjkdknasdjfksa")
                 console.log(tempArr)
 
                 newDataObject["dish_type"] = tempArr;
@@ -117,7 +115,7 @@ function UpdateRestaurant() {
 
     const updateRest = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setUpdating(true);
         const dishTypes = [];
         formDetails.dish_type.forEach(ele => {
             dishTypes.push(ele.dish_type);
@@ -159,7 +157,7 @@ function UpdateRestaurant() {
                     Authorization: token,
                 }
             });
-            setLoading(false);
+            setUpdating(false);
             toast.success("UPDATED")
             getRestData()
         } catch (err) {
@@ -213,19 +211,10 @@ function UpdateRestaurant() {
             <RestaurantNavbar />
             <Row>
                 <Col>
-                    <Carousel showArrows={true}>
+                    <Carousel showArrows={true} showThumbs={false}>
                         {images.map((ele) => (
-                            <div style={{ height: "800px" }}>
+                            <div style={{ height: "500px" }}>
                                 <img src={ele.ri_img} />
-                                <p
-                                    className="legend"
-                                    style={{
-                                        height: "80px",
-                                        fontSize: "30px",
-                                    }}
-                                >
-                                    {restDetails.name}
-                                </p>
                             </div>
                         ))}
                     </Carousel>
@@ -452,10 +441,10 @@ function UpdateRestaurant() {
 
                             <Button
                                 variant="primary"
-                                disabled={isLoading}
+                                disabled={isUpdating}
                                 type="submit"
                             >
-                                {isLoading ? 'Loading…' : 'Click to Upload'}
+                                {isUpdating ? 'Updating…' : 'Click to Update'}
                             </Button>
                         </form>
                     </center>

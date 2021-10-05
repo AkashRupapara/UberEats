@@ -1,7 +1,7 @@
 module.exports = {
-  HOST: 'localhost',
+  HOST: 'ubereats.c6tdv69otwaf.us-east-1.rds.amazonaws.com',
   USER: 'root',
-  PASSWORD: 'akash1743a',
+  PASSWORD: 'Akash1743a',
   DB: 'ubereats',
   dialect: 'mysql',
   pool: {

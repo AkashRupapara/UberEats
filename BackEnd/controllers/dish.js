@@ -176,10 +176,57 @@ const getAllDishes = async (req, res) => {
   return res.status(201).send(dishDetails);
 };
 
+const insertDishImage = async (req, res) => {
+  const restId = req.headers.id;
+  const dishId = req.params.did;
+  const imageLink = req.body.img;
+
+  if (!dishId) return res.status(403).send('Provide all Details');
+  const existDish = await dishes.findOne({
+    where: {
+      d_id: dishId,
+      r_id: restId,
+    },
+  });
+
+  if (!existDish) return res.status(404).send('Dish Does not exist!!');
+
+  await dish_imgs.create({
+    di_img: imageLink,
+    di_alt_text: "Dish image",
+    d_id: dishId,
+  });
+
+  return res.status(201).send({message: "Dish image Added"})
+}
+
+const deleteDishImage = async (req, res) => {
+  const restId = req.headers.id;
+  const dishImageId = req.params.imgId;
+
+  const existDishImage = await dish_imgs.findOne({
+    where: {
+      di_id: dishImageId,
+    },
+  });
+
+  if (!existDishImage) return res.status(404).send('Dish Does not exist!!');
+
+  await dish_imgs.destroy({
+    where: {
+      di_id: dishImageId,
+    },
+  });
+  return res.status(201).send({message: "Dish image Deleted"})
+
+}
+
 module.exports = {
   createDish,
   updateDish,
   deleteDish,
   getDishById,
   getAllDishes,
+  insertDishImage,
+  deleteDishImage,
 };
