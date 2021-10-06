@@ -6,12 +6,17 @@ import { Input } from 'baseui/input';
 import axiosInstance from '../../axiosConfig';
 import { useDispatch } from 'react-redux';
 import { loginCustomerRequest, loginCustomerSuccess, loginCustomerFailure } from '../../actions/customer';
+import toast from 'react-hot-toast';
+import { useHistory } from 'react-router';
+
+
+
 const jwt = require('jsonwebtoken')
 
 function CustomerLogin() {
   const [emailId, setEmailId] = React.useState('');
   const [password, setPassword] = React.useState('');
-
+  const history = useHistory();
   const dispatch = useDispatch();
 
   const customerLogin = async (e) => {
@@ -28,18 +33,20 @@ function CustomerLogin() {
       const id = tokenData.c_id;
 
       dispatch(loginCustomerSuccess(id, response.data.token));
-
       localStorage.setItem('token', response.data.token)
+      history.push('/customer/dashboard');
+
     } catch (err) {
       console.log(err)
       dispatch(loginCustomerFailure(err));
+      toast.error("Error while Login! Please Try again");
     }
 
   }
 
   return (
     <div className="flexbox-container login">
-      <img src={logo} alt="Logo" style={{ width: '20%' }} />
+      <img src={logo} alt="Logo" onClick={()=> history.push('/')} style={{ width: '20%' }} />
       <h1 style={{  fontFamily: 'sans-serif' }}> Welcome Back </h1>
       <form onSubmit={customerLogin}>
         <div style={{ width: '40vw', margin: '2%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>

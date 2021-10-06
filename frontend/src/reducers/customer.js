@@ -1,4 +1,4 @@
-import { CUSTOMER_LOGIN_SUCCESS, CUSTOMER_LOGIN_FAILURE, CUSTOMER_LOGIN_REQUEST, CUSTOMER_REGISTER_FAILURE, CUSTOMER_REGISTER_REQUEST, CUSTOMER_REGISTER_SUCCESS } from "../actions/types";
+import { CUSTOMER_LOGIN_SUCCESS, CUSTOMER_LOGIN_FAILURE, CUSTOMER_LOGIN_REQUEST, CUSTOMER_REGISTER_FAILURE, CUSTOMER_REGISTER_REQUEST, CUSTOMER_REGISTER_SUCCESS, CUSTOMER_LOGOUT } from "../actions/types";
 
 const initState = {
     customer: {},
@@ -19,6 +19,9 @@ const customerReducer = (state = initState, action) => {
             return { ...state, customer: action.payload };
         case CUSTOMER_LOGIN_FAILURE:
             return { ...state, error: action.payload };
+        case CUSTOMER_LOGOUT:
+            localStorage.removeItem("token");
+            return initState;
         default:
             return state;
     }

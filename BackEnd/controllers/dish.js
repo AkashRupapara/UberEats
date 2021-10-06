@@ -161,7 +161,7 @@ const deleteDish = async (req, res) => {
           d_id: dishId,
         },
       });
-      return res.status(201).send({ error: "Dish Deleted" });
+      return res.status(201).send({ message: "Dish Deleted" });
     }
     return res.status(404).send({ error: "Dish Not Found" });
   } catch (err) {

@@ -17,10 +17,10 @@ function Home(props) {
       toast.error("Select a role first!");
     }
     else if (role[0].label === "Restaurant") {
-      history.push("/restaurantLogin");
+      history.push("/restaurant/login");
     }
     else if (role[0].label === "Customer") {
-      history.push("/customerLogin");
+      history.push("/customer/login");
     }
     
   }
@@ -31,10 +31,10 @@ function Home(props) {
       toast.error("Select a role first!");
     }
     else if (role[0].label === "Restaurant") {
-      history.push("/restaurantRegister");
+      history.push("/restaurant/register");
     }
     else if (role[0].label === "Customer") {
-      history.push("/customerRegister");
+      history.push("/customer/register");
     }
   }
 
@@ -45,7 +45,7 @@ function Home(props) {
         <div>
           <Select
             options={[
-              { label: "Restaurant", id: "#F0F8FF" },
+              { label: "Restaurant", id: "#F0F8FF",},
               { label: "Customer", id: "#FAEBD7" }
             ]}
             value={role}

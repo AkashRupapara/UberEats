@@ -29,6 +29,9 @@ import { FileUploader } from "baseui/file-uploader";
 import UpdateDishModal from "../Dishes/UpdateDishModal";
 import { useSelector } from "react-redux";
 import AddDishModal from "../Dishes/AddDishModal";
+import { useDispatch } from "react-redux";
+import { dishCreateSuccess, dishDeleteSuccess } from "../../actions/dish";
+import { restaurantLogout } from "../../actions/restaurant";
 
 const Carousel = require("react-responsive-carousel").Carousel;
 
@@ -42,7 +45,7 @@ const RestaurantDashboard = () => {
 
   const history = useHistory();
   const [index, setIndex] = useState(0);
-
+  const dispatch = useDispatch();
   const handleSelect = (selectedIndex, e) => {
     setIndex(selectedIndex);
   };
@@ -51,14 +54,23 @@ const RestaurantDashboard = () => {
   const [isUploading, setIsUploading] = React.useState(false);
   const [dishModalIsOpen, setDishModalIsOpen] = React.useState(false);
   const [selectedDishId, setSelectedDishId] = React.useState(null);
-  const [addDishModalIsOpen, setAddDishModalIsOpen] = useState(false)
+  const [addDishModalIsOpen, setAddDishModalIsOpen] = useState(false);
   const dish = useSelector((state) => state.dish);
 
   const getRestData = () => {
     const token = localStorage.getItem("token");
+    console.log(token);
+
+    if(token === null || token === undefined){
+      dispatch(restaurantLogout());
+      history.push('/');
+      return;
+    }
+
     if (!token || token.length === 0) {
       history.push("/");
     }
+
     const tokenData = jwt.decode(token);
     if (tokenData.role === "customer" || !tokenData.r_id) {
       history.push("/");
@@ -160,16 +172,23 @@ const RestaurantDashboard = () => {
           ...restDetails,
           ...restData,
         });
+      }).catch((err)=>{
+        if(err.hasOwnProperty('response')){
+          if(err.response.status === 403 || err.response.status === 401){
+            toast.error("Session Expired Please Login");
+            history.push('/restaurantLogin');
+          }
+        }
       });
   };
 
   useEffect(() => {
     getRestData();
-
     // setRestName(response.data.r_name)
     // console.log(response.data.restaurant_imgs)
     // setimages(response.data.restaurant_imgs);
   }, [dish]);
+
   // S3 Bucket configurations
   const S3_BUCKET = "ubereats-media";
   const ACCESS_KEY = "AKIA4ZUO22XWRWDIOUMI";
@@ -183,28 +202,21 @@ const RestaurantDashboard = () => {
     region: REGION,
   };
 
-  const uploadDishImage = (acceptedFiles, did) => {
-    uploadFile(acceptedFiles[0], config).then(async (data) => {
-      try {
-        const token = localStorage.getItem("token");
-        await axiosInstance.post(
-          `dishes/${did}`,
-          {
-            link: data.location,
-          },
-          {
-            headers: {
-              Authorization: token,
-            },
-          }
-        );
-        toast.success("Dish Updated!!");
-        // setDishModalIsOpen(false);
-        getRestData();
-      } catch (err) {
+  const deleteDish = (dishId) => {
+    const token = localStorage.getItem("token");
+    axiosInstance
+      .delete(`/dishes/${dishId}`, {
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((res) => {
+        dispatch(dishDeleteSuccess(true));
+        toast.success(res.data.message);
+      })
+      .catch((err) => {
         toast.error(err.response.data.error);
-      }
-    });
+      });
   };
 
   return (
@@ -215,7 +227,7 @@ const RestaurantDashboard = () => {
         dishes={restDetails.dishes}
         selectedDishId={selectedDishId}
       />
-      <AddDishModal 
+      <AddDishModal
         addDishModalIsOpen={addDishModalIsOpen}
         setAddDishModalIsOpen={setAddDishModalIsOpen}
       />
@@ -268,46 +280,62 @@ const RestaurantDashboard = () => {
             {restDetails.dishes?.length > 0 ? (
               restDetails.dishes.map((ele) => (
                 <Col xs={3} key={index} style={{ marginTop: "30px" }}>
-                  <div
-                    onClick={() => {
-                      setSelectedDishId(ele.d_id);
-                      setDishModalIsOpen(true);
-                    }}
-                    key={ele.d_id}
-                  >
-                  <Card>
-                    <Card.Img
-                      variant="top"
-                      src={
-                        ele.dish_imgs.length > 0 ? ele.dish_imgs[0].di_img : ""
-                      }
-                      style={{ height: "300px" }}
-                    />
-                    <Card.Body>
-                      <Card.Title>{ele.d_name}</Card.Title>
-                      <Card.Text>
-                        Ingredients: {ele.d_ingredients} <br></br>
-                        Description: {ele.d_desc} <br></br>
-                        Dish Type: {ele.d_type}
-                        <br></br>
-                        Category: {ele.d_category}
-                      </Card.Text>
-                    </Card.Body>
+                  <Card style={{height: "500px"}}>
+                    <div
+                      onClick={() => {
+                        setSelectedDishId(ele.d_id);
+                        setDishModalIsOpen(true);
+                      }}
+                      key={ele.d_id}
+                    >
+                      <Card.Img
+                        variant="top"
+                        src={
+                          ele.dish_imgs.length > 0
+                            ? ele.dish_imgs[0].di_img
+                            : ""
+                        }
+                        style={{ height: "200px" }}
+                      />
+                      <Card.Body>
+                        <Card.Title>{ele.d_name}</Card.Title>
+                        <Card.Text>
+                          Ingredients: {ele.d_ingredients} <br></br>
+                          Description: {ele.d_desc} <br></br>
+                          Dish Type: {ele.d_type}
+                          <br></br>
+                          Category: {ele.d_category}
+                        </Card.Text>
+                      </Card.Body>
+                    </div>
+                    <H3>$ {ele.d_price} </H3>
                     <Card.Footer>
-                      <H3>$ {ele.d_price} </H3>
-                      <Button
-                        variant="success"
-                        onClick={() => {
-                          setSelectedDishId(ele.d_id);
-                          setDishModalIsOpen(true);
-                        }}
-                      >
-                        {" "}
-                        Edit Dish{" "}
-                      </Button>
+                      <Row style={{}}>
+                        <Col>
+                          <Button
+                            variant="success"
+                            onClick={() => {
+                              setSelectedDishId(ele.d_id);
+                              setDishModalIsOpen(true);
+                            }}
+                          >
+                            Edit Dish
+                          </Button>
+                        </Col>
+                        <Col>
+                          <Button
+                            variant="danger"
+                            onClick={() => {
+                              deleteDish(ele.d_id);
+                              setAddDishModalIsOpen(false);
+                            }}
+                          >
+                            Delete Dish
+                          </Button>
+                        </Col>
+                      </Row>
                     </Card.Footer>
                   </Card>
-                  </div>
                 </Col>
               ))
             ) : (

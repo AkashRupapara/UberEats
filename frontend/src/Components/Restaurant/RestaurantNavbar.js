@@ -3,8 +3,17 @@ import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.css';
 import restLogo from '../../assets/images/ubereats-restaurant-logo.png'
 import '../../assets/css/restaurantHome.css';
+import { restaurantLogout } from '../../actions/restaurant';
+import { useDispatch } from 'react-redux';
 
 const RestaurantNavbar = () => {
+    const dispatch = useDispatch();
+
+    const logoutHandler = () => {
+        dispatch(restaurantLogout());
+        
+    }
+
     return (
         <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
             <Container>
@@ -20,7 +29,7 @@ const RestaurantNavbar = () => {
                         <Nav.Link href="#deets">Customers</Nav.Link>
                         <Nav.Link href="/restaurant/update">Update Details</Nav.Link>
 
-                        <Nav.Link href="#deets">logout</Nav.Link>
+                        <Nav.Link onClick={logoutHandler}>logout</Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
             </Container>

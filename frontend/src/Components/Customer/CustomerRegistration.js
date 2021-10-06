@@ -44,6 +44,8 @@ function CustomerRegistration() {
         } catch (err) {
             toast.error(err.response.data.error)                    
             dispatch(registerCustomerFailure(err.response.data.error));
+            toast.error("Error while Registering! Please Try again");
+
         }
     }
 

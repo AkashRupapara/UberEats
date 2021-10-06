@@ -1,5 +1,5 @@
 import axiosConfig from "../axiosConfig";
-import { CUSTOMER_LOGIN_SUCCESS, CUSTOMER_LOGIN_FAILURE, CUSTOMER_LOGIN_REQUEST, CUSTOMER_REGISTER_FAILURE, CUSTOMER_REGISTER_REQUEST, CUSTOMER_REGISTER_SUCCESS } from "./types";
+import { CUSTOMER_LOGIN_SUCCESS, CUSTOMER_LOGIN_FAILURE, CUSTOMER_LOGIN_REQUEST, CUSTOMER_REGISTER_FAILURE, CUSTOMER_REGISTER_REQUEST, CUSTOMER_REGISTER_SUCCESS, CUSTOMER_LOGOUT } from "./types";
 
 export function loginCustomerRequest() {
     return {
@@ -57,4 +57,10 @@ export function registerCustomerFailure(payload) {
     return {
         type: CUSTOMER_REGISTER_FAILURE, payload
     };
+}
+
+export function customerLogout() {
+    return {
+        type: CUSTOMER_LOGOUT
+    }
 }

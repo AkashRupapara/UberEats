@@ -7,6 +7,7 @@ import axiosInstance from '../../axiosConfig';
 import { useDispatch } from 'react-redux';
 import { loginRestaurantRequest, loginRestaurantSuccess, loginRestaurantFailure } from '../../actions/restaurant'
 import { useHistory } from 'react-router';
+import toast from 'react-hot-toast';
 const jwt = require( 'jsonwebtoken');
 
 function RestaurantLogin() {
@@ -22,17 +23,15 @@ function RestaurantLogin() {
     try {
       const response = await axiosInstance.post('auth/reslogin', { email: emailId, password: password})
       const tokenData = jwt.decode(response.data.token);
-      
       const id = tokenData.r_id;
-
       dispatch(loginRestaurantSuccess(id, response.data.token));
       localStorage.setItem('token', response.data.token)
       history.push("/restaurant/dashboard");
     } catch (err) {
       console.log(err)
       dispatch(loginRestaurantFailure(err));
+      toast.error("Error while Login! Please Try again");
     }
-
   }
 
   return (

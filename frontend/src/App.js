@@ -15,6 +15,7 @@ import RestaurantLogin from './Components/Restaurant/RestaurantLogin';
 import RestaurantDashboard from './Components/Restaurant/RestaurantDashboard'
 import MediaUploader from './Components/MediaUploader';
 import UpdateRestaurant from './Components/Restaurant/UpdateRestaurant';
+import CustomerDashboard from './Components/Customer/CustomerDashboard';
 
 const engine = new Styletron();
 
@@ -27,11 +28,12 @@ function App() {
             <Toaster />
             <Router>
               <Switch>
-                <Route path="/customerLogin" component={CustomerLogin} />
-                <Route path="/customerRegister" component={CustomerRegistration} />
-                <Route path="/restaurantLogin" component={ RestaurantLogin } />
-                <Route path="/restaurantRegister" component={RestaurantRegistration} />
+                <Route path="/customer/login" component={CustomerLogin} />
+                <Route path="/customer/register" component={CustomerRegistration} />
+                <Route path="/restaurant/login" component={ RestaurantLogin } />
+                <Route path="/restaurant/register" component={RestaurantRegistration} />
                 <Route path="/restaurant/dashboard" component={RestaurantDashboard} />
+                <Route path="/customer/dashboard" component={CustomerDashboard} />
                 <Route path="/restaurant/update" component={UpdateRestaurant} />
                 <Route path="/mediaUploader" component={MediaUploader} />
                 

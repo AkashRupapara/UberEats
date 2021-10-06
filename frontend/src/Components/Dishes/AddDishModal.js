@@ -15,7 +15,6 @@ import axiosInstance from "../../axiosConfig";
 import { uploadFile } from "react-s3";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  dishCreateRequest,
   dishCreateSuccess,
   dishImageUploadRequest,
   dishImageUploadSuccess,
@@ -41,7 +40,6 @@ function AddDishModal(props) {
   const [dishPrice, setDishPrice] = useState(null);
 
   // S3 Bucket configurations
-
   const S3_BUCKET = "ubereats-media";
   const ACCESS_KEY = "AKIA4ZUO22XWRWDIOUMI";
   const SECRET_ACCESS_KEY = "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";
@@ -54,39 +52,62 @@ function AddDishModal(props) {
     region: REGION,
   };
 
-  const createDish = async (e) => {
+  const uploadDishImage = (createdDishId) => {
+    if (fileToUpload.length > 0) {
+      dispatch(dishImageUploadRequest());
+      setImageUploading(true);
+      uploadFile(fileToUpload[0], config)
+        .then((data) => {
+          dispatch(dishImageUploadSuccess(createdDishId, data.location));
+        })
+        .then((res) => {
+          setImageUploading(false);
+          toast.success("Image Uploaded Succesfully");
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.success("Image Upload Unsucessfull");
+        });
+    }
+  };
+
+  const checkProperties = (obj) => {
+    Object.keys(obj).forEach((key) => {
+      if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+        // eslint-disable-next-line no-param-reassign
+        delete obj[key];
+      }
+    });
+  };
+
+  const createDish = (e) => {
     e.preventDefault();
-    dispatch(dishCreateRequest());
     const dishObj = {
       name: dishName,
       price: dishPrice,
       ingredients: dishIngredients,
       desc: dishDescription,
-      category: dishCategory[0].category,
-      type: dishType[0].type,
+      category: dishCategory[0]?.category? dishCategory[0].category: "",
+      type: dishType[0]?.type? dishType[0].type:"",
     };
-    dispatch(dishCreateSuccess(dishObj));
-  };
 
-//   useEffect(() => {
-//     uploadDishImage(dish.d_id);
-// }, [dish])
-
-  const uploadDishImage = (createdDishId) => {
-    dispatch(dishImageUploadRequest());
-    setImageUploading(true);
-
-    uploadFile(fileToUpload[0], config)
-      .then((data) => {
-        dispatch(dishImageUploadSuccess(createdDishId, data.location));
+    checkProperties(dishObj);
+    axiosInstance
+      .post(`/dishes/newdish`, dishObj, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
       })
       .then((res) => {
-        setImageUploading(false);
-        toast.success("Image Uploaded Succesfully");
+        dispatch(dishCreateSuccess(true));
+        const dishId = res.data.dishDetails.d_id;
+        uploadDishImage(dishId);
+        toast.success("Dish created");
+        setAddDishModalIsOpen(false);
       })
       .catch((err) => {
-        console.log(err);
-        toast.success("Image Upload Unsucessfull");
+        toast.error("Error Creating Dish Image");
+        console.error(err);
       });
   };
 
@@ -96,7 +117,15 @@ function AddDishModal(props) {
         isOpen={addDishModalIsOpen}
         closeable
         size="800px"
-        onClose={() => setAddDishModalIsOpen(false)}
+        onClose={() =>{ 
+          setAddDishModalIsOpen(false)
+          setDishName("");
+          setDishPrice(null);
+          setDishType("");
+          setDishIngredients("");
+          setDishCategory("");
+          setDishDescription("");
+        }}
       >
         <ModalHeader> Add Dish Details</ModalHeader>
         <Row style={{ marginLeft: "5%" }}>

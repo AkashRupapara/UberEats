@@ -1,6 +1,5 @@
 import {
-  DISH_CREATE_FAILURE,
-  DISH_CREATE_REQUEST,
+  DISH_DELETE_SUCCESS,
   DISH_CREATE_SUCCESS,
   DISH_IMAGE_DELETE_FAILURE,
   DISH_IMAGE_DELETE_REQUEST,
@@ -13,6 +12,8 @@ import {
 const initState = {
   dishes: {},
   error: "",
+  dishCreateFlag: false,
+  dishDeleteFlag: false,
 };
 
 const dishReducer = (state = initState, action) => {
@@ -29,12 +30,10 @@ const dishReducer = (state = initState, action) => {
       return { ...state, dishes: action.payload };
     case DISH_IMAGE_DELETE_FAILURE:
       return { ...state, error: action.payload };
-    case DISH_CREATE_REQUEST:
-      return state;
     case DISH_CREATE_SUCCESS:
-      return { ...state, dishes: action.payload, error: '' };
-    case DISH_CREATE_FAILURE:
-      return { ...state, error: action.payload };
+      return { ...state, dishCreateFlag: action.payload };
+    case DISH_DELETE_SUCCESS:
+      return { ...state, dishDeleteFlag: action.payload };
     default:
       return state;
   }

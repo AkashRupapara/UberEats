@@ -46,6 +46,8 @@ function RestaurantRegistration() {
         } catch (err) {
             toast.error(err.response.data.error)
             dispatch(registerRestaurantFailure(err.response.data.error));
+            toast.error("Error while Registering! Please Try again");
+
         }
     }
 

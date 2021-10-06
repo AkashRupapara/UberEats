@@ -1,19 +1,26 @@
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
-const { customers, orders, customer_address, fvrts, restaurants} = require('../models/data.model');
+const {
+  customers,
+  orders,
+  customer_address,
+  fvrts,
+  restaurants,
+} = require("../models/data.model");
 
 const createCustomer = async (req, res) => {
   try {
     // Get user input
     // eslint-disable-next-line object-curly-newline
-    const { email, password, name, dob, city, state, country, nname, contact } = req.body;
+    const { email, password, name, dob, city, state, country, nname, contact } =
+      req.body;
 
     // Validate user input
     if (!(name && email && password)) {
-      res.status(400).send('All input is required');
+      res.status(400).send("All input is required");
     }
 
     // check if user already exist
@@ -25,7 +32,9 @@ const createCustomer = async (req, res) => {
     });
 
     if (oldCust) {
-      return res.status(409).send({error :'User Already Exist. Please Login'});
+      return res
+        .status(409)
+        .send({ error: "User Already Exist. Please Login" });
     }
 
     // Encrypt user password
@@ -45,12 +54,16 @@ const createCustomer = async (req, res) => {
     });
 
     // Create token
-    const token = jwt.sign({ c_id: customer.c_id, email, role: 'customer' }, 'UberEats', {
-      expiresIn: '2h',
-    });
+    const token = jwt.sign(
+      { c_id: customer.c_id, email, role: "customer" },
+      "UberEats",
+      {
+        expiresIn: "2h",
+      }
+    );
     // save customer token
     customer.token = token;
-    return res.status(201).json({token});
+    return res.status(201).json({ token });
   } catch (err) {
     return res.status(400).send(err);
   }
@@ -59,7 +72,7 @@ const createCustomer = async (req, res) => {
 const customerLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  if (!(email && password)) res.status(400).send('All input is required');
+  if (!(email && password)) res.status(400).send("All input is required");
 
   const cust = await customers.findOne({
     where: {
@@ -68,22 +81,26 @@ const customerLogin = async (req, res) => {
   });
 
   if (!cust) {
-    res.status(409).send('User does not exist');
+    res.status(409).send("User does not exist");
   } else {
     bcrypt.compare(password, cust.c_password, (err, result) => {
       if (err) {
         // handle error
-        res.status(409).send('Error Verifying details!!!');
+        res.status(409).send("Error Verifying details!!!");
       }
       if (result) {
         // Send JWT
-        const token = jwt.sign({ c_id: cust.c_id, email, role: 'customer' }, 'UberEats', {
-          expiresIn: '2h',
-        });
+        const token = jwt.sign(
+          { c_id: cust.c_id, email, role: "customer" },
+          "UberEats",
+          {
+            expiresIn: "2h",
+          }
+        );
         cust.token = token;
-        res.status(201).json({token});
+        res.status(201).json({ token });
       } else {
-        return res.json({ success: false, message: 'passwords do not match' });
+        return res.json({ success: false, message: "passwords do not match" });
       }
     });
   }
@@ -91,10 +108,20 @@ const customerLogin = async (req, res) => {
 
 const updateCustomer = async (req, res) => {
   const custID = req.headers.id;
-  if (String(custID) !== String(req.params.cid)) return res.status(401).send('Unauthorised');
+  if (String(custID) !== String(req.params.cid))
+    return res.status(401).send("Unauthorised");
 
   const {
-    name, email, about, profile_img, dob, city, state, country, nname, contact,
+    name,
+    email,
+    about,
+    profile_img,
+    dob,
+    city,
+    state,
+    country,
+    nname,
+    contact,
   } = req.body;
 
   const cust = await customers.findOne({
@@ -111,7 +138,7 @@ const updateCustomer = async (req, res) => {
     });
 
     if (checkCust) {
-      return res.status(403).send('Customer already exist with given email');
+      return res.status(403).send("Customer already exist with given email");
     }
   }
 
@@ -131,9 +158,9 @@ const updateCustomer = async (req, res) => {
       },
       {
         returning: true,
-      },
+      }
     );
-    return res.status(201).send('Customer Updated');
+    return res.status(201).send("Customer Updated");
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -145,10 +172,10 @@ const addAddress = async (req, res) => {
     const { role } = req.headers;
     const { address, zipcode } = req.body;
 
-    if (!custId || role === 'restaurant') {
-      return res.status(401).send({ error: 'Unauthorised Access' });
+    if (!custId || role === "restaurant") {
+      return res.status(401).send({ error: "Unauthorised Access" });
     }
-    if (role === 'customer') {
+    if (role === "customer") {
       const findExistAddress = await customer_address.findOne({
         where: {
           c_id: custId,
@@ -158,7 +185,7 @@ const addAddress = async (req, res) => {
       });
 
       if (findExistAddress) {
-        return res.status(409).send({ error: 'Address Already Exists' });
+        return res.status(409).send({ error: "Address Already Exists" });
       }
       await customer_address.create({
         ca_address_line: address,
@@ -166,7 +193,7 @@ const addAddress = async (req, res) => {
         c_id: custId,
       });
     }
-    res.status(201).send({ msg: 'Address Added' });
+    res.status(201).send({ msg: "Address Added" });
   } catch (err) {
     res.status(500).send(err);
   }
@@ -183,7 +210,7 @@ const getAddress = async (req, res) => {
     });
 
     if (custAddr.length === 0) {
-      return res.staus(404).send({ error: 'No Addresses Found' });
+      return res.staus(404).send({ error: "No Addresses Found" });
     }
     return res.status(201).send(custAddr);
   } catch (err) {
@@ -193,7 +220,7 @@ const getAddress = async (req, res) => {
 
 const deleteCustomer = async (req, res) => {
   const custID = req.params.cid;
-  if (!custID) return res.status(404).send('Need Customer ID');
+  if (!custID) return res.status(404).send("Need Customer ID");
 
   const cust = await customers.findOne({
     where: {
@@ -201,10 +228,10 @@ const deleteCustomer = async (req, res) => {
     },
   });
 
-  if (!cust) return res.status(403).send('Customer does not exist');
+  if (!cust) return res.status(403).send("Customer does not exist");
   try {
     cust.destroy();
-    return res.status(201).send('Customer deleted');
+    return res.status(201).send("Customer deleted");
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -216,11 +243,12 @@ const getCustomerProfile = async (req, res) => {
     where: {
       c_id: custId,
     },
+    attributes: { exclude: ["c_password", "createdAt", "updatedAt"] },
   });
 
-  console.log(cust)
+  console.log(cust);
   if (!cust) {
-    return res.status(404).send('Customer does not exists');
+    return res.status(404).send("Customer does not exists");
   }
   return res.status(201).send(cust);
 };
@@ -230,9 +258,10 @@ const getCustomerById = async (req, res) => {
     where: {
       c_id: req.params.cid,
     },
+    attributes: { exclude: ["c_password", "createdAt", "updatedAt"] },
   });
   if (!cust) {
-    return res.status(404).send('Customer does not exists');
+    return res.status(404).send("Customer does not exists");
   }
   return res.status(201).send(cust);
 };
@@ -241,7 +270,7 @@ const getAllCustomers = async (req, res) => {
   const rid = req.headers.id;
 
   const custs = await orders.findAll({
-    attributes: ['c_id'],
+    attributes: ["c_id"],
     include: [
       {
         model: customers,
@@ -257,67 +286,68 @@ const getAllCustomers = async (req, res) => {
 const addToFavorites = async (req, res) => {
   const custId = req.headers.id;
   const restId = req.body.rid;
-  if(!custId){
-    return res.status(404).send({error: 'Customer Id Not FOund'});
+  if (!custId) {
+    return res.status(404).send({ error: "Customer Id Not FOund" });
   }
 
-  
-  try{
+  try {
     const findRest = await restaurants.findOne({
       where: {
         r_id: restId,
-      }
+      },
     });
-  
-    if(!findRest){
-      return res.status(404).send({error: 'Restaurant do not exist'});
+
+    if (!findRest) {
+      return res.status(404).send({ error: "Restaurant do not exist" });
     }
-  
+
     const existingFvrt = await fvrts.findOne({
       where: {
         c_id: custId,
         r_id: restId,
-      }
+      },
     });
-    
-    if(existingFvrt){
-      return res.status(409).send({error: 'Restaurant is already added to fvrts'});
+
+    if (existingFvrt) {
+      return res
+        .status(409)
+        .send({ error: "Restaurant is already added to fvrts" });
     }
     const addFavorite = await fvrts.create({
       r_id: restId,
-      c_id: custId
+      c_id: custId,
     });
-  } catch(err){
+  } catch (err) {
     return res.status(500).send(err);
   }
-  
-  return res.status(200).send({message: 'Added to Favorites'})
-}
+
+  return res.status(200).send({ message: "Added to Favorites" });
+};
 
 const deleteFromFavorites = async (req, res) => {
   const custId = req.headers.id;
   const restId = req.params.rid;
-  if(!custId){
-    return res.status(404).send({error: 'Customer Id Not FOund'});
+  if (!custId) {
+    return res.status(404).send({ error: "Customer Id Not FOund" });
   }
 
-  try{
+  try {
     await fvrts.destroy({
       r_id: restId,
-      c_id: custId
+      c_id: custId,
     });
-  } catch(err){
+  } catch (err) {
     return res.status(500).send(err);
   }
-  
-  return res.status(200).send({message: 'Removed from Favorites'})
-}
+
+  return res.status(200).send({ message: "Removed from Favorites" });
+};
 
 const getAllFavorites = async (req, res) => {
   const custId = req.headers.id;
-  console.log('HERERE')
-  if(!custId){
-    return res.status(404).send({error: 'Customer Id Not Found'});
+  console.log("HERERE");
+  if (!custId) {
+    return res.status(404).send({ error: "Customer Id Not Found" });
   }
 
   try {
@@ -328,10 +358,8 @@ const getAllFavorites = async (req, res) => {
     return res.status(200).send(custFvrts);
   } catch (err) {
     return res.status(500).send(err);
-
   }
-}
-
+};
 
 module.exports = {
   createCustomer,

@@ -4,6 +4,7 @@ import {
   DISH_CREATE_FAILURE,
   DISH_CREATE_REQUEST,
   DISH_CREATE_SUCCESS,
+  DISH_DELETE_SUCCESS,
   DISH_IMAGE_UPLOAD_FAILURE,
   DISH_IMAGE_UPLOAD_REQUEST,
   DISH_IMAGE_UPLOAD_SUCCESS,
@@ -50,41 +51,17 @@ export function dishImageUploadFailure(payload) {
   };
 }
 
-export function dishCreateRequest() {
+export function dishCreateSuccess(payload) {
   return {
-    type: DISH_CREATE_REQUEST,
-  };
-}
-
-export function dishCreateSuccess(dishObj) {
-  return (dispatch) => {
-    return axiosInstance
-      .post(`/dishes/newdish`, dishObj, {
-        headers: {
-          Authorization: localStorage.getItem("token"),
-        },
-      })
-      .then((res) => {
-        dispatch({
-          type: DISH_CREATE_SUCCESS,
-          payload: res.data.dishDetails,
-        });
-        toast.success("Dish created");
-      })
-      .catch((err) => {
-        dispatch({
-          type: DISH_CREATE_FAILURE,
-          payload: err.response.data.error,
-        });
-        toast.error("Error Creating Dish Image");
-        console.error(err);
-      });
-  };
-}
-
-export function dishCreateFailure(payload) {
-  return {
-    type: DISH_CREATE_FAILURE,
+    type: DISH_DELETE_SUCCESS,
     payload,
   };
 }
+
+export function dishDeleteSuccess(payload) {
+  return {
+    type: DISH_DELETE_SUCCESS,
+    payload,
+  };
+}
+

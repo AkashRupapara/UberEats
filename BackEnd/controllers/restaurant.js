@@ -279,6 +279,7 @@ const getRestaurantDetails = async (req, res) => {
     where: {
       r_id: restId,
     },
+    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
   });
   return res.status(201).send(restDetails);
 };

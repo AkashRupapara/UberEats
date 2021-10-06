@@ -1,4 +1,4 @@
-import { RESTAURANT_LOGIN_SUCCESS, RESTAURANT_LOGIN_FAILURE, RESTAURANT_LOGIN_REQUEST, RESTAURANT_REGISTER_FAILURE, RESTAURANT_REGISTER_REQUEST, RESTAURANT_REGISTER_SUCCESS } from "../actions/types";
+import { RESTAURANT_LOGIN_SUCCESS, RESTAURANT_LOGIN_FAILURE, RESTAURANT_LOGIN_REQUEST, RESTAURANT_REGISTER_FAILURE, RESTAURANT_REGISTER_REQUEST, RESTAURANT_REGISTER_SUCCESS, RESTAURANT_LOGOUT } from "../actions/types";
 
 const initState = {
     restaurant: {},
@@ -21,6 +21,9 @@ const restaurantReducer = (state = initState, action) => {
             return { ...state, restaurant: action.payload, dishes: action.payload.dishes};
         case RESTAURANT_LOGIN_FAILURE:
             return { ...state, error: action.payload };
+        case RESTAURANT_LOGOUT:
+            localStorage.removeItem("token");
+            return initState;
         default:
             return state;
     }

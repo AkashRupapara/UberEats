@@ -1,5 +1,5 @@
 import axiosConfig from "../axiosConfig";
-import {RESTAURANT_LOGIN_SUCCESS, RESTAURANT_LOGIN_REQUEST, RESTAURANT_LOGIN_FAILURE, RESTAURANT_REGISTER_FAILURE, RESTAURANT_REGISTER_REQUEST, RESTAURANT_REGISTER_SUCCESS} from './types'
+import {RESTAURANT_LOGIN_SUCCESS, RESTAURANT_LOGIN_REQUEST, RESTAURANT_LOGIN_FAILURE, RESTAURANT_REGISTER_FAILURE, RESTAURANT_REGISTER_REQUEST, RESTAURANT_REGISTER_SUCCESS, RESTAURANT_LOGOUT} from './types'
 
 export function loginRestaurantRequest() {
     return {
@@ -57,4 +57,10 @@ export function registerRestaurantFailure(payload) {
     return {
         type: RESTAURANT_REGISTER_FAILURE, payload
     };
+}
+
+export function restaurantLogout() {
+    return {
+        type: RESTAURANT_LOGOUT
+    }
 }
