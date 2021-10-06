@@ -179,7 +179,7 @@ const getOrderById = async (req, res) => {
       return res.status(201).send(findRestOrder);
     }
 
-    return res.status(404).send('Restuarant Order Not Found');
+    return res.status(404).send({error:"Restuarant Order Not Found"});
   }
 
   const findCustOrder = await orders.findOne({

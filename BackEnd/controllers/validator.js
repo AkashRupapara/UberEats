@@ -6,7 +6,7 @@ const customerValidationRules = () => [
   body('email').optional({ nullable: true }).isEmail().withMessage('Enter Valid Email'),
   body('password').optional({ nullable: true }).isString().withMessage('Enter Valid Password'),
   body('name').optional({ nullable: true }).isString().withMessage('Enter Valid Email'),
-  body('dob').optional({ nullable: true }).isDate().withMessage('Enter Valid Date'),
+  // body('dob').optional({ nullable: true }).isDate().withMessage({error:'Enter Valid Date'}),
   body('city').optional({ nullable: true }).isString().withMessage('Enter Valid City Name'),
   body('state').optional({ nullable: true }).isString().withMessage('Enter Valid State'),
   body('country').optional({ nullable: true }).isString().withMessage('Enter Valid Country'),
@@ -22,7 +22,7 @@ const customerValidationRules = () => [
       }
       return Promise.reject(new Error('Enter Valid Phone Number'));
     })
-    .withMessage('Enter Valid Contact Number'),
+    .withMessage({error: 'Enter Valid Contact Number'}),
 ];
 
 const restaurantValidationRules = () => [

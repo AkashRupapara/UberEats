@@ -138,7 +138,7 @@ const updateCustomer = async (req, res) => {
     });
 
     if (checkCust) {
-      return res.status(403).send("Customer already exist with given email");
+      return res.status(403).send({error: "Customer already exist with given email"});
     }
   }
 
@@ -160,7 +160,7 @@ const updateCustomer = async (req, res) => {
         returning: true,
       }
     );
-    return res.status(201).send("Customer Updated");
+    return res.status(201).send({message: "Customer Updated"});
   } catch (err) {
     return res.status(404).send(err);
   }

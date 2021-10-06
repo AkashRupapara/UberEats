@@ -16,6 +16,7 @@ import RestaurantDashboard from './Components/Restaurant/RestaurantDashboard'
 import MediaUploader from './Components/MediaUploader';
 import UpdateRestaurant from './Components/Restaurant/UpdateRestaurant';
 import CustomerDashboard from './Components/Customer/CustomerDashboard';
+import UpdateCustomer from './Components/Customer/UpdateCustomer';
 
 const engine = new Styletron();
 
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/restaurant/dashboard" component={RestaurantDashboard} />
                 <Route path="/customer/dashboard" component={CustomerDashboard} />
                 <Route path="/restaurant/update" component={UpdateRestaurant} />
+                <Route path="/customer/update" component={UpdateCustomer} />
                 <Route path="/mediaUploader" component={MediaUploader} />
                 
                 <Route path="/" component={Home} />

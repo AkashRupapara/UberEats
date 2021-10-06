@@ -283,6 +283,29 @@ const getRestaurantDetails = async (req, res) => {
   });
   return res.status(201).send(restDetails);
 };
+
+const getAllRestaurants = async (req, res) => {
+  const custId = req.headers.id;
+  if (!custId) return res.status(404).send({error: "Please Login!"});
+
+  const restDetails = await restaurants.findAll({
+    include: [
+      {
+        model: restaurant_dishtypes,
+      },
+      {
+        model: restaurant_imgs,
+      },{
+        model: dishes,
+        include: dish_imgs,
+      }
+    ],
+    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  });
+  return res.status(201).send(restDetails);
+};
+
+
 module.exports = {
   restaurantLogin,
   createRestaurant,
@@ -291,4 +314,5 @@ module.exports = {
   getRestaurantDetails,
   deleteRestaurantImage,
   addRestaurantImage,
+  getAllRestaurants,
 };

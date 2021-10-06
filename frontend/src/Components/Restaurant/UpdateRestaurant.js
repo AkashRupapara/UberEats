@@ -4,7 +4,6 @@ import React, {
     useState,
 } from "react";
 import {
-    Redirect,
     useHistory,
 } from "react-router";
 import '../../assets/css/restaurantHome.css';
@@ -126,8 +125,6 @@ function UpdateRestaurant() {
         formDetails.delivery_type = formDetails.delivery_type[0].delivery_type;
         formDetails.state = formDetails.state[0].state;
 
-        console.log("START")
-        console.log(formDetails.start)
 
         var startTime = formDetails.start.toLocaleTimeString();
         startTime = startTime.slice(0, -3);
@@ -332,7 +329,6 @@ function UpdateRestaurant() {
                                         }
                                     />
                                 </FormControl>
-
                                 <FormControl label="State Name">
                                     <Select
                                         creatable
