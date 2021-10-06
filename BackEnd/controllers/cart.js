@@ -11,9 +11,10 @@ const getCartDetails = async (req, res) => {
     },
   });
 
-  if (!existCart) {
+  if (existCart.length === 0) {
     return res.status(404).send('No Items in Cart');
   }
+  
   const cartItems = await carts.findAll({
     include: [
       {

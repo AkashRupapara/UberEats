@@ -17,15 +17,7 @@ import { faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { uploadFile } from "react-s3";
 import toast from "react-hot-toast";
 
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalButton,
-} from "baseui/modal";
 
-import { FileUploader } from "baseui/file-uploader";
 import UpdateDishModal from "../Dishes/UpdateDishModal";
 import { useSelector } from "react-redux";
 import AddDishModal from "../Dishes/AddDishModal";

@@ -41,7 +41,6 @@ function CustomerLogin() {
       dispatch(loginCustomerFailure(err));
       toast.error("Error while Login! Please Try again");
     }
-
   }
 
   return (
