@@ -7,32 +7,24 @@ import axiosInstance from "../../axiosConfig";
 import "../../../node_modules/react-responsive-carousel/lib/styles/carousel.css";
 import { Button, Col, Card, Container, Row, CardGroup } from "react-bootstrap";
 import Footer from "../Footer";
-import RestaurantNavbar from "./RestaurantNavbar";
-import { H1, H2, H3, H4, H5, H6 } from "baseui/typography";
+import { Display2, Display4, H1, H2, H3, H4, H5, H6 } from "baseui/typography";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { faMapMarkerAlt } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { uploadFile } from "react-s3";
 import toast from "react-hot-toast";
 import UpdateDishModal from "../Dishes/UpdateDishModal";
 import { useSelector } from "react-redux";
 import AddDishModal from "../Dishes/AddDishModal";
 import { useDispatch } from "react-redux";
-import { dishCreateSuccess, dishDeleteSuccess } from "../../actions/dish";
-import { restaurantLogout } from "../../actions/restaurant";
+import CustomerNavbar from "./CustomerNavbar";
+import ShowDishModal from "../Dishes/ShowDishModal";
 
 const Carousel = require("react-responsive-carousel").Carousel;
-
-// import { Carousel } from 'react-responsive-carousel';
-
 const jwt = require("jsonwebtoken");
 
-const RestaurantDashboard = () => {
-  // const [emailId, setEmailId] = React.useState('');
-  // const [password, setPassword] = React.useState('');
-
+const RestaurantDetails = ({ match }) => {
   const history = useHistory();
   const [index, setIndex] = useState(0);
   const dispatch = useDispatch();
@@ -44,16 +36,16 @@ const RestaurantDashboard = () => {
   const [isUploading, setIsUploading] = React.useState(false);
   const [dishModalIsOpen, setDishModalIsOpen] = React.useState(false);
   const [selectedDishId, setSelectedDishId] = React.useState(null);
-  const [addDishModalIsOpen, setAddDishModalIsOpen] = useState(false);
+  const [restId, setRestId] = useState("");
   const dish = useSelector((state) => state.dish);
 
   const getRestData = () => {
     const token = localStorage.getItem("token");
     console.log(token);
 
-    if(token === null || token === undefined){
-      dispatch(restaurantLogout());
-      history.push('/');
+    if (token === null || token === undefined) {
+      //   dispatch(restaurantLogout());
+      history.push("/");
       return;
     }
 
@@ -62,12 +54,8 @@ const RestaurantDashboard = () => {
     }
 
     const tokenData = jwt.decode(token);
-    if (tokenData.role === "customer" || !tokenData.r_id) {
-      history.push("/");
-    }
-
     axiosInstance
-      .get(`restaurant/${tokenData.r_id}`, {
+      .get(`restaurant/${match.params.restId}`, {
         headers: {
           Authorization: token,
         },
@@ -102,6 +90,7 @@ const RestaurantDashboard = () => {
         restData["address"] = address;
         restData["desc"] = res.data.r_desc ? res.data.r_desc : "";
         restData["contactNo"] = res.data.r_contact ? res.data.r_contact : "";
+        restData["restId"] = res.data.r_id;
 
         res.data.r_delivery_type = res.data.r_delivery_type
           ? res.data.r_delivery_type
@@ -162,11 +151,12 @@ const RestaurantDashboard = () => {
           ...restDetails,
           ...restData,
         });
-      }).catch((err)=>{
-        if(err.hasOwnProperty('response')){
-          if(err.response.status === 403 || err.response.status === 401){
+      })
+      .catch((err) => {
+        if (err.hasOwnProperty("response")) {
+          if (err.response.status === 403 || err.response.status === 401) {
             toast.error("Session Expired Please Login");
-            history.push('/restaurantLogin');
+            history.push("/restaurantLogin");
           }
         }
       });
@@ -174,54 +164,18 @@ const RestaurantDashboard = () => {
 
   useEffect(() => {
     getRestData();
-    // setRestName(response.data.r_name)
-    // console.log(response.data.restaurant_imgs)
-    // setimages(response.data.restaurant_imgs);
   }, [dish]);
-
-  // S3 Bucket configurations
-  const S3_BUCKET = "ubereats-media";
-  const ACCESS_KEY = "AKIA4ZUO22XWRWDIOUMI";
-  const SECRET_ACCESS_KEY = "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";
-  const REGION = "us-east-1";
-
-  const config = {
-    bucketName: S3_BUCKET,
-    accessKeyId: ACCESS_KEY,
-    secretAccessKey: SECRET_ACCESS_KEY,
-    region: REGION,
-  };
-
-  const deleteDish = (dishId) => {
-    const token = localStorage.getItem("token");
-    axiosInstance
-      .delete(`/dishes/${dishId}`, {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((res) => {
-        dispatch(dishDeleteSuccess(true));
-        toast.success(res.data.message);
-      })
-      .catch((err) => {
-        toast.error(err.response.data.error);
-      });
-  };
 
   return (
     <div>
-      <UpdateDishModal
+      <ShowDishModal
         dishModalIsOpen={dishModalIsOpen}
         setDishModalIsOpen={setDishModalIsOpen}
         dishes={restDetails.dishes}
         selectedDishId={selectedDishId}
+        restId={restDetails.restId}
       />
-      <AddDishModal
-        addDishModalIsOpen={addDishModalIsOpen}
-        setAddDishModalIsOpen={setAddDishModalIsOpen}
-      />
-      <RestaurantNavbar />
+      <CustomerNavbar />
       <Carousel showArrows showThumbs={false}>
         {images?.length > 0
           ? images.map((ele) => (
@@ -257,20 +211,12 @@ const RestaurantDashboard = () => {
           </i>{" "}
         </H3>
         <br></br>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setAddDishModalIsOpen(true);
-          }}
-        >
-          Add New Dish{" "}
-        </Button>
         <Container fluid>
           <Row>
             {restDetails.dishes?.length > 0 ? (
               restDetails.dishes.map((ele) => (
                 <Col xs={3} key={index} style={{ marginTop: "30px" }}>
-                  <Card style={{height: "500px"}}>
+                  <Card style={{ height: "100%" }}>
                     <div
                       onClick={() => {
                         setSelectedDishId(ele.d_id);
@@ -287,44 +233,17 @@ const RestaurantDashboard = () => {
                         }
                         style={{ height: "200px" }}
                       />
-                      <Card.Body>
-                        <Card.Title>{ele.d_name}</Card.Title>
+                      <Card.Body  style={{textAlign: "left"}}>
+                        <h3 style={{textAlign: "left"}}>{ele.d_name}</h3>
                         <Card.Text>
-                          Ingredients: {ele.d_ingredients} <br></br>
-                          Description: {ele.d_desc} <br></br>
-                          Dish Type: {ele.d_type}
-                          <br></br>
-                          Category: {ele.d_category}
+                         <h6 style={{color:"gray"}}> {ele.d_type+ " - "}
+                          {ele.d_category}</h6>
                         </Card.Text>
                       </Card.Body>
+                      <Card.Footer  style={{textAlign: "right"}}>
+                        <h4>$ {ele.d_price} </h4>
+                      </Card.Footer>
                     </div>
-                    <H3>$ {ele.d_price} </H3>
-                    <Card.Footer>
-                      <Row style={{}}>
-                        <Col>
-                          <Button
-                            variant="success"
-                            onClick={() => {
-                              setSelectedDishId(ele.d_id);
-                              setDishModalIsOpen(true);
-                            }}
-                          >
-                            Edit Dish
-                          </Button>
-                        </Col>
-                        <Col>
-                          <Button
-                            variant="danger"
-                            onClick={() => {
-                              deleteDish(ele.d_id);
-                              setAddDishModalIsOpen(false);
-                            }}
-                          >
-                            Delete Dish
-                          </Button>
-                        </Col>
-                      </Row>
-                    </Card.Footer>
                   </Card>
                 </Col>
               ))
@@ -340,4 +259,4 @@ const RestaurantDashboard = () => {
   );
 };
 
-export default RestaurantDashboard;
+export default RestaurantDetails;

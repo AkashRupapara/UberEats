@@ -1,6 +1,6 @@
 // const { body, validationResult } = require('express-validator');
 
-const { carts, dishes, sequelize } = require('../models/data.model');
+const { carts, dishes, sequelize, restaurants, dish_imgs } = require('../models/data.model');
 
 const getCartDetails = async (req, res) => {
   const custID = req.headers.id;
@@ -19,6 +19,7 @@ const getCartDetails = async (req, res) => {
     include: [
       {
         model: dishes,
+        include: dish_imgs,
       },
     ],
     where: {
@@ -26,7 +27,16 @@ const getCartDetails = async (req, res) => {
     },
   });
 
-  return res.status(201).send(cartItems);
+  const {r_id} = cartItems[0].dish;
+
+  const restDetails = await restaurants.findOne({
+    where:{
+      r_id,
+    },
+    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] }
+  },
+  );
+  return res.status(201).json({cartItems, restDetails});
 };
 
 const addItemToCart = async (req, res) => {
