@@ -21,6 +21,14 @@ import { Avatar } from "baseui/avatar";
 import { useStyletron, expandBorderStyles } from "baseui/styles";
 import axiosConfig from "../../axiosConfig";
 import toast from "react-hot-toast";
+import { H3, H5 } from "baseui/typography";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalButton,
+} from "baseui/modal";
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -28,6 +36,7 @@ function CustomerNavbar() {
   const [itemDisable, setItemDisable] = React.useState(false);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [cartDetails, setCartDetails] = React.useState({});
+  const [orderInitModalIsOpen, setOrderInitModalIsOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (history.location.pathname === "/customer/update") {
@@ -39,18 +48,21 @@ function CustomerNavbar() {
 
   const deleteCartItems = () => {
     const token = localStorage.getItem("token");
-    axiosConfig.delete("/cart/",{
-      headers: {
-        Authorization: token,
-      },
-    }).then((res)=>{
-      toast.success("Cart Items Deleted");
-      setCartDetails({});
-      getCartItems();
-    }).catch((err)=>{
-      toast.error(err.response.data.error);
-    })
-  }
+    axiosConfig
+      .delete("/cart/", {
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((res) => {
+        toast.success("Cart Items Deleted");
+        setCartDetails({});
+        getCartItems();
+      })
+      .catch((err) => {
+        toast.error(err.response.data.error);
+      });
+  };
 
   const getCartItems = () => {
     const token = localStorage.getItem("token");
@@ -67,8 +79,6 @@ function CustomerNavbar() {
       })
       .catch((err) => {
         console.log(err);
-        // history.push("/");
-        // toast.error(err?.response.data?.error : null);
       });
   };
 
@@ -79,14 +89,11 @@ function CustomerNavbar() {
   const deleteItemFromCart = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      const res = await axiosConfig.delete(
-        `cart/item/${id}`,
-        {
-          headers: {
-            Authorization: token,
-          },
+      const res = await axiosConfig.delete(`cart/item/${id}`, {
+        headers: {
+          Authorization: token,
         },
-      );
+      });
       toast.success(res.data.message);
       getCartItems();
     } catch (err) {
@@ -94,6 +101,27 @@ function CustomerNavbar() {
       toast.error(err.response.data.error);
     }
   };
+
+  const initOrder = () => {
+    setOrderInitModalIsOpen(true);
+  };
+
+  const goToPlaceOrder = () => {
+    const token = localStorage.getItem("token");
+
+    axiosConfig.post("/orders/neworder",{},{
+      headers:{
+        Authorization: token,
+      },
+    }).then((res)=>{
+      console.log(res.data);
+      history.push(`/customer/placeorder/${res.data.orderId}`);
+    }).catch((err)=>{
+      console.log(err?.response?.data);
+      toast.error(err?.response?.data?.error);
+    });
+    return;
+  }
 
   return (
     <HeaderNavigation style={{ height: "90px" }}>
@@ -268,7 +296,11 @@ function CustomerNavbar() {
                           <div className="row no-gutters">
                             <div className="col-md-4">
                               <img
-                                src={item.dish.dish_imgs.length>0?item.dish.dish_imgs[0].di_img: null}
+                                src={
+                                  item.dish.dish_imgs.length > 0
+                                    ? item.dish.dish_imgs[0].di_img
+                                    : null
+                                }
                                 style={{
                                   height: "80px",
                                   width: "100%",
@@ -306,9 +338,55 @@ function CustomerNavbar() {
                   : null
                 : null}
             </div>
-            
-                <Button style={{width:"100%"}} onClick={deleteCartItems}> Clear Cart </Button>
+            {cartDetails.cartItems?.length > 0 ? (
+              <div>
+                <p>
+                  <Button style={{ width: "100%" }} onClick={deleteCartItems}>
+                    Clear Cart
+                  </Button>
+                </p>
+                <p>
+                  <Button style={{ width: "100%" }} onClick={initOrder}>
+                    Initiate Order
+                  </Button>
+                </p>
+              </div>
+            ) : (
+              <H5>"NO ITEMS IN CART"</H5>
+            )}
           </Drawer>
+          <Modal
+            onClose={() => setOrderInitModalIsOpen(false)}
+            isOpen={orderInitModalIsOpen}
+          >
+            <ModalHeader>
+              <H3> {cartDetails?.restDetails?.r_name}</H3>
+            </ModalHeader>
+            <ModalBody>
+              {cartDetails?.cartItems?.length > 0
+                ? cartDetails.cartItems.map((item) => {
+                    return (
+                      <Row>
+                        <Col>{item?.dish?.d_name}</Col>
+                        <Col>${item?.dish?.d_price}</Col>
+                        <hr />
+                      </Row>
+                    );
+                  })
+                : ""}
+            </ModalBody>
+            <ModalFooter>
+              <ModalButton
+                kind="tertiary"
+                onClick={() => setOrderInitModalIsOpen(false)}
+              >
+                Cancel
+              </ModalButton>
+              <ModalButton onClick={goToPlaceOrder}>
+                Place Order
+              </ModalButton>
+            </ModalFooter>
+          </Modal>
         </NavigationItem>
       </NavigationList>
     </HeaderNavigation>

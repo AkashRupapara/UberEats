@@ -16,6 +16,7 @@ import RestaurantDashboard from './Components/Restaurant/RestaurantDashboard'
 import MediaUploader from './Components/MediaUploader';
 import UpdateRestaurant from './Components/Restaurant/UpdateRestaurant';
 import CustomerDashboard from './Components/Customer/CustomerDashboard';
+import PlaceOrder from './Components/Customer/PlaceOrder';
 import UpdateCustomer from './Components/Customer/UpdateCustomer';
 import RestaurantDetails from './Components/Customer/RestaurantDetails';
 
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/restaurant/update" component={UpdateRestaurant} />
                 <Route path="/customer/update" component={UpdateCustomer} />
                 <Route path="/customer/restaurant/:restId" component={RestaurantDetails} />
+                <Route path="/customer/placeorder/:oid" component={PlaceOrder} />
                 <Route path="/mediaUploader" component={MediaUploader} />
                 
                 <Route path="/" component={Home} />

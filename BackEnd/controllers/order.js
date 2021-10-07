@@ -81,7 +81,7 @@ const createOrder = async (req, res) => {
         { transaction: t },
       );
       t.commit();
-      return res.status(201).send('Order Initialised Successfully');
+      return res.status(201).send({orderId: initOrder.o_id, message: 'Order Initialised Successfully'});
     }
   } catch (err) {
     t.rollback();

@@ -209,7 +209,7 @@ const getAddress = async (req, res) => {
       },
     });
 
-    if (custAddr.length === 0) {
+    if (custAddr.length === 0 || !custAddr) {
       return res.staus(404).send({ error: "No Addresses Found" });
     }
     return res.status(201).send(custAddr);
