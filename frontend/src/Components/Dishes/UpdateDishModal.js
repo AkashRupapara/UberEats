@@ -78,6 +78,7 @@ function UpdateDishModal(props) {
       )
       .then((res) => {
         toast.success("Dish Updated Succesfully");
+        setDishModalIsOpen(false);
       })
       .catch((err) => {
         toast.error(err.response.data.error);

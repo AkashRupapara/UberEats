@@ -2,22 +2,13 @@ import { H3 } from "baseui/typography";
 import React, { useEffect, useState, useDispatch } from "react";
 import { Card, StyledBody, StyledAction } from "baseui/card";
 import { useHistory } from "react-router";
-import { Button, Col, Row } from "react-bootstrap";
+import { Button, Col, ModalFooter, Row } from "react-bootstrap";
 import toast from "react-hot-toast";
 import axiosConfig from "../../axiosConfig";
 import CustomerNavbar from "./CustomerNavbar";
 
 function CustomerDashboard() {
   const history = useHistory();
-  useEffect(() => {
-    getAllRestaurants();
-  }, []);
-
-  //   const [index, setIndex] = useState(0);
-  //   const dispatch = useDispatch();
-  //   const handleSelect = (selectedIndex, e) => {
-  //     setIndex(selectedIndex);
-  //   };
 
   const [allRestDetails, setAllRestDetails] = useState([]);
   const getAllRestaurants = () => {
@@ -33,10 +24,15 @@ function CustomerDashboard() {
         setAllRestDetails(res.data);
       })
       .catch((err) => {
+        console.log(err);
         history.push("/");
         toast.error("Session expired Please Login");
       });
   };
+
+  useEffect(() => {
+    getAllRestaurants();
+  }, []);
 
   return (
     <div>
@@ -45,9 +41,12 @@ function CustomerDashboard() {
         {allRestDetails?.length > 0 ? (
           allRestDetails.map((ele) => (
             <Col xs={3} style={{ marginTop: "30px" }}>
-              <div onClick={()=> {
-                history.push(`/customer/restaurant/${ele.r_id}`);
-              }}>
+              <div
+                onClick={() => {
+                  history.push(`/customer/restaurant/${ele.r_id}`);
+                }}
+                style={{ height: "100%" }}
+              >
                 <Card
                   overrides={{ Root: { style: { width: "328px" } } }}
                   headerImage={
@@ -63,6 +62,8 @@ function CustomerDashboard() {
                     {ele.r_state ? ", " + ele.r_state : " "}{" "}
                     {ele.r_zipcode ? ", " + ele.r_zipcode : " "}
                     <br></br>
+                  </StyledBody>
+                  <ModalFooter style={{marginBottom: "-25px"}}>
                     <b>
                       {ele.restaurant_dishtypes.length > 0
                         ? ele.restaurant_dishtypes.map((dishType) => {
@@ -70,7 +71,7 @@ function CustomerDashboard() {
                           })
                         : " "}
                     </b>
-                  </StyledBody>
+                  </ModalFooter>
                 </Card>
               </div>
             </Col>

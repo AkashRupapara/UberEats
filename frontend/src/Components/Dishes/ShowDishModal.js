@@ -5,12 +5,11 @@ import {
   ModalBody,
   ModalFooter,
   ModalButton,
-  SIZE,
 } from "baseui/modal";
 
 import { useDispatch } from "react-redux";
 
-import { H2, H3, H5 } from "baseui/typography";
+import { H2, H3, H5, H6 } from "baseui/typography";
 import { Input } from "baseui/input";
 import { Select } from "baseui/select";
 import { TokenExpiredError } from "jsonwebtoken";
@@ -23,16 +22,22 @@ const Carousel = require("react-responsive-carousel").Carousel;
 
 function ShowDishModal(props) {
   const dispatch = useDispatch();
+  const [conflictModalIsOpen, setConflictModalIsOpen] = useState(false);
+
   const {
     dishModalIsOpen,
     setDishModalIsOpen,
     dishes,
     selectedDishId,
     restId,
+    restName,
   } = props;
+
   console.log(restId);
   const [dishImages, setDishImages] = useState([]);
   const [dishDetails, setDishDetails] = useState({});
+  const [prevRestName, setPrevRestName] = useState("");
+  const [prevRestId, setPrevRestId] = useState("")
 
   useEffect(() => {
     if (dishes && selectedDishId) {
@@ -44,7 +49,22 @@ function ShowDishModal(props) {
     }
   }, [selectedDishId, dishes]);
 
-
+  const resetCartItems = () => {
+    const token = localStorage.getItem("token");
+    axiosConfig.post("/cart/reset",{
+      dishId: selectedDishId,
+      restId,
+    },{
+      headers:{
+        Authorization: token,
+      },
+    }).then((res)=>{
+      toast.success("Cart Updated");
+      setDishModalIsOpen(false);      
+    }).catch((err)=>{
+      toast.error("Error Updating Cart");
+    });
+  } 
 
   const addItemToCart = () => {
     const token = localStorage.getItem("token");
@@ -64,15 +84,50 @@ function ShowDishModal(props) {
       .then((res) => {
         console.log(res.data);
         toast.success("Item Added To Cart");
+        setDishModalIsOpen(false);      
+
       })
       .catch((err) => {
-        console.log(err.response.data);
-        toast.error(err.response.data.error);
+        if (err.response.status === 409) {
+          setConflictModalIsOpen(true);
+          setPrevRestName(err.response.data.restName);
+          setPrevRestId(err.response.data.restId);
+        }
       });
   };
 
   return (
     <div>
+      <Modal
+        onClose={() => setConflictModalIsOpen(false)}
+        isOpen={conflictModalIsOpen}
+      >
+        <ModalHeader style={{ textAlign: "left" }}>
+          <H3>Create new order?</H3>
+        </ModalHeader>
+        <ModalBody>
+          <h6>
+            Your order contains items from "{prevRestName}". Create a new
+            order to add items from "{restName}"
+          </h6>
+        </ModalBody>
+        <ModalFooter>
+          <ModalButton
+            kind="tertiary"
+            onClick={() => setConflictModalIsOpen(false)}
+          >
+            Cancel
+          </ModalButton>
+          <ModalButton
+            onClick={() => {
+              resetCartItems();
+              setConflictModalIsOpen(false);
+            }}
+          >
+            Create
+          </ModalButton>
+        </ModalFooter>
+      </Modal>
       <Modal
         isOpen={dishModalIsOpen}
         closeable

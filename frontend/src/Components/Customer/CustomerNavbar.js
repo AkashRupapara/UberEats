@@ -37,6 +37,21 @@ function CustomerNavbar() {
     }
   }, [history.location.pathname]);
 
+  const deleteCartItems = () => {
+    const token = localStorage.getItem("token");
+    axiosConfig.delete("/cart/",{
+      headers: {
+        Authorization: token,
+      },
+    }).then((res)=>{
+      toast.success("Cart Items Deleted");
+      setCartDetails({});
+      getCartItems();
+    }).catch((err)=>{
+      toast.error(err.response.data.error);
+    })
+  }
+
   const getCartItems = () => {
     const token = localStorage.getItem("token");
     axiosConfig
@@ -46,17 +61,39 @@ function CustomerNavbar() {
         },
       })
       .then((res) => {
+        console.log(res);
         setCartDetails(res.data);
+        console.log(res.data);
       })
       .catch((err) => {
-        console.log(err.response.data);
-        toast.error(err.response.data.error);
+        console.log(err);
+        // history.push("/");
+        // toast.error(err?.response.data?.error : null);
       });
   };
-  console.log("Cart", cartDetails);
+
   React.useEffect(() => {
     getCartItems();
   }, [isCartOpen]);
+
+  const deleteItemFromCart = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axiosConfig.delete(
+        `cart/item/${id}`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        },
+      );
+      toast.success(res.data.message);
+      getCartItems();
+    } catch (err) {
+      console.log(err.response.data.error);
+      toast.error(err.response.data.error);
+    }
+  };
 
   return (
     <HeaderNavigation style={{ height: "90px" }}>
@@ -90,8 +127,7 @@ function CustomerNavbar() {
                 style={{ width: "100%" }}
                 onClick={() => history.push("/customer/update")}
               >
-                {" "}
-                Update Profile{" "}
+                Update Profile
               </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
@@ -220,32 +256,47 @@ function CustomerNavbar() {
             <div>
               <h3> Cart Items</h3>
             </div>
-            <div style={{ marginTop: "10%", textAlign:"center" }}>
+            <div style={{ marginTop: "10%", textAlign: "center" }}>
               {cartDetails
                 ? cartDetails.cartItems?.length > 0
                   ? cartDetails.cartItems.map((item) => {
                       return (
-                        <div className="card mb-3" style={{ width: "80%", height:"80px" }}>
+                        <div
+                          className="card mb-3"
+                          style={{ width: "100%", height: "80px" }}
+                        >
                           <div className="row no-gutters">
                             <div className="col-md-4">
-                                <img src={item.dish.dish_imgs[0].di_img} style={{height:"80px", width:"100%", marginLeft:"-28px"}} />
-                                <title>Placeholder</title>
-                                <rect
-                                  width="100%"
-                                  height="100%"
-                                  fill="#868e96"
-                                />
-                              {/* </svg> */}
+                              <img
+                                src={item.dish.dish_imgs.length>0?item.dish.dish_imgs[0].di_img: null}
+                                style={{
+                                  height: "80px",
+                                  width: "100%",
+                                  marginLeft: "-28px",
+                                }}
+                              />
+                              <title>Placeholder</title>
+                              <rect width="100%" height="100%" fill="#868e96" />
                             </div>
-                            <div className="col-md-8">
+                            <div className="col-md-5">
                               <div className="card-body">
-                                <h5 className="card-title">{item.dish.d_name}</h5>
-                                <p className="card-text">{cartDetails.restDetails.r_name}</p>
-                                {/* <p className="card-text">
-                                  <small className="text-muted">
-                                    Card Text 2
-                                  </small>
-                                </p> */}
+                                <h5 className="card-title">
+                                  {item.dish.d_name}
+                                </h5>
+                                <p className="card-text">
+                                  {cartDetails.restDetails.r_name}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="col-md-3">
+                              <div className="card-body">
+                                <Button
+                                  onClick={() => {
+                                    deleteItemFromCart(item.cart_id);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -255,6 +306,8 @@ function CustomerNavbar() {
                   : null
                 : null}
             </div>
+            
+                <Button style={{width:"100%"}} onClick={deleteCartItems}> Clear Cart </Button>
           </Drawer>
         </NavigationItem>
       </NavigationList>

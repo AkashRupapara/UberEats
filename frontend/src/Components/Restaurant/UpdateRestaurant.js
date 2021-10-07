@@ -267,7 +267,7 @@ function UpdateRestaurant() {
                                         onChange={(e) =>
                                             setformDetails({
                                                 ...formDetails,
-                                                desc: e.taret.vgalue,
+                                                desc: e.target.value,
                                             })
                                         }
                                     />

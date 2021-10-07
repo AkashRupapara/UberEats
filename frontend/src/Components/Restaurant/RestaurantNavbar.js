@@ -5,13 +5,14 @@ import restLogo from '../../assets/images/ubereats-restaurant-logo.png'
 import '../../assets/css/restaurantHome.css';
 import { restaurantLogout } from '../../actions/restaurant';
 import { useDispatch } from 'react-redux';
+import {useHistory} from 'react-router'
 
 const RestaurantNavbar = () => {
     const dispatch = useDispatch();
-
+    const history = useHistory();
     const logoutHandler = () => {
         dispatch(restaurantLogout());
-        
+        history.push("/");
     }
 
     return (

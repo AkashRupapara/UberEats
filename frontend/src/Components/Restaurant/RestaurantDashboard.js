@@ -51,9 +51,9 @@ const RestaurantDashboard = () => {
     const token = localStorage.getItem("token");
     console.log(token);
 
-    if(token === null || token === undefined){
+    if (token === null || token === undefined) {
       dispatch(restaurantLogout());
-      history.push('/');
+      history.push("/");
       return;
     }
 
@@ -162,11 +162,12 @@ const RestaurantDashboard = () => {
           ...restDetails,
           ...restData,
         });
-      }).catch((err)=>{
-        if(err.hasOwnProperty('response')){
-          if(err.response.status === 403 || err.response.status === 401){
+      })
+      .catch((err) => {
+        if (err.hasOwnProperty("response")) {
+          if (err.response.status === 403 || err.response.status === 401) {
             toast.error("Session Expired Please Login");
-            history.push('/restaurantLogin');
+            history.push("/restaurantLogin");
           }
         }
       });
@@ -251,11 +252,7 @@ const RestaurantDashboard = () => {
         </H6>
       </div>
       <div>
-        <H3>
-          <i>
-            <b> TASTY DISHES </b>{" "}
-          </i>{" "}
-        </H3>
+        <H3>TASTY DISHES</H3>
         <br></br>
         <Button
           variant="primary"
@@ -270,7 +267,7 @@ const RestaurantDashboard = () => {
             {restDetails.dishes?.length > 0 ? (
               restDetails.dishes.map((ele) => (
                 <Col xs={3} key={index} style={{ marginTop: "30px" }}>
-                  <Card style={{height: "500px"}}>
+                  <Card style={{ height: "500px" }}>
                     <div
                       onClick={() => {
                         setSelectedDishId(ele.d_id);

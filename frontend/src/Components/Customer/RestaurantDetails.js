@@ -174,6 +174,7 @@ const RestaurantDetails = ({ match }) => {
         dishes={restDetails.dishes}
         selectedDishId={selectedDishId}
         restId={restDetails.restId}
+        restName={restDetails.name}
       />
       <CustomerNavbar />
       <Carousel showArrows showThumbs={false}>
