@@ -55,10 +55,8 @@ function UpdateDishModal(props) {
   const [imageUploading, setImageUploading] = useState(false);
 
   const updateDishFormHandler = (e) => {
-    console.log("IN UPDATE DISH");
     e.preventDefault();
     const token = localStorage.getItem("token");
-    console.log(dishType)
     axiosInstance
       .put(
         `dishes/${selectedDishId}`,
@@ -78,6 +76,8 @@ function UpdateDishModal(props) {
       )
       .then((res) => {
         toast.success("Dish Updated Succesfully");
+        setDishName("");
+        setDishImages("");
         setDishModalIsOpen(false);
       })
       .catch((err) => {
@@ -87,15 +87,12 @@ function UpdateDishModal(props) {
 
   const uploadDishImage = (acceptedFiles) => {
     dispatch(dishImageUploadRequest());
-    setImageUploading(true);
-
     uploadFile(acceptedFiles[0], config)
       .then((data) => {
         dispatch(dishImageUploadSuccess(selectedDishId, data.location));
       })
       .then((res) => {
         setImageUploading(false);
-        // setDishModalIsOpen(false);
       })
       .catch((err) => {
         console.log(err);

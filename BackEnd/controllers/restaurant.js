@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable camelcase */
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const {
   restaurants,
   restaurant_dishtypes,
@@ -9,19 +9,29 @@ const {
   dishes,
   sequelize,
   restaurant_imgs,
-} = require('../models/data.model');
+} = require("../models/data.model");
 
 // const { body, validationResult } = require('express-validator');
 
 const createRestaurant = async (req, res) => {
   try {
     const {
-      email, password, name, city, state, desc, contact, dish_types, del_type, start, end,
+      email,
+      password,
+      name,
+      city,
+      state,
+      desc,
+      contact,
+      dish_types,
+      del_type,
+      start,
+      end,
     } = req.body;
 
     // Validate user input
     if (!(name && email && password)) {
-      res.status(400).send({ error: 'All input is required' });
+      res.status(400).send({ error: "All input is required" });
     }
     // check if Restaurant already exist
     // Validate if user exist in our database
@@ -32,7 +42,7 @@ const createRestaurant = async (req, res) => {
     });
 
     if (oldRes) {
-      res.status(409).send({ error: 'Restaurant Already Exist. Please Login' });
+      res.status(409).send({ error: "Restaurant Already Exist. Please Login" });
     } else {
       // Encrypt user password
       const encryptedPassword = await bcrypt.hash(password, 10);
@@ -56,7 +66,7 @@ const createRestaurant = async (req, res) => {
             r_start: start,
             r_end: end,
           },
-          { transaction: t },
+          { transaction: t }
         );
         if (dish_types) {
           const dishTypes = dish_types.map((ele) => ({
@@ -68,9 +78,13 @@ const createRestaurant = async (req, res) => {
           });
         }
 
-        token = jwt.sign({ r_id: restaurant.r_id, email, role: 'restaurant' }, 'UberEats', {
-          expiresIn: '2h',
-        });
+        token = jwt.sign(
+          { r_id: restaurant.r_id, email, role: "restaurant" },
+          "UberEats",
+          {
+            expiresIn: "2h",
+          }
+        );
         await t.commit();
         res.status(201).json({ token });
       } catch (error) {
@@ -86,7 +100,7 @@ const createRestaurant = async (req, res) => {
 const restaurantLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  if (!(email && password)) res.status(400).send('All input is required');
+  if (!(email && password)) res.status(400).send("All input is required");
 
   const rest = await restaurants.findOne({
     where: {
@@ -95,31 +109,34 @@ const restaurantLogin = async (req, res) => {
   });
 
   if (!rest) {
-    res.status(409).send('Restaurant does not exist');
+    res.status(409).send("Restaurant does not exist");
   } else {
     bcrypt.compare(password, rest.r_password, (err, result) => {
       if (err) {
         // handle error
-        res.status(409).send('Error Verifying details!!!');
+        res.status(409).send("Error Verifying details!!!");
       }
       if (result) {
         // Send JWT
         // Create token
-        const token = jwt.sign({ r_id: rest.r_id, email, role: 'restaurant' }, 'UberEats', {
-          expiresIn: '2h',
-        });
+        const token = jwt.sign(
+          { r_id: rest.r_id, email, role: "restaurant" },
+          "UberEats",
+          {
+            expiresIn: "2h",
+          }
+        );
         // save customer token
         rest.token = token;
         return res.status(201).json({ token });
       }
       // response is OutgoingMessage object that server response http request
-      return res.json({ success: false, message: 'passwords do not match' });
+      return res.json({ success: false, message: "passwords do not match" });
     });
   }
 };
 
 const updateRestaurant = async (req, res) => {
-
   try {
     const restId = req.params.rid;
     const imgLink = req.body.link;
@@ -129,7 +146,7 @@ const updateRestaurant = async (req, res) => {
       },
     });
 
-    if (!rest) return res.status(404).send('Restaurant Not Found');
+    if (!rest) return res.status(404).send("Restaurant Not Found");
 
     if (req.body.email && req.body.email !== rest.r_email) {
       const checkRest = await restaurants.findOne({
@@ -139,7 +156,9 @@ const updateRestaurant = async (req, res) => {
       });
 
       if (checkRest) {
-        return res.status(403).send('Restaurant already exist with given email');
+        return res
+          .status(403)
+          .send("Restaurant already exist with given email");
       }
     }
     const t = await sequelize.transaction();
@@ -162,34 +181,33 @@ const updateRestaurant = async (req, res) => {
           returning: true,
           where: { r_id: restId },
         },
-        { transaction: t },
+        { transaction: t }
       );
+
       if (req.body.dish_types) {
         const dishTypes = req.body.dish_types.map((ele) => ({
           r_id: restId,
           rdt_type: ele,
         }));
-        await restaurant_dishtypes.destroy(
-          {
-            where: {
-              r_id: restId,
-            },
+
+        await restaurant_dishtypes.destroy({
+          where: {
+            r_id: restId,
           },
-          { transaction: t },
-        );
-        await restaurant_dishtypes.bulkCreate(dishTypes, {
+          transaction: t,
+        });
+
+        const updated = await restaurant_dishtypes.bulkCreate(dishTypes, {
           transaction: t,
         });
       }
 
-
       await t.commit();
-      return res.status(200).send({ message: 'Restaurant Updated' });
+      return res.status(200).send({ message: "Restaurant Updated" });
     } catch (err) {
       await t.rollback();
-      res.status(404).send(err);
+      return res.status(404).send(err);
     }
-    return res.status(201).send(rest);
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -203,7 +221,7 @@ const deleteRestaurant = async (req, res) => {
       },
     });
     if (!findEntry) {
-      res.status(404).send('Restaurant Does not Exist to delete');
+      res.status(404).send("Restaurant Does not Exist to delete");
     } else {
       await restaurants.destroy({
         where: {
@@ -221,19 +239,15 @@ const addRestaurantImage = async (req, res) => {
   const restId = req.headers.id;
   const imgLink = req.body.link;
   if (imgLink) {
-    const addImage = await restaurant_imgs.create(
-      {
-        ri_img: imgLink,
-        r_id: restId,
-        ri_alt_text: 'Restaurant Image',
-      },
-    );
+    const addImage = await restaurant_imgs.create({
+      ri_img: imgLink,
+      r_id: restId,
+      ri_alt_text: "Restaurant Image",
+    });
     return res.status(200).send(addImage);
-  }else {
-    return res.status(500).send({error: 'Could not add Image'});
+  } else {
+    return res.status(500).send({ error: "Could not add Image" });
   }
-
-  
 };
 
 const deleteRestaurantImage = async (req, res) => {
@@ -247,22 +261,21 @@ const deleteRestaurantImage = async (req, res) => {
     },
   });
 
-  if(!img){
-    return res.status(404).send({error: 'Image not found'});
+  if (!img) {
+    return res.status(404).send({ error: "Image not found" });
   }
 
-  try{
+  try {
     await img.destroy();
-    return res.status(200).send({message: 'Restaurant Image deleted'});
+    return res.status(200).send({ message: "Restaurant Image deleted" });
   } catch (err) {
     return res.status(500).send(err);
   }
-  
 };
 
 const getRestaurantDetails = async (req, res) => {
   const restId = req.params.rid;
-  if (!restId) return res.status(404).send('Provide Restaurant ID');
+  if (!restId) return res.status(404).send("Provide Restaurant ID");
 
   const restDetails = await restaurants.findOne({
     include: [
@@ -271,10 +284,11 @@ const getRestaurantDetails = async (req, res) => {
       },
       {
         model: restaurant_imgs,
-      },{
+      },
+      {
         model: dishes,
         include: dish_imgs,
-      }
+      },
     ],
     where: {
       r_id: restId,
@@ -287,56 +301,89 @@ const getRestaurantDetails = async (req, res) => {
 const getAllRestaurants = async (req, res) => {
   const custId = req.headers.id;
   const city = req.query.city;
+  const type = req.query.type;
+  const delivery = req.query.delivery;
 
-  if (!custId) return res.status(404).send({error: "Please Login!"});
+  if (!custId) return res.status(404).send({ error: "Please Login!" });
 
-  if(city!== undefined && city!==null && city !== ""){
-    console.log("SAKdsankdj")
-    const restDetails = await restaurants.findAll({
-      include: [
-        {
-          model: restaurant_dishtypes,
-        },
-        {
-          model: restaurant_imgs,
-        },{
-          model: dishes,
-          include: dish_imgs,
-        }
-      ],
-      where:{
-        r_city: city,
+  const searchObject = {
+    r_city: city,
+    r_delivery_type: delivery,
+  };
+
+  const checkProperties = (obj) => {
+    Object.keys(obj).forEach((key) => {
+      if (obj[key] === null || obj[key] === "" || obj[key] === undefined) {
+        // eslint-disable-next-line no-param-reassign
+        delete obj[key];
+      }
+    });
+  };
+
+  checkProperties(searchObject);
+
+  const restDetails = await restaurants.findAll({
+    include: [
+      {
+        model: restaurant_dishtypes,
       },
-      attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-    });
-    return res.status(201).send(restDetails);
-  }else{
-    console.log("INSIDE MAIN LOOP")
-    const restDetails = await restaurants.findAll({
-      include: [
-        {
-          model: restaurant_dishtypes,
-        },
-        {
-          model: restaurant_imgs,
-        },{
-          model: dishes,
-          include: dish_imgs,
-        }
-      ],
-      attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-    });
-    return res.status(201).send(restDetails);
-  }
-  
+      {
+        model: restaurant_imgs,
+      },
+      {
+        model: dishes,
+        include: dish_imgs,
+      },
+    ],
+    where: searchObject,
+    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  });
+  return res.status(201).send(restDetails);
+  // if(city!== undefined && city!==null && city !== ""){
+  //   console.log("SAKdsankdj")
+  //   const restDetails = await restaurants.findAll({
+  //     include: [
+  //       {
+  //         model: restaurant_dishtypes,
+  //       },
+  //       {
+  //         model: restaurant_imgs,
+  //       },{
+  //         model: dishes,
+  //         include: dish_imgs,
+  //       }
+  //     ],
+  //     where:{
+  //       r_city: city,
+  //     },
+  //     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  //   });
+  //   return res.status(201).send(restDetails);
+  // }else{
+  //   console.log("INSIDE MAIN LOOP")
+  //   const restDetails = await restaurants.findAll({
+  //     include: [
+  //       {
+  //         model: restaurant_dishtypes,
+  //       },
+  //       {
+  //         model: restaurant_imgs,
+  //       },{
+  //         model: dishes,
+  //         include: dish_imgs,
+  //       }
+  //     ],
+  //     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  //   });
+  //   return res.status(201).send(restDetails);
+  // }
 };
 
-
-// TO DO: Filter 
+// TO DO: Filter
 // Delivery Type
 // Location
 // Veg Non-Veg Vegan
-// Category 
+// Category
 
 // const getRestaurantsByLocation = async (req, res) => {
 //   const custId = req.headers.id;

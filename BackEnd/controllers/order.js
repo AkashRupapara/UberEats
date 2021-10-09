@@ -73,16 +73,14 @@ const createOrder = async (req, res) => {
         transaction: t,
       });
 
-      await carts.destroy(
-        {
-          where: {
-            c_id: custId,
-          },
-          transaction: t
+      await carts.destroy({
+        where: {
+          c_id: custId,
         },
-      );
+        transaction: t,
+      });
 
-      await orders
+      await orders;
       await t.commit();
       return res.status(201).send({
         orderId: initOrder.o_id,
@@ -151,6 +149,14 @@ const getOrders = async (req, res) => {
   let getorders;
   if (role === "customer") {
     getorders = await orders.findAll({
+      include: [
+        {
+          model: restaurants,
+          include: restaurant_imgs,
+          exclude: ["r_password", "createdAt", "updatedAt"],
+        },
+        { model: order_dishes, include: dishes,  exclude: ["createdAt", "updatedAt"], },
+      ],
       where: {
         c_id: req.headers.id,
       },

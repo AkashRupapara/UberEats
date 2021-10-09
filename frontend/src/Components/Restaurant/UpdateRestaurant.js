@@ -98,11 +98,11 @@ function UpdateRestaurant() {
                 newDataObject["contact"] = res.data.r_contact_no;
                 newDataObject["delivery_type"] = [{ delivery_type: res.data.r_delivery_type }]
 
-                const sTime = res.data.r_start.split(":");
-                const s = new Date(2021, 10, 30, sTime[0], sTime[1], sTime[2], 0);
+                const sTime = res.data.r_start?res.data.r_start.split(":"):null;
+                const s = new Date(2021, 10, 30, sTime?.length>0?sTime[0]:null, sTime?.length>0?sTime[1]:null, sTime?.length>0?sTime[2]:null, 0);
                 newDataObject["start"] = s;
-                const eTime = res.data.r_end.split(":");
-                const e = new Date(2021, 10, 30, eTime[0], eTime[1], eTime[2], 0);
+                const eTime = res.data.r_end? res.data.r_end.split(":"):null;
+                const e = new Date(2021, 10, 30, eTime?.length>0?eTime[0]:null, eTime?.length>0?eTime[1]:null, eTime?.length>0?eTime[2]:null, 0);
                 newDataObject["end"] = e;
                 setformDetails(newDataObject)
             });
@@ -116,11 +116,12 @@ function UpdateRestaurant() {
         e.preventDefault();
         setUpdating(true);
         const dishTypes = [];
+        console.log("Dish Type", dishTypes)
         formDetails.dish_type.forEach(ele => {
             dishTypes.push(ele.dish_type);
         });
 
-        formDetails.dish_type = dishTypes;
+        formDetails.dish_types = dishTypes;
         formDetails.city = formDetails.city[0].city;
         formDetails.delivery_type = formDetails.delivery_type[0].delivery_type;
         formDetails.state = formDetails.state[0].state;
@@ -148,6 +149,7 @@ function UpdateRestaurant() {
 
         try {
 
+            console.log("Form Details", formDetails);
             await axiosInstance.put(`restaurant/${tokenData.r_id}`,
                 formDetails, {
                 headers: {
@@ -207,6 +209,7 @@ function UpdateRestaurant() {
             <RestaurantNavbar />
             <Row>
                 <Col>
+                <div style={{marginTop:"10%", marginLeft:"5%"}}>
                     <Carousel showArrows={true} showThumbs={false}>
                         {images.map((ele) => (
                             <div style={{ height: "500px" }}>
@@ -214,6 +217,7 @@ function UpdateRestaurant() {
                             </div>
                         ))}
                     </Carousel>
+                    </div>
                     <Button onClick={() => setModalIsOpen(true)}>Upload Image</Button>
                     <Modal isOpen={modalIsOpen}>
                         <ModalHeader>Upload Image Here</ModalHeader>
@@ -413,7 +417,7 @@ function UpdateRestaurant() {
                                             })
                                         }
                                         step={1800}
-                                        minTime={new Date('2021-09-28T07:00:00.000z')}
+                                        // minTime={new Date('2021-09-28T07:00:00.000z')}
                                     />
                                 </FormControl>
 

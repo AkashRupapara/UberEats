@@ -95,7 +95,7 @@ const RestaurantDetails = ({ match }) => {
         res.data.r_delivery_type = res.data.r_delivery_type
           ? res.data.r_delivery_type
           : "";
-        if (res.data.r_delivery_type === "both") {
+        if (res.data.r_delivery_type === "Both") {
           restData["deliveryType"] = "Pickup and Delivery";
         } else {
           restData["deliveryType"] = res.data.r_delivery_type;

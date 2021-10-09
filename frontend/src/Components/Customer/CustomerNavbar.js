@@ -42,7 +42,7 @@ function CustomerNavbar() {
 
   const dispatch = useDispatch();
   React.useEffect(() => {
-    if (history.location.pathname === "/customer/update") {
+    if (history.location.pathname === "/customer/update" || history.location.pathname === "/customer/orders") {
       setItemDisable(true);
     } else {
       setItemDisable(false);
@@ -170,7 +170,8 @@ function CustomerNavbar() {
               </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
-              <Button style={{ width: "100%" }}> Past Orders </Button>
+              <Button style={{ width: "100%" }}
+              onClick={()=>  history.push("/customer/orders")}> Past Orders </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
               <Button style={{ width: "100%" }}> Favorites </Button>

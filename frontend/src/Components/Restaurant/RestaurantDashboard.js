@@ -223,7 +223,7 @@ const RestaurantDashboard = () => {
         setAddDishModalIsOpen={setAddDishModalIsOpen}
       />
       <RestaurantNavbar />
-      <Carousel showArrows showThumbs={false}>
+      <Carousel showArrows showThumbs={false} >
         {images?.length > 0
           ? images.map((ele) => (
               <div style={{ height: "500px" }}>
