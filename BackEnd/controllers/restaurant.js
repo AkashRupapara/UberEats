@@ -286,23 +286,47 @@ const getRestaurantDetails = async (req, res) => {
 
 const getAllRestaurants = async (req, res) => {
   const custId = req.headers.id;
+  const city = req.body.city;
   if (!custId) return res.status(404).send({error: "Please Login!"});
 
-  const restDetails = await restaurants.findAll({
-    include: [
-      {
-        model: restaurant_dishtypes,
+  if(city!== undefined && city!==null){
+    console.log("SAKdsankdj")
+    const restDetails = await restaurants.findAll({
+      include: [
+        {
+          model: restaurant_dishtypes,
+        },
+        {
+          model: restaurant_imgs,
+        },{
+          model: dishes,
+          include: dish_imgs,
+        }
+      ],
+      where:{
+        r_city: city,
       },
-      {
-        model: restaurant_imgs,
-      },{
-        model: dishes,
-        include: dish_imgs,
-      }
-    ],
-    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-  });
-  return res.status(201).send(restDetails);
+      attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+    });
+    return res.status(201).send(restDetails);
+  }else{
+    const restDetails = await restaurants.findAll({
+      include: [
+        {
+          model: restaurant_dishtypes,
+        },
+        {
+          model: restaurant_imgs,
+        },{
+          model: dishes,
+          include: dish_imgs,
+        }
+      ],
+      attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+    });
+    return res.status(201).send(restDetails);
+  }
+  
 };
 
 

@@ -184,7 +184,6 @@ function UpdateRestaurant() {
             .then(
                 async (data) => {
                     try {
-
                         const token = localStorage.getItem('token')
                         await axiosInstance.post('restaurant/restImages', {
                             link: data.location,

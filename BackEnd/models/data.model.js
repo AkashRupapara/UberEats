@@ -225,6 +225,8 @@ const order_dishes = sequelize.define('order_dishes', {
   },
 });
 
+
+
 orders.hasMany(order_dishes, {
   foreignKey: 'o_id',
   onDelete: 'cascade',
@@ -237,6 +239,7 @@ order_dishes.belongsTo(orders, {
   onDelete: 'cascade',
   onUpdate: 'cascade',
 });
+
 dishes.hasMany(order_dishes, {
   foreignKey: 'd_id',
   onDelete: 'cascade',
@@ -250,6 +253,7 @@ order_dishes.belongsTo(dishes, {
   onUpdate: 'cascade',
   allowNull: false,
 });
+
 const fvrts = sequelize.define('fvrts', {
   f_id: {
     type: Sequelize.INTEGER,

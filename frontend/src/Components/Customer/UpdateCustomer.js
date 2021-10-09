@@ -10,7 +10,7 @@ import { expandBorderStyles } from "baseui/styles";
 import { FormControl } from "baseui/form-control";
 import { Input, MaskedInput } from "baseui/input";
 import { Button } from "baseui/button";
-import { Datepicker } from "baseui/datepicker";
+import { DatePicker } from "baseui/datepicker";
 import Footer from "../Footer";
 import { H3 } from "baseui/typography";
 import { uploadFile } from "react-s3";
@@ -67,7 +67,7 @@ function UpdateCustomer() {
         setCustId(res.data.c_id ? res.data.c_id : "");
         setDob(res.data.c_dob ? new Date(res.data.c_dob) : "");
         setContactNo(res.data.c_contact_no ? res.data.c_contact_no : "");
-        setCity(res.data.c_city ? [{city: res.data.c_city}] : "");
+        setCity(res.data.c_city ? [{ city: res.data.c_city }] : "");
         setStateName(res.data.c_state ? res.data.c_state : "");
         setCountry(res.data.c_country ? res.data.c_country : "");
         setAbout(res.data.c_about ? res.data.c_about : "");
@@ -142,8 +142,8 @@ function UpdateCustomer() {
       profile_img: image,
       nname: nickName,
       contact: finalContact,
-      dob,
-      city: city[0]?.city? city[0].city: "",
+      dob: dob.length>0? dob[0]:"",
+      city: city[0]?.city ? city[0].city : "",
       state: stateName,
       country,
     };
@@ -238,14 +238,14 @@ function UpdateCustomer() {
                     onChange={(e) => setAbout(e.target.value)}
                   />
                 </FormControl>
-                <FormControl label="Date of Birth">
-                  <Datepicker
-                    aria-label="Select a date"
+                <FormControl label="Date of birth">
+                  <DatePicker
+                    maxDate={new Date("2010-01-01T07:00:00.000Z")}
+                    minDate={new Date("1960-01-01T07:00:00.000Z")}
                     value={dob}
-                    onChange={({ dob }) => setDob(dob)}
-                    formatString="yyyy-MM-dd"
-                    placeholder="YYYY-MM-DD"
-                    mask="9999-99-99"
+                    onChange={({ date }) =>
+                      setDob(Array.isArray(date) ? date : [date])
+                    }
                   />
                 </FormControl>
                 <FormControl label="Nick Name">
@@ -278,8 +278,7 @@ function UpdateCustomer() {
                     labelKey="city"
                     placeholder="Select City"
                     value={city}
-                    onChange={({ value }) => setCity(value)
-                    }
+                    onChange={({ value }) => setCity(value)}
                   />
                 </FormControl>
                 {/* <FormControl label="City">

@@ -9,20 +9,21 @@ const {
   order_dishes,
   sequelize,
   dish_imgs,
-} = require('../models/data.model');
+  restaurants,
+  restaurant_imgs,
+} = require("../models/data.model");
 
 const createOrder = async (req, res) => {
   const custId = req.headers.id;
-
   const cartDetails = await carts.findAll({
-    attributes: ['d_id', 'r_id'],
+    attributes: ["d_id", "r_id"],
     where: {
       c_id: custId,
     },
   });
 
   if (cartDetails.length === 0) {
-    return res.status(404).send('No Items in Cart');
+    return res.status(404).send("No Items in Cart");
   }
 
   let dishIds = [];
@@ -31,7 +32,7 @@ const createOrder = async (req, res) => {
     dishIds.push(element.d_id);
   });
   const dishPriceDetails = await dishes.findAll({
-    attributes: ['d_id', 'd_price'],
+    attributes: ["d_id", "d_price"],
     where: {
       d_id: dishIds,
     },
@@ -52,14 +53,14 @@ const createOrder = async (req, res) => {
   try {
     const initOrder = await orders.create(
       {
-        o_status: 'Initialized',
+        o_status: "Initialized",
         o_total_price: sum,
         c_id: custId,
         r_id: restId,
         o_tax: sum * 0.18,
         o_final_price: sum + sum * 0.18,
       },
-      { transaction: t },
+      { transaction: t }
     );
 
     if (dishIds) {
@@ -77,41 +78,44 @@ const createOrder = async (req, res) => {
           where: {
             c_id: custId,
           },
+          transaction: t
         },
-        { transaction: t },
       );
-      t.commit();
-      return res.status(201).send({orderId: initOrder.o_id, message: 'Order Initialised Successfully'});
+
+      await orders
+      await t.commit();
+      return res.status(201).send({
+        orderId: initOrder.o_id,
+        message: "Order Initialised Successfully",
+      });
     }
   } catch (err) {
-    t.rollback();
+    await t.rollback();
     return res.status(400).send(err);
   }
 };
 
 const placeOrder = async (req, res) => {
-  console.log("Here");
   const { type, address, id } = req.body;
   try {
     const updateOrder = await orders.update(
       {
-        o_status: 'Placed',
+        o_status: "Placed",
         o_type: type,
         o_address: address,
-        o_date_time: sequelize.literal('CURRENT_TIMESTAMP'),
+        o_date_time: sequelize.literal("CURRENT_TIMESTAMP"),
       },
       {
         where: {
           o_id: id,
         },
-      },
+      }
     );
-
     // Checking if Update was successfull or not
     if (updateOrder[0] !== 1) {
-      return res.status(404).send('Order Not found');
+      return res.status(404).send("Order Not found");
     }
-    return res.status(201).send('Order Placed');
+    return res.status(201).send("Order Placed");
   } catch (err) {
     return res.status(400).send(err);
   }
@@ -130,12 +134,12 @@ const updateOrder = async (req, res) => {
         where: {
           o_id: oid,
         },
-      },
+      }
     ); // Checking if Update was successfull or not
     if (updateStatus[0] !== 1) {
-      return res.status(404).send('Order Not found');
+      return res.status(404).send("Order Not found");
     }
-    return res.status(201).send({ msg: 'Order Status Updated' });
+    return res.status(201).send({ msg: "Order Status Updated" });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -145,14 +149,14 @@ const getOrders = async (req, res) => {
   const { role } = req.headers;
 
   let getorders;
-  if (role === 'customer') {
+  if (role === "customer") {
     getorders = await orders.findAll({
       where: {
         c_id: req.headers.id,
       },
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
-  } else if (role === 'restaurant') {
+  } else if (role === "restaurant") {
     getorders = await orders.findAll({
       where: {
         r_id: req.headers.id,
@@ -166,24 +170,39 @@ const getOrderById = async (req, res) => {
   const { role } = req.headers;
   const { oid } = req.params;
   const { id } = req.headers;
-  if (role === 'restaurant') {
+
+  if (role === "restaurant") {
     const findRestOrder = await orders.findOne({
-      includes: [{ order_dishes, includes: dishes }],
+      include: [
+        { model: order_dishes, include: dishes },
+        {
+          model: restaurants,
+          attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+        },
+      ],
       where: {
         o_id: oid,
         r_id: id,
       },
+      exclude: ["r_password", "createdAt", "updatedAt"],
     });
 
     if (findRestOrder) {
-      return res.status(201).send(findRestOrder);
+      return res.status(200).send(findRestOrder);
     }
 
-    return res.status(404).send({error:"Restuarant Order Not Found"});
+    return res.status(404).send({ error: "Restuarant Order Not Found" });
   }
 
   const findCustOrder = await orders.findOne({
-    include: [{ model: order_dishes, include: [{ model: dishes, include: dish_imgs }] }],
+    include: [
+      { model: order_dishes, include: dishes },
+      {
+        model: restaurants,
+        include: restaurant_imgs,
+        attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+      },
+    ],
     where: {
       o_id: oid,
       c_id: id,
@@ -194,7 +213,7 @@ const getOrderById = async (req, res) => {
     return res.status(201).send(findCustOrder);
   }
 
-  return res.status(404).send('Customer Order Not Found');
+  return res.status(404).send({ error: "Customer Order Not Found" });
 };
 module.exports = {
   createOrder,

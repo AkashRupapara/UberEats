@@ -3,6 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { Client as Styletron } from 'styletron-engine-atomic';
 import { Provider as StyletronProvider } from 'styletron-react';
+
 import { LightTheme, BaseProvider, styled } from 'baseui';
 import { StatefulInput } from 'baseui/input';
 
@@ -45,7 +46,6 @@ function App() {
                 
                 <Route path="/" component={Home} />
               </Switch>
-
             </Router>
           </React.Suspense>
         </BaseProvider>

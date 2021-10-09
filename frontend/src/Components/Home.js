@@ -13,6 +13,7 @@ function Home(props) {
 
   const login = async (e) => {
     e.preventDefault();
+
     if (role.length === 0) {
       toast.error("Select a role first!");
     }
