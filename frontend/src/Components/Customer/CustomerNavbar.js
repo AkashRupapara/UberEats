@@ -29,6 +29,8 @@ import {
   ModalFooter,
   ModalButton,
 } from "baseui/modal";
+import { useDispatch } from "react-redux";
+import { setLocation } from "../../actions/searchFilter";
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -38,6 +40,7 @@ function CustomerNavbar() {
   const [cartDetails, setCartDetails] = React.useState({});
   const [orderInitModalIsOpen, setOrderInitModalIsOpen] = React.useState(false);
 
+  const dispatch = useDispatch();
   React.useEffect(() => {
     if (history.location.pathname === "/customer/update") {
       setItemDisable(true);
@@ -73,17 +76,18 @@ function CustomerNavbar() {
         },
       })
       .then((res) => {
-        console.log(res);
-        setCartDetails(res.data);
         console.log(res.data);
+        setCartDetails(res.data);
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Session Expired!! Please Sign In Again!!")
+        history.push("/customer/login");
       });
   };
 
   React.useEffect(() => {
-    getCartItems();
+    // getCartItems();
   }, [isCartOpen]);
 
   const deleteItemFromCart = async (id) => {
@@ -109,19 +113,26 @@ function CustomerNavbar() {
   const goToPlaceOrder = () => {
     const token = localStorage.getItem("token");
 
-    axiosConfig.post("/orders/neworder",{},{
-      headers:{
-        Authorization: token,
-      },
-    }).then((res)=>{
-      console.log(res.data);
-      history.push(`/customer/placeorder/${res.data.orderId}`);
-    }).catch((err)=>{
-      console.log(err?.response?.data);
-      toast.error(err?.response?.data?.error);
-    });
+    axiosConfig
+      .post(
+        "/orders/neworder",
+        {},
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+        history.push(`/customer/placeorder/${res.data.orderId}`);
+      })
+      .catch((err) => {
+        console.log(err?.response?.data);
+        toast.error(err?.response?.data?.error);
+      });
     return;
-  }
+  };
 
   return (
     <HeaderNavigation style={{ height: "90px" }}>
@@ -233,11 +244,12 @@ function CustomerNavbar() {
                     backgroundColor: "transparent",
                   }}
                   disabled={itemDisable}
+                  onChange={(e)=>{dispatch(setLocation(e.target.value))}}
                 >
-                  <option value="All">All</option>
+                  <option value="">All</option>
                   <option value="San Jose">San Jose</option>
                   <option value="San Francisco">San Francisco</option>
-                  <option value="New York">New York</option>
+                  <option value="Santa Cruz">Santa Cruz</option>
                   <option value="Santa Clara">Santa Clara</option>
                 </Form.Control>
               </div>
@@ -382,9 +394,7 @@ function CustomerNavbar() {
               >
                 Cancel
               </ModalButton>
-              <ModalButton onClick={goToPlaceOrder}>
-                Place Order
-              </ModalButton>
+              <ModalButton onClick={goToPlaceOrder}>Place Order</ModalButton>
             </ModalFooter>
           </Modal>
         </NavigationItem>

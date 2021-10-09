@@ -286,10 +286,11 @@ const getRestaurantDetails = async (req, res) => {
 
 const getAllRestaurants = async (req, res) => {
   const custId = req.headers.id;
-  const city = req.body.city;
+  const city = req.query.city;
+
   if (!custId) return res.status(404).send({error: "Please Login!"});
 
-  if(city!== undefined && city!==null){
+  if(city!== undefined && city!==null && city !== ""){
     console.log("SAKdsankdj")
     const restDetails = await restaurants.findAll({
       include: [
@@ -310,6 +311,7 @@ const getAllRestaurants = async (req, res) => {
     });
     return res.status(201).send(restDetails);
   }else{
+    console.log("INSIDE MAIN LOOP")
     const restDetails = await restaurants.findAll({
       include: [
         {
@@ -329,6 +331,29 @@ const getAllRestaurants = async (req, res) => {
   
 };
 
+
+// TO DO: Filter 
+// Delivery Type
+// Location
+// Veg Non-Veg Vegan
+// Category 
+
+// const getRestaurantsByLocation = async (req, res) => {
+//   const custId = req.headers.id;
+//   const location = req.body.location;
+
+//   if(!custId){
+//     return res.status(403).send({error: "login Again!!"});
+//   }
+
+//   const rests = await restaurants.findAll({
+//     where:{
+//       r_city: location,
+//     },
+//   });
+
+//   return res.status(200).send({})
+// };
 
 module.exports = {
   restaurantLogin,

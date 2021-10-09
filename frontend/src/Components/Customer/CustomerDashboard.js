@@ -6,25 +6,37 @@ import { Button, Col, ModalFooter, Row } from "react-bootstrap";
 import toast from "react-hot-toast";
 import axiosConfig from "../../axiosConfig";
 import CustomerNavbar from "./CustomerNavbar";
+import { useSelector } from "react-redux";
 
 function CustomerDashboard() {
   const history = useHistory();
+
+  const location = useSelector(state => state.searchFilter);
+
+  useEffect(() => {
+    console.log(location)
+    getAllRestaurants();
+  }, [location])
 
   const [allRestDetails, setAllRestDetails] = useState([]);
   const getAllRestaurants = () => {
     const token = localStorage.getItem("token");
     axiosConfig
       .get("/restaurant/all", {
+        params: {
+          city: location.location,
+        },
         headers: {
           Authorization: token,
         },
       })
       .then((res) => {
+        console.log("IN RESPONMES");
         console.log(res.data);
         setAllRestDetails(res.data);
       })
       .catch((err) => {
-        console.log(err);
+        console.log("Asdsads");
         history.push("/");
         toast.error("Session expired Please Login");
       });
@@ -55,7 +67,7 @@ function CustomerDashboard() {
                       : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"
                   }
                   title={ele.r_name}
-                  style={{ height: "100%" }}
+                  style={{ height: "100%", display:"flex", flexDirection:"column", alignContent:"space-between", justifyContent: "space-between" }}
                 >
                   <StyledBody>
                     {ele.r_address_line} {ele.r_city ? ", " + ele.r_city : ""}{" "}
@@ -63,7 +75,7 @@ function CustomerDashboard() {
                     {ele.r_zipcode ? ", " + ele.r_zipcode : " "}
                     <br></br>
                   </StyledBody>
-                  <ModalFooter style={{marginBottom: "-25px"}}>
+                  <ModalFooter style={{display:"flex" }}>
                     <b>
                       {ele.restaurant_dishtypes.length > 0
                         ? ele.restaurant_dishtypes.map((dishType) => {
