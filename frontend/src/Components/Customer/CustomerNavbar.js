@@ -87,7 +87,7 @@ function CustomerNavbar() {
   };
 
   React.useEffect(() => {
-    // getCartItems();
+    getCartItems();
   }, [isCartOpen]);
 
   const deleteItemFromCart = async (id) => {
