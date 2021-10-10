@@ -296,7 +296,7 @@ const getRestaurantDetails = async (req, res) => {
     },
     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
   });
-  return res.status(201).send({filteredRestaurants});
+  return res.status(201).send(filteredRestaurants);
 };
 
 const getRestaurantBySearch = async (req, res) => {

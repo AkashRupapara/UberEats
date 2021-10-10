@@ -31,6 +31,7 @@ import {
 } from "baseui/modal";
 import { useDispatch } from "react-redux";
 import { setDeliveryTypeAction, setDishTypeAction, setLocation, setSearchKeyWordAction } from "../../actions/searchFilter";
+import { customerLogout } from "../../actions/customer";
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -193,6 +194,10 @@ function CustomerNavbar() {
             <div style={{ marginTop: "5%" }}>
               <Button style={{ width: "100%" }}
               onClick={()=>  history.push("/customer/fvrts")}> Favorites </Button>
+            </div>
+            <div style={{ marginTop: "5%" }}>
+              <Button style={{ width: "100%" }}
+              onClick={()=> {dispatch(customerLogout()); history.push("/")}}> Logout </Button>
             </div>
           </div>
         </Drawer>
