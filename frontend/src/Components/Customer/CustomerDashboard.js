@@ -17,10 +17,6 @@ function CustomerDashboard() {
   const searchFilter = useSelector((state) => state.searchFilter);
 
   useEffect(() => {
-    getAllRestaurants();
-  }, [searchFilter.location, searchFilter.deliveryType, searchFilter.dishType]);
-
-  useEffect(() => {
     getAllRestaurantsByKeyword();
   }, [searchFilter.keyWord]);
 
@@ -106,9 +102,8 @@ function CustomerDashboard() {
 
   useEffect(() => {
     getAllRestaurants();
-  }, []);
+  }, [searchFilter.location, searchFilter.deliveryType, searchFilter.dishType]);
 
-  console.log("HELLO", allRestDetails);
   return (
     <div>
       <CustomerNavbar />

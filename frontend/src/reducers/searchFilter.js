@@ -4,7 +4,7 @@ const initState = {
     location: null,
     deliveryType: null,
     dishType: null,
-    keyWord: null,
+    keyWord: '',
 };
 
 const searchFilterReducer = (state = initState, action) => {

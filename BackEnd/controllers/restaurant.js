@@ -276,6 +276,7 @@ const deleteRestaurantImage = async (req, res) => {
 
 const getRestaurantDetails = async (req, res) => {
   const restId = req.params.rid;
+  console.log("NEW REST DATA TEST")
   if (!restId) return res.status(404).send("Provide Restaurant ID");
 
   const filteredRestaurants = await restaurants.findOne({
