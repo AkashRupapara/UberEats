@@ -67,7 +67,7 @@ const RestaurantDashboard = () => {
     }
 
     axiosInstance
-      .get(`restaurant/${tokenData.r_id}`, {
+      .get(`restaurant/rest/${tokenData.r_id}`, {
         headers: {
           Authorization: token,
         },

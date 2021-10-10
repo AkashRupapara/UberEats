@@ -23,7 +23,6 @@ router.put('/:rid', restaurantValidationRules(), validator, updateRestaurant);
 // Delete Restaurant
 router.delete('/:rid', deleteRestaurant);
 router.get('/rest/:rid', getRestaurantDetails);
-
 router.get('/all/search?', getRestaurantBySearch);
 router.get('/all?', getAllRestaurants);
 router.post('/restImages/', addRestaurantImage)

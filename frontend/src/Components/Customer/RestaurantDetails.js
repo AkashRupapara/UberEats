@@ -55,7 +55,7 @@ const RestaurantDetails = ({ match }) => {
 
     const tokenData = jwt.decode(token);
     axiosInstance
-      .get(`restaurant/${match.params.restId}`, {
+      .get(`restaurant/rest/${match.params.restId}`, {
         headers: {
           Authorization: token,
         },
