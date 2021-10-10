@@ -28,7 +28,7 @@ import toast from "react-hot-toast";
 function AddDishModal(props) {
   const dispatch = useDispatch();
   const dish = useSelector((state) => state.dish);
-  const { addDishModalIsOpen, setAddDishModalIsOpen } = props;
+  const { addDishModalIsOpen, setAddDishModalIsOpen, getRestData } = props;
   const [isCreating, setCreating] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [fileToUpload, setFileToUpload] = useState([]);

@@ -2,6 +2,7 @@
 /* eslint-disable camelcase */
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const _ = require('underscore');
 const {
   restaurants,
   restaurant_dishtypes,
@@ -299,85 +300,191 @@ const getRestaurantDetails = async (req, res) => {
 };
 
 const getAllRestaurants = async (req, res) => {
-  const custId = req.headers.id;
-  const city = req.query.city;
-  const type = req.query.type;
-  const delivery = req.query.delivery;
+  try {
+    // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
 
-  if (!custId) return res.status(404).send({ error: "Please Login!" });
+    const { city } = req.query;
+    const { dishType } = req.query;
+    let { deliveryType } = req.query;
 
-  const searchObject = {
-    r_city: city,
-    r_delivery_type: delivery,
-  };
+    if (deliveryType === 'Pickup') {
+      deliveryType = ['Both', 'Pickup'];
+    }
+    if (deliveryType === 'Delivery') {
+      deliveryType = ['Both', 'Delivery'];
+    }
 
-  const checkProperties = (obj) => {
-    Object.keys(obj).forEach((key) => {
-      if (obj[key] === null || obj[key] === "" || obj[key] === undefined) {
-        // eslint-disable-next-line no-param-reassign
-        delete obj[key];
-      }
+    const searchObject = {
+      r_city: city,
+      r_delivery_type: deliveryType,
+    };
+
+    const checkProperties = (obj) => {
+      Object.keys(obj).forEach((key) => {
+        if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+          // eslint-disable-next-line no-param-reassign
+          delete obj[key];
+        }
+      });
+    };
+
+    checkProperties(searchObject);
+
+    let filteredRestaurants = await restaurants.findAll({
+      // limit,
+      // offset,
+      include: [
+        {
+          model: restaurant_imgs,
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+        },
+      ],
+      attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
+      where: searchObject,
     });
-  };
 
-  checkProperties(searchObject);
+    if (dishType && dishType.length > 0) {
+      const restaurantsFilteredBydishTypes = await restaurant_dishtypes.findAll({
+        // limit,
+        // offset,
+        include: [
+          {
+            model: restaurants,
+            attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
+            include: [
+              {
+                model: restaurant_imgs,
+                attributes: { exclude: ['createdAt', 'updatedAt'] },
+              },
+            ],
+          },
+        ],
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+        where: { rdt_type: dishType },
+      });
 
-  const restDetails = await restaurants.findAll({
-    include: [
-      {
-        model: restaurant_dishtypes,
-      },
-      {
-        model: restaurant_imgs,
-      },
-      {
-        model: dishes,
-        include: dish_imgs,
-      },
-    ],
-    where: searchObject,
-    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-  });
-  return res.status(201).send(restDetails);
-  // if(city!== undefined && city!==null && city !== ""){
-  //   console.log("SAKdsankdj")
-  //   const restDetails = await restaurants.findAll({
-  //     include: [
-  //       {
-  //         model: restaurant_dishtypes,
-  //       },
-  //       {
-  //         model: restaurant_imgs,
-  //       },{
-  //         model: dishes,
-  //         include: dish_imgs,
-  //       }
-  //     ],
-  //     where:{
-  //       r_city: city,
-  //     },
-  //     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-  //   });
-  //   return res.status(201).send(restDetails);
-  // }else{
-  //   console.log("INSIDE MAIN LOOP")
-  //   const restDetails = await restaurants.findAll({
-  //     include: [
-  //       {
-  //         model: restaurant_dishtypes,
-  //       },
-  //       {
-  //         model: restaurant_imgs,
-  //       },{
-  //         model: dishes,
-  //         include: dish_imgs,
-  //       }
-  //     ],
-  //     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-  //   });
-  //   return res.status(201).send(restDetails);
-  // }
+      if (filteredRestaurants) {
+        if (restaurantsFilteredBydishTypes.length === 0) {
+          console.log('bruh1');
+          return res.status(200).json([]);
+        }
+
+        const filteredRests = [];
+        restaurantsFilteredBydishTypes.forEach((dishTypeObj) => {
+          const findFlag = _.find(
+            filteredRestaurants,
+            (item) => item.restId === dishTypeObj.restaurant.restId,
+          );
+          if (findFlag) {
+            filteredRests.push(dishTypeObj.restaurant);
+          }
+        });
+        filteredRestaurants = _.uniq(filteredRests, 'restId');
+        console.log('bruh2');
+        return res.status(200).json({ filteredRestaurants });
+      }
+
+      const filteredRests = [];
+      restaurantsFilteredBydishTypes.forEach((dishTypeObj) => {
+        filteredRests.push(dishTypeObj.restaurant);
+      });
+
+      filteredRestaurants = filteredRests;
+      console.log('bruh3');
+      return res.status(200).json({ filteredRestaurants });
+    }
+
+    if (!filteredRestaurants) {
+      console.log('bruh4');
+      return res.status(200).json({ message: 'No restaurants found!' });
+    }
+    console.log('bruh5');
+    return res.status(200).json({ filteredRestaurants });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 };
+
+// const getAllRestaurants = async (req, res) => {
+//   const custId = req.headers.id;
+//   const city = req.query.city;
+//   const type = req.query.type;
+//   const delivery = req.query.delivery;
+
+//   if (!custId) return res.status(404).send({ error: "Please Login!" });
+
+//   const searchObject = {
+//     r_city: city,
+//     r_delivery_type: delivery,
+//   };
+
+//   const checkProperties = (obj) => {
+//     Object.keys(obj).forEach((key) => {
+//       if (obj[key] === null || obj[key] === "" || obj[key] === undefined) {
+//         // eslint-disable-next-line no-param-reassign
+//         delete obj[key];
+//       }
+//     });
+//   };
+
+//   checkProperties(searchObject);
+
+//   const restDetails = await restaurants.findAll({
+//     include: [
+//       {
+//         model: restaurant_dishtypes,
+//       },
+//       {
+//         model: restaurant_imgs,
+//       },
+//       {
+//         model: dishes,
+//         include: dish_imgs,
+//       },
+//     ],
+//     where: searchObject,
+//     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+//   });
+//   return res.status(201).send(restDetails);
+//   // if(city!== undefined && city!==null && city !== ""){
+//   //   console.log("SAKdsankdj")
+//   //   const restDetails = await restaurants.findAll({
+//   //     include: [
+//   //       {
+//   //         model: restaurant_dishtypes,
+//   //       },
+//   //       {
+//   //         model: restaurant_imgs,
+//   //       },{
+//   //         model: dishes,
+//   //         include: dish_imgs,
+//   //       }
+//   //     ],
+//   //     where:{
+//   //       r_city: city,
+//   //     },
+//   //     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+//   //   });
+//   //   return res.status(201).send(restDetails);
+//   // }else{
+//   //   console.log("INSIDE MAIN LOOP")
+//   //   const restDetails = await restaurants.findAll({
+//   //     include: [
+//   //       {
+//   //         model: restaurant_dishtypes,
+//   //       },
+//   //       {
+//   //         model: restaurant_imgs,
+//   //       },{
+//   //         model: dishes,
+//   //         include: dish_imgs,
+//   //       }
+//   //     ],
+//   //     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+//   //   });
+//   //   return res.status(201).send(restDetails);
+//   // }
+// };
 
 // TO DO: Filter
 // Delivery Type

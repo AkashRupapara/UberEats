@@ -281,7 +281,7 @@ restaurants.hasMany(fvrts, {
   onUpdate: 'cascade',
 });
 
-fvrts.belongsTo(customers, {
+fvrts.belongsTo(restaurants, {
   foreignKey: 'r_id',
   onDelete: 'cascade',
   onUpdate: 'cascade',

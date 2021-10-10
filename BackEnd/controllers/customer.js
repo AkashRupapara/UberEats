@@ -9,6 +9,8 @@ const {
   customer_address,
   fvrts,
   restaurants,
+  restaurant_imgs,
+  restaurant_dishtypes,
 } = require("../models/data.model");
 
 const createCustomer = async (req, res) => {
@@ -310,8 +312,8 @@ const addToFavorites = async (req, res) => {
 
     if (existingFvrt) {
       return res
-        .status(409)
-        .send({ error: "Restaurant is already added to fvrts" });
+        .status(201)
+        .send({ message: "Restaurant is already added to fvrts" });
     }
     const addFavorite = await fvrts.create({
       r_id: restId,
@@ -345,14 +347,16 @@ const deleteFromFavorites = async (req, res) => {
 
 const getAllFavorites = async (req, res) => {
   const custId = req.headers.id;
-  console.log("HERERE");
   if (!custId) {
     return res.status(404).send({ error: "Customer Id Not Found" });
   }
 
   try {
     const custFvrts = await fvrts.findAll({
-      c_id: custId,
+      include: [{model: restaurants, include: [restaurant_imgs, restaurant_dishtypes]}],
+      where:{
+        c_id: custId,
+      },
     });
 
     return res.status(200).send(custFvrts);

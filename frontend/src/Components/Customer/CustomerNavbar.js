@@ -30,7 +30,7 @@ import {
   ModalButton,
 } from "baseui/modal";
 import { useDispatch } from "react-redux";
-import { setLocation } from "../../actions/searchFilter";
+import { setDeliveryTypeAction, setDishTypeAction, setLocation } from "../../actions/searchFilter";
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -39,6 +39,8 @@ function CustomerNavbar() {
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [cartDetails, setCartDetails] = React.useState({});
   const [orderInitModalIsOpen, setOrderInitModalIsOpen] = React.useState(false);
+  const [deliveryType, setDeliveryType] = React.useState(null);
+  const [dishType, setDishType] = React.useState(null);
 
   const dispatch = useDispatch();
   React.useEffect(() => {
@@ -48,6 +50,14 @@ function CustomerNavbar() {
       setItemDisable(false);
     }
   }, [history.location.pathname]);
+
+  React.useEffect(() => {
+    dispatch(setDeliveryTypeAction(deliveryType));
+  }, [deliveryType]);
+  
+  React.useEffect(() => {
+    dispatch(setDishTypeAction(dishType));
+  }, [dishType]);
 
   const deleteCartItems = () => {
     const token = localStorage.getItem("token");
@@ -174,7 +184,8 @@ function CustomerNavbar() {
               onClick={()=>  history.push("/customer/orders")}> Past Orders </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
-              <Button style={{ width: "100%" }}> Favorites </Button>
+              <Button style={{ width: "100%" }}
+              onClick={()=>  history.push("/customer/fvrts")}> Favorites </Button>
             </div>
           </div>
         </Drawer>
@@ -190,11 +201,11 @@ function CustomerNavbar() {
           onclick=""
           style={{ marginTop: "3%" }}
         >
-          <input type="checkbox" disabled={itemDisable} />
+          <input type="checkbox" disabled={itemDisable}  />
           <a></a>
           <span>
-            <span class="left-span">Pickup</span>
-            <span class="right-span">Delivery</span>
+            <span class="left-span" onClick={(e)=>{setDeliveryType("Pickup")}}>Pickup</span>
+            <span class="right-span" onClick={(e)=>{setDeliveryType("Delivery")}}>Delivery</span>
           </span>
         </label>
       </NavigationList>
@@ -219,10 +230,12 @@ function CustomerNavbar() {
                     border: "0",
                     backgroundColor: "transparent",
                   }}
+                  onChange={(e)=>{setDishType(e.target.value)}}
                   disabled={itemDisable}
                 >
                   <option value="Veg">Veg</option>
                   <option value="Non-Veg">Non-Veg</option>
+                  <option value="Vegan">Vegan</option>
                 </Form.Control>
               </div>
             </Col>

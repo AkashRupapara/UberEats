@@ -178,7 +178,7 @@ const RestaurantDashboard = () => {
     // setRestName(response.data.r_name)
     // console.log(response.data.restaurant_imgs)
     // setimages(response.data.restaurant_imgs);
-  }, [dish]);
+  }, [dish,dishModalIsOpen]);
 
   // S3 Bucket configurations
   const S3_BUCKET = "ubereats-media";
@@ -217,6 +217,7 @@ const RestaurantDashboard = () => {
         setDishModalIsOpen={setDishModalIsOpen}
         dishes={restDetails.dishes}
         selectedDishId={selectedDishId}
+        getRestData={getRestData}
       />
       <AddDishModal
         addDishModalIsOpen={addDishModalIsOpen}

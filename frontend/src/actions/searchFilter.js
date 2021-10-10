@@ -1,7 +1,19 @@
-import { SET_LOCATION } from "./types";
+import { SET_DELIVERY_TYPE, SET_DISH_TYPE, SET_LOCATION } from "./types";
 
 export function setLocation(payload) {
     return {
         type: SET_LOCATION, payload
+    };
+}
+
+export function setDeliveryTypeAction(payload) {
+    return {
+        type: SET_DELIVERY_TYPE, payload
+    };
+}
+
+export function setDishTypeAction(payload) {
+    return {
+        type: SET_DISH_TYPE, payload
     };
 }
