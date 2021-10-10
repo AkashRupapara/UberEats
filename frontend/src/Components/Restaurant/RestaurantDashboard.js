@@ -5,7 +5,7 @@ import "../../assets/css/restaurantHome.css";
 import axiosInstance from "../../axiosConfig";
 // import '../../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import "../../../node_modules/react-responsive-carousel/lib/styles/carousel.css";
-import { Button, Col, Card, Container, Row, CardGroup } from "react-bootstrap";
+import { Col, Card, Container, Row, CardGroup } from "react-bootstrap";
 import Footer from "../Footer";
 import RestaurantNavbar from "./RestaurantNavbar";
 import { H1, H2, H3, H4, H5, H6 } from "baseui/typography";
@@ -22,6 +22,7 @@ import AddDishModal from "../Dishes/AddDishModal";
 import { useDispatch } from "react-redux";
 import { dishCreateSuccess, dishDeleteSuccess } from "../../actions/dish";
 import { restaurantLogout } from "../../actions/restaurant";
+import { Button } from "baseui/button";
 
 const Carousel = require("react-responsive-carousel").Carousel;
 
@@ -268,7 +269,7 @@ const RestaurantDashboard = () => {
             {restDetails.dishes?.length > 0 ? (
               restDetails.dishes.map((ele) => (
                 <Col xs={3} key={index} style={{ marginTop: "30px" }}>
-                  <Card style={{ height: "500px" }}>
+                  <Card style={{ height: "100%" }}>
                     <div
                       onClick={() => {
                         setSelectedDishId(ele.d_id);
@@ -283,22 +284,18 @@ const RestaurantDashboard = () => {
                             ? ele.dish_imgs[0].di_img
                             : ""
                         }
-                        style={{ height: "200px" }}
+                        style={{ height: "180px" }}
                       />
-                      <Card.Body>
-                        <Card.Title>{ele.d_name}</Card.Title>
-                        <Card.Text>
-                          Ingredients: {ele.d_ingredients} <br></br>
-                          Description: {ele.d_desc} <br></br>
-                          Dish Type: {ele.d_type}
-                          <br></br>
-                          Category: {ele.d_category}
-                        </Card.Text>
-                      </Card.Body>
+                        {ele.d_name}
+                        {" "}
+
+                          {ele.d_type} {" : "}
+                          
+                          {ele.d_category}
+                        
                     </div>
-                    <H3>$ {ele.d_price} </H3>
-                    <Card.Footer>
-                      <Row style={{}}>
+                    <H6>$ {ele.d_price} </H6>
+                      <Row style={{paddingTop:"-2500px"}}>
                         <Col>
                           <Button
                             variant="success"
@@ -322,7 +319,6 @@ const RestaurantDashboard = () => {
                           </Button>
                         </Col>
                       </Row>
-                    </Card.Footer>
                   </Card>
                 </Col>
               ))

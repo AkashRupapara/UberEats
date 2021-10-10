@@ -22,6 +22,8 @@ import UpdateCustomer from './Components/Customer/UpdateCustomer';
 import RestaurantDetails from './Components/Customer/RestaurantDetails';
 import CustomerOrders from './Components/Customer/CustomerOrders';
 import CustomerFavorites from './Components/Customer/CustomerFavorites';
+import RestaurantOrders from './Components/Restaurant/RestaurantOrders';
+import CustomerProfile from './Components/Customer/CustomerProfile';
 
 const engine = new Styletron();
 
@@ -41,12 +43,15 @@ function App() {
                 <Route path="/restaurant/dashboard" component={RestaurantDashboard} />
                 <Route path="/customer/dashboard" component={CustomerDashboard} />
                 <Route path="/customer/fvrts" component={CustomerFavorites} />
+                <Route path="/restaurant/customer/:custId" component={CustomerProfile} />
                 <Route path="/customer/orders" component={CustomerOrders} />
                 <Route path="/restaurant/update" component={UpdateRestaurant} />
                 <Route path="/customer/update" component={UpdateCustomer} />
                 <Route path="/customer/restaurant/:restId" component={RestaurantDetails} />
                 <Route path="/customer/placeorder/:oid" component={PlaceOrder} />
                 <Route path="/mediaUploader" component={MediaUploader} />
+                <Route path="/restaurant/orders/" component={RestaurantOrders} />
+                
                 
                 <Route path="/" component={Home} />
               </Switch>

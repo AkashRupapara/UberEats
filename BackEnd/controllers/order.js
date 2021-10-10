@@ -11,6 +11,7 @@ const {
   dish_imgs,
   restaurants,
   restaurant_imgs,
+  customers,
 } = require("../models/data.model");
 
 const createOrder = async (req, res) => {
@@ -122,7 +123,6 @@ const placeOrder = async (req, res) => {
 const updateOrder = async (req, res) => {
   const { status } = req.body;
   const { oid } = req.params;
-
   try {
     const updateStatus = await orders.update(
       {
@@ -135,11 +135,46 @@ const updateOrder = async (req, res) => {
       }
     ); // Checking if Update was successfull or not
     if (updateStatus[0] !== 1) {
-      return res.status(404).send("Order Not found");
+      console.log("HERERERE IN order");
+      return res.status(404).send({ error: "Order Not found" });
     }
-    return res.status(201).send({ msg: "Order Status Updated" });
+    return res.status(201).send({ message: "Order Status Updated" });
   } catch (err) {
+    console.log("Error IN order");
+
     return res.status(404).send(err);
+  }
+};
+
+const filterOrders = async (req, res) => {
+  const restId = req.headers.id;
+  if (!restId) return res.status(403).send({ error: "Unauthorised Action" });
+
+  const { orderStatus } = req.query;
+  try {
+    const filteredOrders = await orders.findAll({
+      include: [
+        { model: customers, exclude: ["c_password", "createdAt", "updatedAt"] },
+        {
+          model: restaurants,
+          include: restaurant_imgs,
+          exclude: ["r_password", "createdAt", "updatedAt"],
+        },
+        {
+          model: order_dishes,
+          include: dishes,
+          exclude: ["createdAt", "updatedAt"],
+        },
+      ],
+      where: {
+        r_id: restId,
+        o_status: orderStatus,
+      },
+    });
+    return res.status(200).send(filteredOrders);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ error: "Error Fetching Record" });
   }
 };
 
@@ -150,12 +185,17 @@ const getOrders = async (req, res) => {
   if (role === "customer") {
     getorders = await orders.findAll({
       include: [
+        { model: customers, exclude: ["c_password", "createdAt", "updatedAt"] },
         {
           model: restaurants,
           include: restaurant_imgs,
           exclude: ["r_password", "createdAt", "updatedAt"],
         },
-        { model: order_dishes, include: dishes,  exclude: ["createdAt", "updatedAt"], },
+        {
+          model: order_dishes,
+          include: dishes,
+          exclude: ["createdAt", "updatedAt"],
+        },
       ],
       where: {
         c_id: req.headers.id,
@@ -164,12 +204,25 @@ const getOrders = async (req, res) => {
     });
   } else if (role === "restaurant") {
     getorders = await orders.findAll({
+      include: [
+        { model: customers, exclude: ["c_password", "createdAt", "updatedAt"] },
+        {
+          model: restaurants,
+          include: restaurant_imgs,
+          exclude: ["r_password", "createdAt", "updatedAt"],
+        },
+        {
+          model: order_dishes,
+          include: dishes,
+          exclude: ["createdAt", "updatedAt"],
+        },
+      ],
       where: {
         r_id: req.headers.id,
       },
     });
   }
-  res.status(201).send(getorders);
+  return res.status(201).send(getorders);
 };
 
 const getOrderById = async (req, res) => {
@@ -227,4 +280,5 @@ module.exports = {
   updateOrder,
   getOrders,
   getOrderById,
+  filterOrders,
 };

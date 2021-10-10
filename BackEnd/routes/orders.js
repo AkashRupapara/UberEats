@@ -7,13 +7,15 @@ const {
   updateOrder,
   getOrders,
   getOrderById,
+  filterOrders,
 } = require('../controllers/order');
 
 const router = express.Router();
 
 router.post('/neworder', createOrder);
+router.get('/filterorders?', filterOrders);
 router.put('/finalorder', placeOrder);
-router.put('/:oid', updateOrder);
+router.put('/updatestatus/:oid', updateOrder);
 router.get('/', getOrders);
 router.get('/:oid', getOrderById);
 

@@ -26,8 +26,7 @@ const RestaurantNavbar = () => {
                     </Nav>
                     <Nav>
                         <Nav.Link href="/restaurant/dashboard">Dashboard</Nav.Link>
-                        <Nav.Link href="#pricing">Orders</Nav.Link>
-                        <Nav.Link href="#deets">Customers</Nav.Link>
+                        <Nav.Link href="/restaurant/orders">Orders</Nav.Link>
                         <Nav.Link href="/restaurant/update">Update Details</Nav.Link>
 
                         <Nav.Link onClick={logoutHandler}>logout</Nav.Link>
