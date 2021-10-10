@@ -30,7 +30,7 @@ import {
   ModalButton,
 } from "baseui/modal";
 import { useDispatch } from "react-redux";
-import { setDeliveryTypeAction, setDishTypeAction, setLocation } from "../../actions/searchFilter";
+import { setDeliveryTypeAction, setDishTypeAction, setLocation, setSearchKeyWordAction } from "../../actions/searchFilter";
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -39,8 +39,9 @@ function CustomerNavbar() {
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [cartDetails, setCartDetails] = React.useState({});
   const [orderInitModalIsOpen, setOrderInitModalIsOpen] = React.useState(false);
-  const [deliveryType, setDeliveryType] = React.useState(null);
+  const [deliveryType, setDeliveryType] = React.useState("Pickup");
   const [dishType, setDishType] = React.useState(null);
+  const [keyWord, setKeyWord] = React.useState("");
 
   const dispatch = useDispatch();
   React.useEffect(() => {
@@ -55,6 +56,12 @@ function CustomerNavbar() {
     dispatch(setDeliveryTypeAction(deliveryType));
   }, [deliveryType]);
   
+  React.useEffect(() => {
+    dispatch(setSearchKeyWordAction(keyWord));
+  }, [keyWord]);
+
+
+
   React.useEffect(() => {
     dispatch(setDishTypeAction(dishType));
   }, [dishType]);
@@ -233,6 +240,7 @@ function CustomerNavbar() {
                   onChange={(e)=>{setDishType(e.target.value)}}
                   disabled={itemDisable}
                 >
+                  <option value="">Any</option>
                   <option value="Veg">Veg</option>
                   <option value="Non-Veg">Non-Veg</option>
                   <option value="Vegan">Vegan</option>
@@ -290,7 +298,7 @@ function CustomerNavbar() {
             disabled={itemDisable}
             type={TYPE.search}
             getOptionLabel={(props) => props.option.id || null}
-            onChange={() => {}}
+            onInputChange={(e) => setKeyWord(e.target.value)}
           />
         </NavigationItem>
         <NavigationItem>

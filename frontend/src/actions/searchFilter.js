@@ -1,4 +1,4 @@
-import { SET_DELIVERY_TYPE, SET_DISH_TYPE, SET_LOCATION } from "./types";
+import { SET_DELIVERY_TYPE, SET_DISH_TYPE, SET_LOCATION, SET_SEARCH_KEYWORD } from "./types";
 
 export function setLocation(payload) {
     return {
@@ -15,5 +15,11 @@ export function setDeliveryTypeAction(payload) {
 export function setDishTypeAction(payload) {
     return {
         type: SET_DISH_TYPE, payload
+    };
+}
+
+export function setSearchKeyWordAction(payload) {
+    return {
+        type: SET_SEARCH_KEYWORD, payload
     };
 }

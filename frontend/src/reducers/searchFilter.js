@@ -1,9 +1,10 @@
-import { SET_DELIVERY_TYPE, SET_DISH_TYPE, SET_LOCATION } from "../actions/types";
+import { SET_DELIVERY_TYPE, SET_DISH_TYPE, SET_LOCATION, SET_SEARCH_KEYWORD } from "../actions/types";
 
 const initState = {
     location: null,
     deliveryType: null,
     dishType: null,
+    keyWord: null,
 };
 
 const searchFilterReducer = (state = initState, action) => {
@@ -14,6 +15,9 @@ const searchFilterReducer = (state = initState, action) => {
             return { ...state, deliveryType: action.payload};
         case SET_DISH_TYPE:
             return { ...state, dishType: action.payload};
+        case SET_SEARCH_KEYWORD:
+            return { ...state, keyWord: action.payload};
+            
         default:
             return state;
     }

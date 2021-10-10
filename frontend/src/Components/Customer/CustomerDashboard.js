@@ -9,6 +9,7 @@ import CustomerNavbar from "./CustomerNavbar";
 import { useSelector } from "react-redux";
 import "../../assets/css/favourites.css";
 import HeartSvg from "./HeartSvg";
+import _ from 'underscore'
 
 function CustomerDashboard() {
   const history = useHistory();
@@ -17,11 +18,48 @@ function CustomerDashboard() {
 
   useEffect(() => {
     getAllRestaurants();
-  }, [searchFilter]);
+  }, [searchFilter.location, searchFilter.deliveryType, searchFilter.dishType]);
+
+  useEffect(() => {
+    getAllRestaurantsByKeyword();
+  }, [searchFilter.keyWord]);
 
   const [allRestDetails, setAllRestDetails] = useState([]);
+
+  const getAllRestaurantsByKeyword = () => {
+    const token = localStorage.getItem("token");
+    axiosConfig
+      .get("/restaurant/all/search", {
+        params: {
+          keyWord: searchFilter.keyWord,
+        },
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then(async (res) => {
+        console.log(res.data);
+        const uniqueData = await _.uniq(
+          res.data,
+          (x)=>x.r_id,
+        );
+
+        uniqueData.forEach((rest)=>{
+          rest.restaurant_imgs = [{ri_img: rest.ri_img}]
+        });
+        console.log("res.data",res.data);
+        console.log("uni", uniqueData)
+        setAllRestDetails(uniqueData);
+      })
+      .catch((err) => {
+        // history.push("/");
+        toast.error("Session expired Please Login");
+      });
+  };
+
   const getAllRestaurants = () => {
     const token = localStorage.getItem("token");
+
     axiosConfig
       .get("/restaurant/all", {
         params: {
@@ -70,6 +108,7 @@ function CustomerDashboard() {
     getAllRestaurants();
   }, []);
 
+  console.log("HELLO", allRestDetails);
   return (
     <div>
       <CustomerNavbar />
@@ -122,7 +161,7 @@ function CustomerDashboard() {
                       variant="top"
                       src={
                         ele
-                          ? ele.restaurant_imgs.length > 0
+                          ? ele.restaurant_imgs?.length > 0
                             ? ele.restaurant_imgs[0].ri_img
                             : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"
                           : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"

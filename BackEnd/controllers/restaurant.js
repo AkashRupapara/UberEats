@@ -2,7 +2,7 @@
 /* eslint-disable camelcase */
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const _ = require('underscore');
+const _ = require("underscore");
 const {
   restaurants,
   restaurant_dishtypes,
@@ -278,7 +278,7 @@ const getRestaurantDetails = async (req, res) => {
   const restId = req.params.rid;
   if (!restId) return res.status(404).send("Provide Restaurant ID");
 
-  const restDetails = await restaurants.findOne({
+  const filteredRestaurants = await restaurants.findOne({
     include: [
       {
         model: restaurant_dishtypes,
@@ -296,7 +296,20 @@ const getRestaurantDetails = async (req, res) => {
     },
     attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
   });
-  return res.status(201).send(restDetails);
+  return res.status(201).send({filteredRestaurants});
+};
+
+const getRestaurantBySearch = async (req, res) => {
+  const { keyWord } = req.query;
+  const custId = req.headers.id;
+  if(!custId){
+    return res.status(403).send({error: "login Again!!"});
+  } 
+
+  const [data, meta] = await sequelize.query(
+    `select * from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id WHERE r_name like "%${keyWord}%" or r_desc like "%${keyWord}%" `
+  );
+  return res.status(200).send(data);
 };
 
 const getAllRestaurants = async (req, res) => {
@@ -307,11 +320,11 @@ const getAllRestaurants = async (req, res) => {
     const { dishType } = req.query;
     let { deliveryType } = req.query;
 
-    if (deliveryType === 'Pickup') {
-      deliveryType = ['Both', 'Pickup'];
+    if (deliveryType === "Pickup") {
+      deliveryType = ["Both", "Pickup"];
     }
-    if (deliveryType === 'Delivery') {
-      deliveryType = ['Both', 'Delivery'];
+    if (deliveryType === "Delivery") {
+      deliveryType = ["Both", "Delivery"];
     }
 
     const searchObject = {
@@ -321,7 +334,7 @@ const getAllRestaurants = async (req, res) => {
 
     const checkProperties = (obj) => {
       Object.keys(obj).forEach((key) => {
-        if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+        if (obj[key] === null || obj[key] === "" || obj[key] === undefined) {
           // eslint-disable-next-line no-param-reassign
           delete obj[key];
         }
@@ -336,36 +349,38 @@ const getAllRestaurants = async (req, res) => {
       include: [
         {
           model: restaurant_imgs,
-          attributes: { exclude: ['createdAt', 'updatedAt'] },
+          attributes: { exclude: ["createdAt", "updatedAt"] },
         },
       ],
-      attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
+      attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
       where: searchObject,
     });
 
     if (dishType && dishType.length > 0) {
-      const restaurantsFilteredBydishTypes = await restaurant_dishtypes.findAll({
-        // limit,
-        // offset,
-        include: [
-          {
-            model: restaurants,
-            attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
-            include: [
-              {
-                model: restaurant_imgs,
-                attributes: { exclude: ['createdAt', 'updatedAt'] },
-              },
-            ],
-          },
-        ],
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-        where: { rdt_type: dishType },
-      });
+      const restaurantsFilteredBydishTypes = await restaurant_dishtypes.findAll(
+        {
+          // limit,
+          // offset,
+          include: [
+            {
+              model: restaurants,
+              attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+              include: [
+                {
+                  model: restaurant_imgs,
+                  attributes: { exclude: ["createdAt", "updatedAt"] },
+                },
+              ],
+            },
+          ],
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+          where: { rdt_type: dishType },
+        }
+      );
 
       if (filteredRestaurants) {
         if (restaurantsFilteredBydishTypes.length === 0) {
-          console.log('bruh1');
+          console.log("bruh1");
           return res.status(200).json([]);
         }
 
@@ -373,14 +388,14 @@ const getAllRestaurants = async (req, res) => {
         restaurantsFilteredBydishTypes.forEach((dishTypeObj) => {
           const findFlag = _.find(
             filteredRestaurants,
-            (item) => item.restId === dishTypeObj.restaurant.restId,
+            (item) => item.r_id === dishTypeObj.restaurant.r_id
           );
           if (findFlag) {
             filteredRests.push(dishTypeObj.restaurant);
           }
         });
-        filteredRestaurants = _.uniq(filteredRests, 'restId');
-        console.log('bruh2');
+        filteredRestaurants = _.uniq(filteredRests, "r_id");
+        console.log("bruh2");
         return res.status(200).json({ filteredRestaurants });
       }
 
@@ -390,15 +405,15 @@ const getAllRestaurants = async (req, res) => {
       });
 
       filteredRestaurants = filteredRests;
-      console.log('bruh3');
+      console.log("bruh3");
       return res.status(200).json({ filteredRestaurants });
     }
 
     if (!filteredRestaurants) {
-      console.log('bruh4');
-      return res.status(200).json({ message: 'No restaurants found!' });
+      console.log("bruh4");
+      return res.status(200).json({ message: "No restaurants found!" });
     }
-    console.log('bruh5');
+    console.log("bruh5");
     return res.status(200).json({ filteredRestaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -518,4 +533,5 @@ module.exports = {
   deleteRestaurantImage,
   addRestaurantImage,
   getAllRestaurants,
+  getRestaurantBySearch,
 };
