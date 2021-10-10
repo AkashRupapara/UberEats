@@ -66,7 +66,7 @@ function RestaurantLogin() {
         </div>
       </form>
       <br></br>
-      <p style={{fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large'}}> New to UberEats? <a href="/restaurantRegister" style={{color: 'green', textDecoration: 'none'}}> Create an account </a></p>
+      <p style={{fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large'}}> New to UberEats? <a href="/restaurant/register" style={{color: 'green', textDecoration: 'none'}}> Create an account </a></p>
     </div>
   );
 }

@@ -52,8 +52,6 @@ function App() {
                 <Route path="/customer/placeorder/:oid" component={AccessComponent(PlaceOrder)} />
                 <Route path="/mediaUploader" component={MediaUploader} />
                 <Route path="/restaurant/orders/" component={AccessComponent(RestaurantOrders)} />
-                
-                
                 <Route path="/" component={Home} />
               </Switch>
             </Router>

@@ -75,7 +75,7 @@ function CustomerLogin() {
         </div>
       </form>
       <br></br>
-      <p style={{fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large'}}> New to UberEats? <a href="/customerRegister" style={{color: 'green', textDecoration: 'none'}}> Create an account </a></p>
+      <p style={{fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large'}}> New to UberEats? <a href="/customer/register" style={{color: 'green', textDecoration: 'none'}}> Create an account </a></p>
     </div>
   );
 }

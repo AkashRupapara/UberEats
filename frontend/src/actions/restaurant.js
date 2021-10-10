@@ -9,7 +9,7 @@ export function loginRestaurantRequest() {
 
 export function loginRestaurantSuccess(id, token) {
     return (dispatch) => {
-        return axiosConfig.get(`restaurant/${id}`, {
+        return axiosConfig.get(`restaurant/rest/${id}`, {
             headers: {
                 'Authorization': token
             }
@@ -38,7 +38,7 @@ export function registerRestaurantRequest() {
 
 export function registerRestaurantSuccess(id, token) {
     return (dispatch) => {
-        return axiosConfig.get(`restaurant/${id}`, {
+        return axiosConfig.get(`restaurant/rest/${id}`, {
             headers: {
                 'Authorization': token
             }

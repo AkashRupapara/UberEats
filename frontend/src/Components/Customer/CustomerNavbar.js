@@ -153,7 +153,7 @@ function CustomerNavbar() {
   };
 
   return (
-    <HeaderNavigation style={{ height: "90px" }}>
+    <HeaderNavigation style={{  }}>
       <NavigationList $align={ALIGN.left}>
         <Button kind={KIND.minimal} onClick={() => setIsDrawerOpen(true)}>
           <Menu />
@@ -203,7 +203,7 @@ function CustomerNavbar() {
         </Drawer>
         <NavigationItem>
           <a href="/customer/dashboard">
-            <img src={logo} style={{ width: "100px", height: "70px" }} />
+            <img src={logo} style={{ width: "100%", height: "70px" }} />
           </a>
         </NavigationItem>
       </NavigationList>

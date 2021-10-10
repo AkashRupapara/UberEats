@@ -9,7 +9,7 @@ export function loginCustomerRequest() {
 
 export function loginCustomerSuccess(id, token) {
     return (dispatch) => {
-        return axiosConfig.get(`customers/${id}`, {
+        return axiosConfig.get(`customers/profile/${id}`, {
             headers: {
                 'Authorization': token
             }
@@ -38,7 +38,7 @@ export function registerCustomerRequest() {
 
 export function registerCustomerSuccess(id, token) {
     return (dispatch) => {
-        return axiosConfig.get(`customers/${id}`, {
+        return axiosConfig.get(`customers/profile/${id}`, {
             headers: {
                 'Authorization': token
             }

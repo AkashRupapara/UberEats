@@ -6,21 +6,16 @@ import { Input } from 'baseui/input';
 import axiosInstance from '../../axiosConfig';
 import { useDispatch } from 'react-redux';
 import { registerCustomerRequest, registerCustomerSuccess, registerCustomerFailure } from '../../actions/customer';
-import {Datepicker} from 'baseui/datepicker';
 import toast from 'react-hot-toast';
+import { useHistory } from 'react-router';
+
 const jwt = require('jsonwebtoken')
 
 function CustomerRegistration() {
     const [emailId, setEmailId] = React.useState('');
     const [password, setPassword] = React.useState('');
-
+    const history = useHistory();
     const [name, setName] = React.useState('');
-    // const [dateOfBirth, setDateOfBirth] = React.useState('');
-    // const [city, setCity] = React.useState('');
-    // const [stateName, setStateName] = React.useState('');
-    // const [country, setCountry] = React.useState('');
-    // const [contact, setContact] = React.useState('');
-    // const [nname, setNickName] = React.useState('');
 
     const dispatch = useDispatch();
 
@@ -41,6 +36,7 @@ function CustomerRegistration() {
             dispatch(registerCustomerSuccess(id, response.data.token));
             
             localStorage.setItem('token', response.data.token)
+            history.push(`/customer/dashboard`);
         } catch (err) {
             toast.error(err.response.data.error)                    
             dispatch(registerCustomerFailure(err.response.data.error));
@@ -135,7 +131,7 @@ function CustomerRegistration() {
                 </div>
             </form>
             <br></br>
-            <p style={{ fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large' }}> Already use UberEats ? <a href="/customerLogin" style={{color: 'green', textDecoration: 'none'}}> login </a></p>
+            <p style={{ fontFamily: 'sans-serif', textDecoration: 'none', fontSize: 'large' }}> Already use UberEats ? <a href="/customer/login" style={{color: 'green', textDecoration: 'none'}}> login </a></p>
         </div>
     );
 }

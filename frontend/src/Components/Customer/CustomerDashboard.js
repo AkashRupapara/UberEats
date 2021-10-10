@@ -1,8 +1,6 @@
-import { H3 } from "baseui/typography";
 import React, { useEffect, useState, useDispatch } from "react";
-import { StyledBody, StyledAction } from "baseui/card";
 import { useHistory } from "react-router";
-import { Button, Col, Card, Row } from "react-bootstrap";
+import { Col, Card, Row } from "react-bootstrap";
 import toast from "react-hot-toast";
 import axiosConfig from "../../axiosConfig";
 import CustomerNavbar from "./CustomerNavbar";

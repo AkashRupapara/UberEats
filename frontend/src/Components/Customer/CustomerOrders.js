@@ -4,7 +4,6 @@ import { Col, Row } from "react-bootstrap";
 import toast from "react-hot-toast";
 import axiosConfig from "../../axiosConfig";
 import CustomerNavbar from "./CustomerNavbar";
-import { Button } from "baseui/button";
 import { useHistory } from "react-router";
 import {
   Modal,
