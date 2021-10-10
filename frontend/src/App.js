@@ -24,6 +24,7 @@ import CustomerOrders from './Components/Customer/CustomerOrders';
 import CustomerFavorites from './Components/Customer/CustomerFavorites';
 import RestaurantOrders from './Components/Restaurant/RestaurantOrders';
 import CustomerProfile from './Components/Customer/CustomerProfile';
+import AccessComponent from './Components/AccessComponent';
 
 const engine = new Styletron();
 
@@ -40,17 +41,17 @@ function App() {
                 <Route path="/customer/register" component={CustomerRegistration} />
                 <Route path="/restaurant/login" component={ RestaurantLogin } />
                 <Route path="/restaurant/register" component={RestaurantRegistration} />
-                <Route path="/restaurant/dashboard" component={RestaurantDashboard} />
-                <Route path="/customer/dashboard" component={CustomerDashboard} />
-                <Route path="/customer/fvrts" component={CustomerFavorites} />
-                <Route path="/restaurant/customer/:custId" component={CustomerProfile} />
-                <Route path="/customer/orders" component={CustomerOrders} />
-                <Route path="/restaurant/update" component={UpdateRestaurant} />
-                <Route path="/customer/update" component={UpdateCustomer} />
-                <Route path="/customer/restaurant/:restId" component={RestaurantDetails} />
-                <Route path="/customer/placeorder/:oid" component={PlaceOrder} />
+                <Route path="/restaurant/dashboard" component={AccessComponent(RestaurantDashboard)} />
+                <Route path="/customer/dashboard" component={AccessComponent(CustomerDashboard)} />
+                <Route path="/customer/fvrts" component={AccessComponent(CustomerFavorites)} />
+                <Route path="/restaurant/customer/:custId" component={AccessComponent(CustomerProfile)} />
+                <Route path="/customer/orders" component={AccessComponent(CustomerOrders)} />
+                <Route path="/restaurant/update" component={AccessComponent(UpdateRestaurant)} />
+                <Route path="/customer/update" component={AccessComponent(UpdateCustomer)} />
+                <Route path="/customer/restaurant/:restId" component={AccessComponent(RestaurantDetails)} />
+                <Route path="/customer/placeorder/:oid" component={AccessComponent(PlaceOrder)} />
                 <Route path="/mediaUploader" component={MediaUploader} />
-                <Route path="/restaurant/orders/" component={RestaurantOrders} />
+                <Route path="/restaurant/orders/" component={AccessComponent(RestaurantOrders)} />
                 
                 
                 <Route path="/" component={Home} />
