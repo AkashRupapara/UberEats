@@ -65,7 +65,7 @@ function AddDishModal(props) {
           toast.success("Image Uploaded Succesfully");
         })
         .catch((err) => {
-          console.log(err);
+          
           toast.success("Image Upload Unsucessfull");
         });
     }
@@ -73,7 +73,7 @@ function AddDishModal(props) {
 
   const checkProperties = (obj) => {
     Object.keys(obj).forEach((key) => {
-      if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+      if (obj[key] === null || obj[key] === "" || obj[key] === undefined) {
         // eslint-disable-next-line no-param-reassign
         delete obj[key];
       }
@@ -87,8 +87,8 @@ function AddDishModal(props) {
       price: dishPrice,
       ingredients: dishIngredients,
       desc: dishDescription,
-      category: dishCategory[0]?.category? dishCategory[0].category: "",
-      type: dishType[0]?.type? dishType[0].type:"",
+      category: dishCategory[0]?.category ? dishCategory[0].category : "",
+      type: dishType[0]?.type ? dishType[0].type : "",
     };
 
     checkProperties(dishObj);
@@ -104,6 +104,14 @@ function AddDishModal(props) {
         uploadDishImage(dishId);
         toast.success("Dish created");
         setAddDishModalIsOpen(false);
+        setDishName("");
+        setDishPrice(null);
+        setDishType("");
+        setDishIngredients("");
+        setDishCategory("");
+        setDishDescription("");
+        setFileToUpload([]);
+        setAddDishModalIsOpen(false);
       })
       .catch((err) => {
         toast.error("Error Creating Dish Image");
@@ -117,14 +125,15 @@ function AddDishModal(props) {
         isOpen={addDishModalIsOpen}
         closeable
         size="800px"
-        onClose={() =>{ 
-          setAddDishModalIsOpen(false)
+        onClose={() => {
+          setAddDishModalIsOpen(false);
           setDishName("");
           setDishPrice(null);
           setDishType("");
           setDishIngredients("");
           setDishCategory("");
           setDishDescription("");
+          setFileToUpload([]);
         }}
       >
         <ModalHeader> Add Dish Details</ModalHeader>

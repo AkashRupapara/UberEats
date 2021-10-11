@@ -13,7 +13,7 @@ function AccessComponent(ComposedComponent) {
         }
     
         componentDidMount() {
-            console.log(this.props.history.location.pathname);
+            
           this.checkAndRedirect();
         }
     

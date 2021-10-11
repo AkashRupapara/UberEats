@@ -73,11 +73,11 @@ function UpdateCustomer() {
         setAbout(res.data.c_about ? res.data.c_about : "");
         setNickName(res.data.c_nick_name ? res.data.c_nick_name : "");
         setImage(res.data.c_profile_img ? res.data.c_profile_img : "");
-        console.log(res.data);
+        
       })
       .catch((err) => {
         toast.error(err.response.data.error);
-        console.log(err.response.data.error);
+        
         history.push("/customer/dashboard");
       });
   };
@@ -142,9 +142,9 @@ function UpdateCustomer() {
       profile_img: image,
       nname: nickName,
       contact: finalContact,
-      dob: dob.length>0? dob[0]:"",
+      dob: dob.length > 0 ? dob[0] : "",
       city: city[0]?.city ? city[0].city : "",
-      state: stateName,
+      state: stateName[0]?.stateName? stateName[0].stateName:"",
       country,
     };
 
@@ -258,7 +258,7 @@ function UpdateCustomer() {
                   />
                 </FormControl>
 
-                <FormControl>
+                <FormControl label="Contact Number">
                   <MaskedInput
                     placeholder="Phone number"
                     mask="(999) 999-9999"
@@ -281,23 +281,20 @@ function UpdateCustomer() {
                     onChange={({ value }) => setCity(value)}
                   />
                 </FormControl>
-                {/* <FormControl label="City">
-                  <Input
-                    id="city"
-                    autoComplete="off"
-                    placeholder="Enter city"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                  />
-                </FormControl> */}
                 <FormControl label="State">
-                  <Input
-                    id="state"
-                    autoComplete="off"
-                    placeholder="Enter state"
+                  <Select
+                    options={[
+                      { state: "California" },
+                      { state: "Nevada" },
+                      { state: "Texas" },
+                    ]}
+                    valueKey="state"
+                    labelKey="state"
+                    placeholder="Select State"
                     value={stateName}
-                    onChange={(e) => setStateName(e.target.value)}
+                    onChange={({value}) => setStateName(value)}
                   />
+
                 </FormControl>
                 <FormControl label="Country">
                   <Input

@@ -33,7 +33,7 @@ function ShowDishModal(props) {
     restName,
   } = props;
 
-  console.log(restId);
+  
   const [dishImages, setDishImages] = useState([]);
   const [dishDetails, setDishDetails] = useState({});
   const [prevRestName, setPrevRestName] = useState("");
@@ -82,7 +82,7 @@ function ShowDishModal(props) {
         }
       )
       .then((res) => {
-        console.log(res.data);
+        
         toast.success("Item Added To Cart");
         setDishModalIsOpen(false);
       })

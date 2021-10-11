@@ -64,7 +64,7 @@ function PlaceOrder({ match }) {
           toast.error("Session Expired! Please Login Again!");
           history.push("/customer/login");
         }
-        console.log(err.response.data.error);
+        
       });
   };
 
@@ -110,7 +110,7 @@ function PlaceOrder({ match }) {
         },
       })
       .then((res) => {
-        console.log("Order Dera", res.data);
+        
         const delOpt = [];
         if (res.data.restaurant.r_delivery_type === "Both") {
           delOpt.push({ deliveryType: "Pickup" });
@@ -125,7 +125,7 @@ function PlaceOrder({ match }) {
       .catch((err) => {
         toast.error("Order Not Found");
         history.push("/customer/dashboard");
-        console.log(err.response.data);
+        
       });
   };
 
@@ -213,7 +213,7 @@ function PlaceOrder({ match }) {
             anchor={ANCHOR.left}
             onClose={() => setIsDrawerOpen(false)}
           >
-            {/* <div style={{ marginTop: "10%" }}>
+            <div style={{ marginTop: "10%" }}>
             <div style={{ marginTop: "5%" }}>
               <Button
                 style={{ width: "100%" }}
@@ -228,7 +228,7 @@ function PlaceOrder({ match }) {
             <div style={{ marginTop: "5%" }}>
               <Button style={{ width: "100%" }}> Favorites </Button>
             </div>
-          </div> */}
+          </div>
           </Drawer>
           <NavigationItem>
             <a href="/customer/dashboard">

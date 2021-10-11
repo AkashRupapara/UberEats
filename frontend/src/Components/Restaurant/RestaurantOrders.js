@@ -53,7 +53,7 @@ function RestaurantOrders() {
         },
       })
       .then((res) => {
-        console.log(res.data);
+        
         setAllOrderDetails(res.data);
       })
       .catch((err) => {
@@ -71,13 +71,13 @@ function RestaurantOrders() {
       })
       .then((res) => {
         setOrderDetails(res.data);
-        console.log(res.data);
+        
       })
       .catch((err) => {
         if (err.response.status === 404) {
           toast.error("NO Order Found");
         }
-        console.log(err);
+        
       });
   };
 
@@ -91,21 +91,21 @@ function RestaurantOrders() {
       })
       .then((res) => {
         setCustomerProfile(res.data);
-        console.log(res.data);
+        
       })
       .catch((err) => {
-        console.log(err);
+        
       });
   };
 
-  const updateOrderStatus = (oid) => {
+  const updateOrderStatus = (oid, orderStatus) => {
     const token = localStorage.getItem("token");
-    console.log("Updating ", orderStatus);
+    
     axiosConfig
       .put(
         `/orders/updatestatus/${oid}`,
         {
-          status: orderStatus.length > 0 ? orderStatus[0].orderStatus : null,
+          status: orderStatus,
         },
         {
           headers: {
@@ -132,11 +132,11 @@ function RestaurantOrders() {
         },
       })
       .then((res) => {
-        console.log(res.data);
+        
         setAllOrderDetails(res.data);
       })
       .catch((err) => {
-        console.log(err);
+        
       });
   };
   return (
@@ -326,9 +326,9 @@ function RestaurantOrders() {
                                   valueKey="orderStatus"
                                   labelKey="orderStatus"
                                   placeholder="Select Order Status"
-                                  value={orderStatus}
+                                  value={[{orderStatus: order.o_status}]}
                                   onChange={({ value }) =>
-                                    setOrderStatus(value)
+                                    updateOrderStatus(order.o_id, value[0].orderStatus)
                                   }
                                 />
                               ) : (
@@ -341,27 +341,15 @@ function RestaurantOrders() {
                                   valueKey="orderStatus"
                                   labelKey="orderStatus"
                                   placeholder="Select Order Status"
-                                  value={orderStatus}
+                                  value={[{orderStatus: order.o_status}]}
                                   onChange={({ value }) =>
-                                    setOrderStatus(value)
+                                    updateOrderStatus(order.o_id, value[0].orderStatus)
                                   }
                                 />
                               )
                             ) : null}
                           </FormControl>
-                          <Button
-                            size={SIZE.large}
-                            $style={{
-                              width: "100%",
-                              display: "flex",
-                              justifyContent: "center",
-                            }}
-                            onClick={() => updateOrderStatus(order?.o_id)}
-                          >
-                            <span style={{ justifyContent: "center" }}>
-                              Update Status
-                            </span>
-                          </Button>
+                          
                         </div>
                       </Col>
                     </div>

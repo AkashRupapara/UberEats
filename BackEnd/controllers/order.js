@@ -135,46 +135,79 @@ const updateOrder = async (req, res) => {
       }
     ); // Checking if Update was successfull or not
     if (updateStatus[0] !== 1) {
-      console.log("HERERERE IN order");
       return res.status(404).send({ error: "Order Not found" });
     }
     return res.status(201).send({ message: "Order Status Updated" });
   } catch (err) {
-    console.log("Error IN order");
+    
 
     return res.status(404).send(err);
   }
 };
 
 const filterOrders = async (req, res) => {
-  const restId = req.headers.id;
-  if (!restId) return res.status(403).send({ error: "Unauthorised Action" });
+  const { role } = req.headers;
+  const { id } = req.headers;
 
   const { orderStatus } = req.query;
-  try {
-    const filteredOrders = await orders.findAll({
-      include: [
-        { model: customers, exclude: ["c_password", "createdAt", "updatedAt"] },
-        {
-          model: restaurants,
-          include: restaurant_imgs,
-          exclude: ["r_password", "createdAt", "updatedAt"],
+  if (role === "customer") {
+    try {
+      const filteredOrders = await orders.findAll({
+        include: [
+          {
+            model: customers,
+            exclude: ["c_password", "createdAt", "updatedAt"],
+          },
+          {
+            model: restaurants,
+            include: restaurant_imgs,
+            exclude: ["r_password", "createdAt", "updatedAt"],
+          },
+          {
+            model: order_dishes,
+            include: dishes,
+            exclude: ["createdAt", "updatedAt"],
+          },
+        ],
+        where: {
+          c_id: id,
+          o_status: orderStatus,
         },
-        {
-          model: order_dishes,
-          include: dishes,
-          exclude: ["createdAt", "updatedAt"],
+      });
+      return res.status(200).send(filteredOrders);
+    } catch (err) {
+      
+      return res.status(500).send({ error: "Error Fetching Record" });
+    }
+  } else if (role === "restaurant") {
+    try {
+      const filteredOrders = await orders.findAll({
+        include: [
+          {
+            model: customers,
+            exclude: ["c_password", "createdAt", "updatedAt"],
+          },
+          {
+            model: restaurants,
+            include: restaurant_imgs,
+            exclude: ["r_password", "createdAt", "updatedAt"],
+          },
+          {
+            model: order_dishes,
+            include: dishes,
+            exclude: ["createdAt", "updatedAt"],
+          },
+        ],
+        where: {
+          r_id: id,
+          o_status: orderStatus,
         },
-      ],
-      where: {
-        r_id: restId,
-        o_status: orderStatus,
-      },
-    });
-    return res.status(200).send(filteredOrders);
-  } catch (err) {
-    console.log(err);
-    return res.status(500).send({ error: "Error Fetching Record" });
+      });
+      return res.status(200).send(filteredOrders);
+    } catch (err) {
+      
+      return res.status(500).send({ error: "Error Fetching Record" });
+    }
   }
 };
 

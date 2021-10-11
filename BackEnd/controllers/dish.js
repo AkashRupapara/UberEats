@@ -152,7 +152,7 @@ const deleteDish = async (req, res) => {
     },
   });
 
-  console.log(findDish);
+  
 
   try {
     if (findDish) {

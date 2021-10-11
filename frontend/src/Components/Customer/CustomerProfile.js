@@ -55,7 +55,7 @@ function CustomerProfile({ match }) {
       history.push("/");
     }
 
-    console.log(match.params);
+    
     axiosConfig
       .get(`/customers/profile/${match.params.custId}`, {
         headers: {
@@ -74,12 +74,12 @@ function CustomerProfile({ match }) {
         setAbout(res.data.c_about ? res.data.c_about : "");
         setNickName(res.data.c_nick_name ? res.data.c_nick_name : "");
         setImage(res.data.c_profile_img ? res.data.c_profile_img : "");
-        console.log(res.data);
+        
       })
       .catch((err) => {
-        console.log(err);
+        
         toast.error(err.response.data.error);
-        console.log(err.response.data.error);
+        
       });
   };
 

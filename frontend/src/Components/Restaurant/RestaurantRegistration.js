@@ -6,7 +6,6 @@ import { Input } from 'baseui/input';
 import axiosInstance from '../../axiosConfig';
 import { useDispatch } from 'react-redux';
 import { registerRestaurantRequest, registerRestaurantSuccess, registerRestaurantFailure } from '../../actions/restaurant'
-import { Datepicker } from 'baseui/datepicker';
 import toast from 'react-hot-toast';
 import { useHistory } from 'react-router';
 const jwt = require('jsonwebtoken')

@@ -76,7 +76,7 @@ function UpdateRestaurant() {
                 },
             })
             .then((res) => {
-                console.log(res.data);
+                
                 setimages(res.data.restaurant_imgs);
                 const newDataObject = {};
                 newDataObject["name"] = res.data.r_name;
@@ -88,9 +88,8 @@ function UpdateRestaurant() {
                     tempArr.push({ dish_type: ele.rdt_type })
                 });
 
-                console.log(tempArr)
 
-                newDataObject["dish_type"] = tempArr;
+                newDataObject["dish_types"] = tempArr;
                 newDataObject["address_line"] = res.data.r_address_line;
                 newDataObject["city"] = [{ city: res.data.r_city }];
                 newDataObject["state"] = [{ state: res.data.r_state }];
@@ -117,9 +116,9 @@ function UpdateRestaurant() {
         setUpdating(true);
         const dishTypes = [];
         console.log("Dish Type", dishTypes)
-        formDetails.dish_type.forEach(ele => {
-            dishTypes.push(ele.dish_type);
-        });
+        formDetails?.dish_types?.length>0?formDetails.dish_types.forEach(ele => {
+            dishTypes.push(ele?.dish_type);
+        }):formDetails.dish_types=[];
 
         formDetails.dish_types = dishTypes;
         formDetails.city = formDetails.city[0].city;
@@ -149,7 +148,7 @@ function UpdateRestaurant() {
 
         try {
 
-            console.log("Form Details", formDetails);
+            
             await axiosInstance.put(`restaurant/${tokenData.r_id}`,
                 formDetails, {
                 headers: {
@@ -287,11 +286,11 @@ function UpdateRestaurant() {
                                         valueKey="dish_type"
                                         labelKey="dish_type"
                                         placeholder="Select Dish Types"
-                                        value={formDetails.dish_type}
+                                        value={formDetails.dish_types}
                                         onChange={({ value }) =>
                                             setformDetails({
                                                 ...formDetails,
-                                                dish_type: value,
+                                                dish_types: value,
                                             })
                                         }
                                     />
@@ -318,7 +317,7 @@ function UpdateRestaurant() {
                                         options={[
                                             { city: "San Jose" },
                                             { city: "San Francisco" },
-                                            { city: "San Diego" },
+                                            { city: "Santa Clara" },
                                         ]}
                                         valueKey="city"
                                         labelKey="city"
@@ -334,7 +333,6 @@ function UpdateRestaurant() {
                                 </FormControl>
                                 <FormControl label="State Name">
                                     <Select
-                                        creatable
                                         options={[
                                             { state: 'California' },
                                             { state: 'Nevada' },
@@ -417,7 +415,6 @@ function UpdateRestaurant() {
                                             })
                                         }
                                         step={1800}
-                                        // minTime={new Date('2021-09-28T07:00:00.000z')}
                                     />
                                 </FormControl>
 
@@ -432,7 +429,6 @@ function UpdateRestaurant() {
                                             })
                                         }
                                         step={1800}
-                                        minTime={new Date('2021-09-28T07:00:00.000z')}
                                     />
                                 </FormControl>
 

@@ -41,7 +41,7 @@ const RestaurantDetails = ({ match }) => {
 
   const getRestData = () => {
     const token = localStorage.getItem("token");
-    console.log(token);
+    
 
     if (token === null || token === undefined) {
       //   dispatch(restaurantLogout());
@@ -61,7 +61,7 @@ const RestaurantDetails = ({ match }) => {
         },
       })
       .then((res) => {
-        console.log(res.data);
+        
         setimages(res.data.restaurant_imgs ? res.data.restaurant_imgs : []);
         const restData = {};
         restData["name"] = res.data.r_name ? res.data.r_name : "";
@@ -241,9 +241,9 @@ const RestaurantDetails = ({ match }) => {
                           {ele.d_category}</h6>
                         </Card.Text>
                       </Card.Body>
-                      <Card.Footer  style={{textAlign: "right"}}>
-                        <h4>$ {ele.d_price} </h4>
-                      </Card.Footer>
+                      <div  style={{textAlign: "right", marginRight:"2%"}}>
+                        <h5>${ele.d_price} </h5>
+                      </div>
                     </div>
                   </Card>
                 </Col>

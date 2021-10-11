@@ -248,7 +248,7 @@ const getCustomerProfile = async (req, res) => {
     attributes: { exclude: ["c_password", "createdAt", "updatedAt"] },
   });
 
-  console.log(cust);
+  
   if (!cust) {
     return res.status(404).send("Customer does not exists");
   }

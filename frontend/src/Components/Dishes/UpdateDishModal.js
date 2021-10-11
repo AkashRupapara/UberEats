@@ -95,7 +95,7 @@ function UpdateDishModal(props) {
         setImageUploading(false);
       })
       .catch((err) => {
-        console.log(err);
+        
       });
   };
 
@@ -103,7 +103,7 @@ function UpdateDishModal(props) {
     if (dishes && selectedDishId) {
       let selectedDish = dishes.filter((dish) => dish.d_id === selectedDishId);
       if (selectedDish.length > 0) {
-        console.log(selectedDish);
+        
         setDishImages(selectedDish[0].dish_imgs);
         setDishName(selectedDish[0].d_name ? selectedDish[0].d_name : "");
         setDishDescription(

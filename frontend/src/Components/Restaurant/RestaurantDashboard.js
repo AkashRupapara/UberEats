@@ -50,7 +50,7 @@ const RestaurantDashboard = () => {
 
   const getRestData = () => {
     const token = localStorage.getItem("token");
-    console.log(token);
+    
 
     if (token === null || token === undefined) {
       dispatch(restaurantLogout());
@@ -74,7 +74,7 @@ const RestaurantDashboard = () => {
         },
       })
       .then((res) => {
-        console.log(res.data);
+        
         setimages(res.data.restaurant_imgs ? res.data.restaurant_imgs : []);
         const restData = {};
         restData["name"] = res.data.r_name ? res.data.r_name : "";

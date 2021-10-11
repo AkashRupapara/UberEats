@@ -12,16 +12,46 @@ import {
   ModalFooter,
   ModalButton,
 } from "baseui/modal";
+import { Select } from "baseui/select";
 
 function CustomerOrders() {
   const [allOrderDetails, setAllOrderDetails] = useState([]);
   const [orderDetails, setOrderDetails] = useState({});
   const [orderModalIsOpen, setOrderModalIsOpen] = useState(false);
+  const [filterOrderStatus, setFilterOrderStatus] = useState([
+    { label: "All" },
+  ]);
   const history = useHistory();
 
   useEffect(() => {
     getCustOrders();
   }, []);
+
+  const getFilteredOrders = (params) => {
+    if (params[0].label === "All") {
+      getCustOrders();
+      return;
+    }
+
+    const orderStatus = params[0].label;
+    const token = localStorage.getItem("token");
+    axiosConfig
+      .get(`/orders/filterorders`, {
+        params: {
+          orderStatus,
+        },
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((res) => {
+        
+        setAllOrderDetails(res.data);
+      })
+      .catch((err) => {
+        toast.error("Error Fetching Filtered Records");
+      });
+  };
 
   const getOrderDetails = (oid) => {
     const token = localStorage.getItem("token");
@@ -33,13 +63,13 @@ function CustomerOrders() {
       })
       .then((res) => {
         setOrderDetails(res.data);
-        console.log(res.data);
+        
       })
       .catch((err) => {
         if (err.response.status === 404) {
           toast.error("NO Order Found");
         }
-        console.log(err);
+        
       });
   };
 
@@ -52,16 +82,40 @@ function CustomerOrders() {
         },
       })
       .then((res) => {
-        console.log(res.data);
+        
         setAllOrderDetails(res.data);
       })
       .catch((err) => {
-        console.log(err);
+        
       });
   };
   return (
     <div>
       <CustomerNavbar />
+      <center>
+        <div style={{ marginTop: "3%", width: "50%" }}>
+          <Select
+            options={[
+              { label: "All", id: "#F0F8FF" },
+              { label: "Placed", id: "#F0F8FF" },
+              { label: "On the Way", id: "#FAEBD7" },
+              { label: "Picked Up", id: "#FAEBD7" },
+              { label: "Preparing", id: "#FAEBD7" },
+              { label: "Ready", id: "#FAEBD7" },
+              { label: "Delivered", id: "#FAEBD7" },
+              { label: "Cancelled", id: "#FAEBD7" },
+            ]}
+            valueKey="label"
+            labelKey="label"
+            value={filterOrderStatus}
+            placeholder="Select Order Status"
+            onChange={({ value }) => {
+              setFilterOrderStatus(value);
+              getFilteredOrders(value);
+            }}
+          />
+        </div>
+      </center>
       <Modal
         onClose={() => setOrderModalIsOpen(false)}
         isOpen={orderModalIsOpen}
@@ -162,25 +216,7 @@ function CustomerOrders() {
                         </p>
                       </Col>
                       <Col style={{ marginRight: "45px" }}>
-                        <div style={{ justifyContent: "center" }}>
-                          {/* <Button
-                          size={SIZE.large}
-                          onClick={() =>
-                            history.push(
-                              `/customer/restaurants${orderRestImage.restId}`
-                            )
-                          }
-                          $style={{
-                            width: "100%",
-                            display: "flex",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <span style={{ justifyContent: "center" }}>
-                            View store
-                          </span>
-                        </Button> */}
-                        </div>
+                        <div style={{ justifyContent: "center" }}></div>
                       </Col>
                     </div>
                     <hr />

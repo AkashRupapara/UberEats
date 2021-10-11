@@ -22,6 +22,8 @@ import { useStyletron, expandBorderStyles } from "baseui/styles";
 import axiosConfig from "../../axiosConfig";
 import toast from "react-hot-toast";
 import { H3, H5 } from "baseui/typography";
+
+
 import {
   Modal,
   ModalHeader,
@@ -29,9 +31,11 @@ import {
   ModalFooter,
   ModalButton,
 } from "baseui/modal";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setDeliveryTypeAction, setDishTypeAction, setLocation, setSearchKeyWordAction } from "../../actions/searchFilter";
 import { customerLogout } from "../../actions/customer";
+const jwt = require('jsonwebtoken')
+
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -45,6 +49,9 @@ function CustomerNavbar() {
   const [keyWord, setKeyWord] = React.useState("");
 
   const dispatch = useDispatch();
+
+  const searchFilter = useSelector((state) => state.searchFilter);
+
   React.useEffect(() => {
     if (history.location.pathname === "/customer/update" || history.location.pathname === "/customer/orders") {
       setItemDisable(true);
@@ -60,8 +67,6 @@ function CustomerNavbar() {
   React.useEffect(() => {
     dispatch(setSearchKeyWordAction(keyWord));
   }, [keyWord]);
-
-
 
   React.useEffect(() => {
     dispatch(setDishTypeAction(dishType));
@@ -87,6 +92,20 @@ function CustomerNavbar() {
 
   const getCartItems = () => {
     const token = localStorage.getItem("token");
+    const data = jwt.decode(token);
+    axiosConfig.get(`/customers/myprofile/`,{
+      headers:{
+        Authorization: token,
+      },
+    }).then((res)=>{
+      
+      if(res?.c_city !== null){
+        dispatch(setLocation(res.data.c_city));
+      }
+    }).catch((err)=>{
+      
+    });
+
     axiosConfig
       .get("/cart/", {
         headers: {
@@ -94,11 +113,10 @@ function CustomerNavbar() {
         },
       })
       .then((res) => {
-        console.log(res.data);
         setCartDetails(res.data);
       })
       .catch((err) => {
-        console.log(err);
+        
         toast.error("Session Expired!! Please Sign In Again!!")
         history.push("/customer/login");
       });
@@ -119,7 +137,6 @@ function CustomerNavbar() {
       toast.success(res.data.message);
       getCartItems();
     } catch (err) {
-      console.log(err.response.data.error);
       toast.error(err.response.data.error);
     }
   };
@@ -142,18 +159,17 @@ function CustomerNavbar() {
         }
       )
       .then((res) => {
-        console.log(res.data);
         history.push(`/customer/placeorder/${res.data.orderId}`);
       })
       .catch((err) => {
-        console.log(err?.response?.data);
+        
         toast.error(err?.response?.data?.error);
       });
     return;
   };
 
   return (
-    <HeaderNavigation style={{  }}>
+    <HeaderNavigation  style={{height:"80px"}}>
       <NavigationList $align={ALIGN.left}>
         <Button kind={KIND.minimal} onClick={() => setIsDrawerOpen(true)}>
           <Menu />
@@ -203,7 +219,7 @@ function CustomerNavbar() {
         </Drawer>
         <NavigationItem>
           <a href="/customer/dashboard">
-            <img src={logo} style={{ width: "100%", height: "70px" }} />
+            <img src={logo} style={{ width: "100%", height: "80px" }} />
           </a>
         </NavigationItem>
       </NavigationList>
@@ -221,6 +237,7 @@ function CustomerNavbar() {
           </span>
         </label>
       </NavigationList>
+
       <NavigationList $align={ALIGN.right}>
         <NavigationItem style={{ marginTop: "3%" }}>
           <Row>
@@ -245,7 +262,7 @@ function CustomerNavbar() {
                   onChange={(e)=>{setDishType(e.target.value)}}
                   disabled={itemDisable}
                 >
-                  <option value="">Any</option>
+                  <option value="">Dish Type</option>
                   <option value="Veg">Veg</option>
                   <option value="Non-Veg">Non-Veg</option>
                   <option value="Vegan">Vegan</option>
@@ -271,9 +288,10 @@ function CustomerNavbar() {
                     backgroundColor: "transparent",
                   }}
                   disabled={itemDisable}
+                  value={searchFilter.location}
                   onChange={(e)=>{dispatch(setLocation(e.target.value))}}
                 >
-                  <option value="">All</option>
+                  <option value="">Location</option>
                   <option value="San Jose">San Jose</option>
                   <option value="San Francisco">San Francisco</option>
                   <option value="Santa Cruz">Santa Cruz</option>
@@ -421,7 +439,7 @@ function CustomerNavbar() {
               >
                 Cancel
               </ModalButton>
-              <ModalButton onClick={goToPlaceOrder}>Place Order</ModalButton>
+              <ModalButton onClick={goToPlaceOrder}>Go to Checkout</ModalButton>
             </ModalFooter>
           </Modal>
         </NavigationItem>

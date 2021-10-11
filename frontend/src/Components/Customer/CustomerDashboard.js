@@ -32,7 +32,7 @@ function CustomerDashboard() {
         },
       })
       .then(async (res) => {
-        console.log(res.data);
+        
         const uniqueData = await _.uniq(
           res.data,
           (x)=>x.r_id,
@@ -41,8 +41,7 @@ function CustomerDashboard() {
         uniqueData.forEach((rest)=>{
           rest.restaurant_imgs = [{ri_img: rest.ri_img}]
         });
-        console.log("res.data",res.data);
-        console.log("uni", uniqueData)
+        
         setAllRestDetails(uniqueData);
       })
       .catch((err) => {
@@ -66,7 +65,6 @@ function CustomerDashboard() {
         },
       })
       .then((res) => {
-        console.log(res.data);
         setAllRestDetails(res.data.filteredRestaurants);
       })
       .catch((err) => {
@@ -94,7 +92,7 @@ function CustomerDashboard() {
       })
       .catch((err) => {
         toast.error();
-        console.log(err);
+        
       });
   };
 
@@ -102,6 +100,7 @@ function CustomerDashboard() {
     getAllRestaurants();
   }, [searchFilter.location, searchFilter.deliveryType, searchFilter.dishType]);
 
+  console.log(allRestDetails);
   return (
     <div>
       <CustomerNavbar />

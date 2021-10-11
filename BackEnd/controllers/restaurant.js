@@ -276,7 +276,6 @@ const deleteRestaurantImage = async (req, res) => {
 
 const getRestaurantDetails = async (req, res) => {
   const restId = req.params.rid;
-  console.log("NEW REST DATA TEST")
   if (!restId) return res.status(404).send("Provide Restaurant ID");
 
   const filteredRestaurants = await restaurants.findOne({
@@ -308,7 +307,7 @@ const getRestaurantBySearch = async (req, res) => {
   } 
 
   const [data, meta] = await sequelize.query(
-    `select restaurants.*, restaurant_imgs.* from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id join dishes on restaurants.r_id=dishes.r_id WHERE restaurants.r_name like "%${keyWord}%" or restaurants.r_desc like "%${keyWord}%" or dishes.d_name like "%${keyWord}%" `
+    `select restaurants.*, restaurant_imgs.*, restaurant_dishtypes.* from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id join dishes on restaurants.r_id=dishes.r_id WHERE restaurants.r_name like "%${keyWord}%" or restaurants.r_desc like "%${keyWord}%" or dishes.d_name like "%${keyWord}%" `
 
     );
   return res.status(200).send(data);
@@ -316,7 +315,6 @@ const getRestaurantBySearch = async (req, res) => {
 
 const getAllRestaurants = async (req, res) => {
   try {
-    // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
 
     const { city } = req.query;
     const { dishType } = req.query;
@@ -382,7 +380,7 @@ const getAllRestaurants = async (req, res) => {
 
       if (filteredRestaurants) {
         if (restaurantsFilteredBydishTypes.length === 0) {
-          console.log("bruh1");
+          
           return res.status(200).json([]);
         }
 
@@ -397,7 +395,7 @@ const getAllRestaurants = async (req, res) => {
           }
         });
         filteredRestaurants = _.uniq(filteredRests, "r_id");
-        console.log("bruh2");
+        
         return res.status(200).json({ filteredRestaurants });
       }
 
@@ -407,15 +405,15 @@ const getAllRestaurants = async (req, res) => {
       });
 
       filteredRestaurants = filteredRests;
-      console.log("bruh3");
+      
       return res.status(200).json({ filteredRestaurants });
     }
 
     if (!filteredRestaurants) {
-      console.log("bruh4");
+      
       return res.status(200).json({ message: "No restaurants found!" });
     }
-    console.log("bruh5");
+    
     return res.status(200).json({ filteredRestaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });

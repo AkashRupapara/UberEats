@@ -20,10 +20,10 @@ function CustomerFavorites() {
       })
       .then((res) => {
           setFvrtRests(res.data);
-        console.log(res.data);
+        
       })
       .catch((err) => {
-        console.log(err);
+        
       });
   };
 
