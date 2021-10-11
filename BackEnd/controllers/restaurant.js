@@ -307,7 +307,7 @@ const getRestaurantBySearch = async (req, res) => {
   } 
 
   const [data, meta] = await sequelize.query(
-    `select restaurants.*, restaurant_imgs.*, restaurant_dishtypes.* from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id join dishes on restaurants.r_id=dishes.r_id WHERE restaurants.r_name like "%${keyWord}%" or restaurants.r_desc like "%${keyWord}%" or dishes.d_name like "%${keyWord}%" `
+    `select restaurants.*, restaurant_imgs.* from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id join dishes on restaurants.r_id=dishes.r_id WHERE restaurants.r_name like "%${keyWord}%" or restaurants.r_desc like "%${keyWord}%" or dishes.d_name like "%${keyWord}%" `
 
     );
   return res.status(200).send(data);

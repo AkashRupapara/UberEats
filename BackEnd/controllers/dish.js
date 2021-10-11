@@ -1,11 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
-const {
-  dishes,
-  dish_imgs,
-  sequelize,
-  restaurants,
-} = require("../models/data.model");
+const { dishes, dish_imgs, sequelize, restaurants } = require('../models/data.model');
 
 const createDish = async (req, res) => {
   try {
@@ -13,7 +8,7 @@ const createDish = async (req, res) => {
     const restID = req.headers.id;
 
     if (!(name && price && category && type)) {
-      return res.status(403).send("Provide all Details");
+      return res.status(403).send('Provide all Details');
     }
 
     const existingDish = await dishes.findOne({
@@ -36,14 +31,14 @@ const createDish = async (req, res) => {
             d_type: type,
             r_id: restID,
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         if (imgs) {
           const dishImages = imgs.map((ele) => ({
             d_id: dish.d_id,
             di_img: ele,
-            di_alt_text: "Dish Image",
+            di_alt_text: 'Dish Image',
           }));
 
           await dish_imgs.bulkCreate(dishImages, {
@@ -65,7 +60,7 @@ const createDish = async (req, res) => {
 
         res.status(201).json({ dishDetails });
       } else {
-        res.status(403).send({ error: "Dish Already Exist" });
+        res.status(403).send({ error: 'Dish Already Exist' });
       }
     } catch (err) {
       t.rollback();
@@ -81,7 +76,7 @@ const updateDish = async (req, res) => {
   const dishId = req.params.did;
   const restId = req.headers.id;
 
-  if (!dishId) return res.status(403).send("Provide all Details");
+  if (!dishId) return res.status(403).send('Provide all Details');
   const existDish = await dishes.findOne({
     where: {
       d_id: dishId,
@@ -89,7 +84,7 @@ const updateDish = async (req, res) => {
     },
   });
 
-  if (!existDish) return res.status(404).send("Dish Does not exist!!");
+  if (!existDish) return res.status(404).send('Dish Does not exist!!');
 
   if (name !== existDish.d_name) {
     const findDishName = await dishes.findOne({
@@ -99,7 +94,7 @@ const updateDish = async (req, res) => {
       },
     });
 
-    if (findDishName) return res.status(403).send("Dish with same name Exist");
+    if (findDishName) return res.status(403).send('Dish with same name Exist');
   }
 
   try {
@@ -114,9 +109,9 @@ const updateDish = async (req, res) => {
       },
       {
         returning: true,
-      }
+      },
     );
-    res.status(201).send("Dish Updated!!");
+    res.status(201).send({ message: 'Dish Updated!!' });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -131,18 +126,18 @@ const updateDish = async (req, res) => {
       const dishImages = imgs.map((ele) => ({
         d_id: dishId,
         di_img: ele,
-        di_alt_text: "Dish Image",
+        di_alt_text: 'Dish Image',
       }));
       await dish_imgs.bulkCreate(dishImages);
     } catch (err) {
-      res.status(404).send("Unable to update Dish Images");
+      res.status(404).send('Unable to update Dish Images');
     }
   }
 };
 
 const deleteDish = async (req, res) => {
   const dishId = req.params.did;
-  if (!dishId) return res.status(404).send("Dish Does not Exist");
+  if (!dishId) return res.status(404).send('Dish Does not Exist');
 
   const restId = req.headers.id;
   const findDish = await dishes.findOne({
@@ -152,8 +147,6 @@ const deleteDish = async (req, res) => {
     },
   });
 
-  
-
   try {
     if (findDish) {
       await findDish.destroy({
@@ -161,9 +154,9 @@ const deleteDish = async (req, res) => {
           d_id: dishId,
         },
       });
-      return res.status(201).send({ message: "Dish Deleted" });
+      return res.status(201).send({ message: 'Dish Deleted' });
     }
-    return res.status(404).send({ error: "Dish Not Found" });
+    return res.status(404).send({ error: 'Dish Not Found' });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -178,7 +171,7 @@ const getDishById = async (req, res) => {
     where: { d_id: dishId, r_id: restId },
   });
 
-  if (!dish) return res.status(404).send("Dish not found");
+  if (!dish) return res.status(404).send('Dish not found');
   return res.status(201).send(dish);
 };
 
@@ -191,7 +184,7 @@ const getAllDishes = async (req, res) => {
     },
   });
   if (dishDetails.lenght === 0) {
-    return res.status(404).send({ error: "No Dishes Found" });
+    return res.status(404).send({ error: 'No Dishes Found' });
   }
   return res.status(201).send(dishDetails);
 };
@@ -201,7 +194,7 @@ const insertDishImage = async (req, res) => {
   const dishId = req.params.did;
   const imageLink = req.body.img;
 
-  if (!dishId) return res.status(403).send("Provide all Details");
+  if (!dishId) return res.status(403).send('Provide all Details');
   const existDish = await dishes.findOne({
     where: {
       d_id: dishId,
@@ -209,15 +202,15 @@ const insertDishImage = async (req, res) => {
     },
   });
 
-  if (!existDish) return res.status(404).send("Dish Does not exist!!");
+  if (!existDish) return res.status(404).send('Dish Does not exist!!');
 
   await dish_imgs.create({
     di_img: imageLink,
-    di_alt_text: "Dish image",
+    di_alt_text: 'Dish image',
     d_id: dishId,
   });
 
-  return res.status(201).send({ message: "Dish image Added" });
+  return res.status(201).send({ message: 'Dish image Added' });
 };
 
 const deleteDishImage = async (req, res) => {
@@ -230,14 +223,14 @@ const deleteDishImage = async (req, res) => {
     },
   });
 
-  if (!existDishImage) return res.status(404).send("Dish Does not exist!!");
+  if (!existDishImage) return res.status(404).send('Dish Does not exist!!');
 
   await dish_imgs.destroy({
     where: {
       di_id: dishImageId,
     },
   });
-  return res.status(201).send({ message: "Dish image Deleted" });
+  return res.status(201).send({ message: 'Dish image Deleted' });
 };
 
 module.exports = {
