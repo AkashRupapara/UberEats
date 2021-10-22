@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
 const { restaurants, customers } = require('../models/data.model');
+const Restaurant = require('../models/Restaurant');
 
 function validateToken(req, res, next) {
   const token = req.headers.authorization;
@@ -16,16 +17,16 @@ function validateToken(req, res, next) {
         if (!(data.email && data.r_id)) {
           return res.status(400).send('Incomplete Information');
         }
-        const rest = await restaurants.findOne({
-          where: {
-            r_email: data.email,
-          },
+        const rest = await Restaurant.findOne({
+            email: data.email,  
         });
+        
         if (!rest) {
           return res
             .status(209)
             .send('Permissions Required For accessing Restuarant');
         }
+        
         req.headers.role = 'restaurant';
         req.headers.id = data.r_id;
         next();
@@ -35,9 +36,8 @@ function validateToken(req, res, next) {
         }
 
         const cust = await customers.findOne({
-          where: {
+ 
             c_email: data.email,
-          },
         });
 
         if (!cust) {

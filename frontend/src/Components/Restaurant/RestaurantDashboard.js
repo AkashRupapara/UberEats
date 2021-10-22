@@ -42,6 +42,11 @@ const RestaurantDashboard = () => {
   };
   const [images, setimages] = useState([]);
   const [restDetails, setRestDetails] = useState({});
+  const [name, setName] = useState("");
+  const [delType, setDelType] = useState("");
+  const [timings, setTimings] = useState("");
+  const [address, setAddress] = useState("");
+  const [dishTypes, setdishTypes] = useState("");
   const [isUploading, setIsUploading] = React.useState(false);
   const [dishModalIsOpen, setDishModalIsOpen] = React.useState(false);
   const [selectedDishId, setSelectedDishId] = React.useState(null);
@@ -74,82 +79,62 @@ const RestaurantDashboard = () => {
         },
       })
       .then((res) => {
-        
-        setimages(res.data.restaurant_imgs ? res.data.restaurant_imgs : []);
+        setName(res.data.name);
+        console.log("fetched Data", res.data);
+        setimages(res.data.restaurantImages ? res.data.restaurantImages : []);
         const restData = {};
-        restData["name"] = res.data.r_name ? res.data.r_name : "";
-
+        restData["name"] = res.data.name ? res.data.name : "";
         if (
           !(
-            res.data.r_address_line &&
-            res.data.r_city &&
-            res.data.r_state &&
-            res.data.r_zipcode
+            res.data.address_line &&
+            res.data.city &&
+            res.data.state &&
+            res.data.zipcode
           )
         ) {
-          res.data.r_address_line = "";
-          res.data.r_city = "";
-          res.data.r_state = "";
-          res.data.r_zipcode = null;
+          res.data.address_line = "";
+          res.data.city = "";
+          res.data.state = "";
+          res.data.zipcode = null;
         }
         let address =
-          res.data.r_address_line +
+          res.data.address_line +
           ", " +
-          res.data.r_city +
+          res.data.city +
           ", " +
-          res.data.r_state +
+          res.data.state +
           " - " +
-          res.data.r_zipcode;
+          res.data.zipcode;
         restData["address"] = address;
-        restData["desc"] = res.data.r_desc ? res.data.r_desc : "";
-        restData["contactNo"] = res.data.r_contact ? res.data.r_contact : "";
+        setAddress(address);
+        restData["desc"] = res.data.desc ? res.data.desc : "";
+        restData["contactNo"] = res.data.contact_no ? res.data.contact_no : "";
 
-        res.data.r_delivery_type = res.data.r_delivery_type
-          ? res.data.r_delivery_type
+        res.data.del_type = res.data.del_type
+          ? res.data.del_type
           : "";
-        if (res.data.r_delivery_type === "both") {
-          restData["deliveryType"] = "Pickup and Delivery";
+        if (res.data.del_type === "Both" || res.data.del_type === "both") {
+          setDelType("Pickup and Delivery");
         } else {
-          restData["deliveryType"] = res.data.r_delivery_type;
+          setDelType(res.data.del_type);
         }
+        
+        const startTime = new Date(res.data?.start?res.data.start:null);
+        const endTime = new Date(res.data?.end? res.data.end:null);
 
-        res.data.r_start = res.data.r_start ? res.data.r_start : "";
-        let splitStartTime = res.data.r_start.split(":");
-
-        let startTime;
-        if (parseInt(splitStartTime[0]) >= 12) {
-          startTime =
-            String(splitStartTime[0] - 12) +
-            ":" +
-            String(splitStartTime[1] + " PM");
-        } else {
-          startTime =
-            String(splitStartTime[0]) + ":" + String(splitStartTime[1] + " AM");
-        }
-        res.data.r_end = res.data.r_end ? res.data.r_end : "";
-
-        let splitEndTime = res.data.r_end.split(":");
-        let endTime;
-        if (parseInt(splitEndTime[0]) >= 12) {
-          endTime =
-            String(splitEndTime[0] - 12) +
-            ":" +
-            String(splitEndTime[1] + " PM");
-        } else {
-          endTime =
-            String(splitEndTime[0]) + ":" + String(splitEndTime[1] + " AM");
-        }
-
-        let timings = startTime + " to " + endTime;
-        restData["openTime"] = timings;
+        setTimings(startTime.getHours()+":" + startTime.getMinutes() + " to " + endTime.getHours() + ":" + endTime.getMinutes());
+        
 
         let dishTypes = "";
-        res.data.restaurant_dishtypes.forEach((ele) => {
-          dishTypes = dishTypes + ele.rdt_type + " ";
-        });
+        const temp = res.data?.dish_types?.length>0?res.data.dish_types.forEach((ele)=>{
+          dishTypes = dishTypes + ele + " ";
+        }):null;
+        // res.data.restaurant_dishtypes.forEach((ele) => {
+        //   dishTypes = dishTypes + ele.rdt_type + " ";
+        // });
 
-        restData["dishType"] = dishTypes;
-
+        // restData["dishType"] = dishTypes;
+        setdishTypes(dishTypes);
         res.data.dishes = res.data.dishes ? res.data.dishes : [];
         restData["dishes"] = res.data.dishes;
         let dishObj = {};
@@ -176,9 +161,6 @@ const RestaurantDashboard = () => {
 
   useEffect(() => {
     getRestData();
-    // setRestName(response.data.r_name)
-    // console.log(response.data.restaurant_imgs)
-    // setimages(response.data.restaurant_imgs);
   }, [dish,dishModalIsOpen]);
 
   // S3 Bucket configurations
@@ -229,7 +211,7 @@ const RestaurantDashboard = () => {
         {images?.length > 0
           ? images.map((ele) => (
               <div style={{ height: "500px" }}>
-                <img src={ele.ri_img} />
+                <img src={ele} />
                 <p style={{ height: "80px", fontSize: "30px" }}>
                   {restDetails.name}
                 </p>
@@ -240,17 +222,17 @@ const RestaurantDashboard = () => {
       <br></br>
       <div style={{ textAlign: "left", marginLeft: "2%" }}>
         <H5>
-          {restDetails.name} ({restDetails.deliveryType})
+          {name} ({delType})
         </H5>
         <H6>{restDetails.desc}</H6>
         <H6>
-          <FontAwesomeIcon icon={faMapMarkerAlt} /> {restDetails.address}
+          <FontAwesomeIcon icon={faMapMarkerAlt} /> {address}
         </H6>
         <H6>
-          <FontAwesomeIcon icon={faClock} /> {restDetails.openTime}
+          <FontAwesomeIcon icon={faClock} /> {timings}
         </H6>
         <H6>
-          <FontAwesomeIcon icon={faUtensils} /> {restDetails.dishType}
+          <FontAwesomeIcon icon={faUtensils} /> {dishTypes}
         </H6>
       </div>
       <div>
@@ -262,7 +244,7 @@ const RestaurantDashboard = () => {
             setAddDishModalIsOpen(true);
           }}
         >
-          Add New Dish{" "}
+          Add New Dish
         </Button>
         <Container fluid>
           <Row>

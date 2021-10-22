@@ -18,11 +18,56 @@ const { restaurantValidationRules, validator } = require('../controllers/validat
 
 const router = express.Router();
 
+
+/**
+ * @typedef getRestaurantBYId
+ * @property {string} email.required
+ * @property {string} password.required
+ */
+
+
+/**
+ * @typedef updateRestaurant
+ * @property {string} name
+ * @property {string} desc
+ * @property {[string]} dish_types
+ * @property {string} address_line
+ * @property {string} city
+ * @property {string} state
+ * @property {string} zipcode
+ * @property {string} contact_no
+ * @property {string} del_type
+ * @property {string} start
+ * @property {string} end
+ */
+
 // Updating Restaurant Details
-router.put('/:rid', restaurantValidationRules(), validator, updateRestaurant);
+/**
+ * @route PUT /restaurant/{restId}
+ * @summary Update Restaurant Details
+ * @group  Restaurant
+ * @param {string} restId.path.required
+ * @param {updateRestaurant.model} updateRestaurant.body.required
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
+router.put('/:restId', restaurantValidationRules(), validator, updateRestaurant);
 // Delete Restaurant
 router.delete('/:rid', deleteRestaurant);
-router.get('/rest/:rid', getRestaurantDetails);
+
+/**
+ * @route GET /restaurant/rest/{restId}
+ * @summary Get Restaurant Details
+ * @group  Restaurant
+ * @param {string} restId.path.required
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
+router.get('/rest/:restId', getRestaurantDetails);
 router.get('/all/search?', getRestaurantBySearch);
 router.get('/all?', getAllRestaurants);
 router.post('/restImages/', addRestaurantImage)

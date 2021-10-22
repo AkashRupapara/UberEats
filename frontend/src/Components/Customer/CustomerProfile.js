@@ -264,15 +264,6 @@ function CustomerProfile({ match }) {
                     disabled
                   />
                 </FormControl>
-                {/* <FormControl label="City">
-                      <Input
-                        id="city"
-                        autoComplete="off"
-                        placeholder="Enter city"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                      />
-                    </FormControl> */}
                 <FormControl label="State">
                   <Input
                     id="state"

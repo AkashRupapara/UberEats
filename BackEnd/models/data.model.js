@@ -1,11 +1,61 @@
 /* eslint-disable camelcase */
+const { Schema } = require('mongoose');
 const Sequelize = require('sequelize');
 const dbConfig = require('../config/db.config');
+const mongoose = require('mongoose');
+
 
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
   operatorsAliases: false,
+});
+
+const RestaurantSchema = new Schema({
+  // name: String
+  // medium: MediaSchema ///Schema
+  // favourites: [Types.ObjectId]
+  r_email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  r_password: {
+    type: String,
+    required: true,
+  },
+  r_name: {
+    type: String,
+    required: true,
+  },
+  r_address_line: {
+    type: String,
+  },
+  r_city: {
+    type: String,
+  },
+  r_state: {
+    type: String,
+  },
+  r_zipcode: {
+    type: String,
+  },
+  r_desc: {
+    type: String,
+  },
+  r_contact_no: {
+    type: String,
+  },
+  r_delivery_type: {
+    type: String,
+    enum: ['Delivery', 'Pickup', 'Both'],
+  },
+  r_start: {
+    type: Date,
+  },
+  r_end: {
+    type: Date,
+  },
 });
 
 const restaurants = sequelize.define('restaurants', {
@@ -440,6 +490,8 @@ dish_imgs.belongsTo(dishes, {
   onDelete: 'cascade',
   onUpdate: 'cascade',
 });
+
+
 module.exports = {
   sequelize,
   restaurants,

@@ -3,6 +3,8 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const _ = require("underscore");
+const mongoose = require("mongoose");
+
 const {
   restaurants,
   restaurant_dishtypes,
@@ -11,89 +13,48 @@ const {
   sequelize,
   restaurant_imgs,
 } = require("../models/data.model");
-
-// const { body, validationResult } = require('express-validator');
+const Restaurant = require("../models/Restaurant");
 
 const createRestaurant = async (req, res) => {
   try {
-    const {
-      email,
-      password,
-      name,
-      city,
-      state,
-      desc,
-      contact,
-      dish_types,
-      del_type,
-      start,
-      end,
-    } = req.body;
-
     // Validate user input
-    if (!(name && email && password)) {
+    if (!(req.body.name && req.body.email && req.body.password)) {
       res.status(400).send({ error: "All input is required" });
     }
+
     // check if Restaurant already exist
-    // Validate if user exist in our database
-    const oldRes = await restaurants.findOne({
-      where: {
-        r_email: email,
-      },
+    const oldRes = await Restaurant.findOne({
+      email: req.body.email,
     });
 
     if (oldRes) {
       res.status(409).send({ error: "Restaurant Already Exist. Please Login" });
     } else {
       // Encrypt user password
-      const encryptedPassword = await bcrypt.hash(password, 10);
+      const encryptedPassword = await bcrypt.hash(req.body.password, 10);
       let token;
 
-      const t = await sequelize.transaction();
       try {
-        // const t = await sequelize.transaction()
-        const restaurant = await restaurants.create(
-          {
-            r_name: name,
-            r_email: email,
-            r_password: encryptedPassword,
-            r_address_line: req.body.address_line,
-            r_city: city,
-            r_state: state,
-            r_zipcode: req.body.zipcode,
-            r_desc: desc,
-            r_contact_no: contact,
-            r_delivery_type: del_type,
-            r_start: start,
-            r_end: end,
-          },
-          { transaction: t }
-        );
-        if (dish_types) {
-          const dishTypes = dish_types.map((ele) => ({
-            r_id: restaurant.r_id,
-            rdt_type: ele,
-          }));
-          await restaurant_dishtypes.bulkCreate(dishTypes, {
-            transaction: t,
-          });
-        }
+        req.body.password = encryptedPassword;
 
+        const newRestaurant = new Restaurant(req.body);
+        const createdRest = await newRestaurant.save();
+
+        const email = req.body.email;
         token = jwt.sign(
-          { r_id: restaurant.r_id, email, role: "restaurant" },
+          { r_id: createdRest._id, email, role: "restaurant" },
           "UberEats",
           {
             expiresIn: "2h",
           }
         );
-        await t.commit();
         res.status(201).json({ token });
       } catch (error) {
-        await t.rollback();
         res.status(404).send(error);
       }
     }
   } catch (err) {
+    console.log(err);
     res.status(404).send(err);
   }
 };
@@ -103,25 +64,23 @@ const restaurantLogin = async (req, res) => {
 
   if (!(email && password)) res.status(400).send("All input is required");
 
-  const rest = await restaurants.findOne({
-    where: {
-      r_email: email,
-    },
-  });
+  const rest = await Restaurant.findOne({
+    email,
+  }).select("password");
 
   if (!rest) {
-    res.status(409).send("Restaurant does not exist");
+    res.status(409).send({ error: "Restaurant does not exist" });
   } else {
-    bcrypt.compare(password, rest.r_password, (err, result) => {
+    bcrypt.compare(password, rest.password, (err, result) => {
       if (err) {
         // handle error
-        res.status(409).send("Error Verifying details!!!");
+        res.status(409).send({ error: "Error Verifying details!!!" });
       }
       if (result) {
         // Send JWT
         // Create token
         const token = jwt.sign(
-          { r_id: rest.r_id, email, role: "restaurant" },
+          { r_id: rest._id, email, role: "restaurant" },
           "UberEats",
           {
             expiresIn: "2h",
@@ -131,7 +90,6 @@ const restaurantLogin = async (req, res) => {
         rest.token = token;
         return res.status(201).json({ token });
       }
-      // response is OutgoingMessage object that server response http request
       return res.json({ success: false, message: "passwords do not match" });
     });
   }
@@ -139,21 +97,18 @@ const restaurantLogin = async (req, res) => {
 
 const updateRestaurant = async (req, res) => {
   try {
-    const restId = req.params.rid;
+    const restId = req.params.restId;
     const imgLink = req.body.link;
-    const rest = await restaurants.findOne({
-      where: {
-        r_id: restId,
-      },
+
+    const rest = await Restaurant.findOne({
+      _id: mongoose.Types.ObjectId(String(restId)),
     });
 
-    if (!rest) return res.status(404).send("Restaurant Not Found");
+    if (!rest) return res.status(404).send({ error: "Restaurant Not Found" });
 
-    if (req.body.email && req.body.email !== rest.r_email) {
-      const checkRest = await restaurants.findOne({
-        where: {
-          r_email: req.body.email,
-        },
+    if (req.body.email && req.body.email !== rest.email) {
+      const checkRest = await Restaurant.findOne({
+        email: req.body.email,
       });
 
       if (checkRest) {
@@ -162,54 +117,65 @@ const updateRestaurant = async (req, res) => {
           .send("Restaurant already exist with given email");
       }
     }
-    const t = await sequelize.transaction();
 
     try {
-      await restaurants.update(
+      await Restaurant.findOneAndUpdate(
         {
-          r_name: req.body.name,
-          r_city: req.body.city,
-          r_state: req.body.state,
-          r_address_line: req.body.address_line,
-          r_zipcode: req.body.zipcode,
-          r_desc: req.body.desc,
-          r_contact_no: req.body.contact,
-          r_delivery_type: req.body.delivery_type,
-          r_start: req.body.start,
-          r_end: req.body.end,
+          _id: mongoose.Types.ObjectId(String(restId)),
         },
         {
-          returning: true,
-          where: { r_id: restId },
+          $set: req.body,
         },
-        { transaction: t }
+        {
+          new: true,
+        }
       );
 
-      if (req.body.dish_types) {
-        const dishTypes = req.body.dish_types.map((ele) => ({
-          r_id: restId,
-          rdt_type: ele,
-        }));
-
-        await restaurant_dishtypes.destroy({
-          where: {
-            r_id: restId,
+      if (req.body.dish_type && req.body.dish_type.length > 0) {
+        await Restaurant.findOneAndUpdate(
+          {
+            _id: mongoose.Types.ObjectId(String(restId)),
           },
-          transaction: t,
-        });
+          {
+            $set: { dish_type: [] },
+          }
+        );
 
-        const updated = await restaurant_dishtypes.bulkCreate(dishTypes, {
-          transaction: t,
-        });
+        await Restaurant.findOneAndUpdate(
+          {
+            _id: mongoose.Types.ObjectId(String(restId)),
+          },
+          {
+            $addToSet: { dish_type },
+          },
+          {
+            new: true,
+          }
+        );
       }
 
-      await t.commit();
+      if (imgLink) {
+        await Restaurant.findOneAndUpdate(
+          {
+            _id: mongoose.Types.ObjectId(String(restId)),
+          },
+          {
+            $push: { restaurantImages: imgLink },
+          },
+          {
+            new: true,
+          }
+        );
+      }
+
       return res.status(200).send({ message: "Restaurant Updated" });
     } catch (err) {
-      await t.rollback();
+      console.log(err);
       return res.status(404).send(err);
     }
   } catch (err) {
+    console.log(err);
+
     return res.status(404).send(err);
   }
 };
@@ -240,15 +206,21 @@ const addRestaurantImage = async (req, res) => {
   const restId = req.headers.id;
   const imgLink = req.body.link;
   if (imgLink) {
-    const addImage = await restaurant_imgs.create({
-      ri_img: imgLink,
-      r_id: restId,
-      ri_alt_text: "Restaurant Image",
-    });
-    return res.status(200).send(addImage);
-  } else {
-    return res.status(500).send({ error: "Could not add Image" });
+    await Restaurant.findOneAndUpdate(
+      {
+        _id: mongoose.Types.ObjectId(String(restId)),
+      },
+      {
+        $push: { restaurantImages: imgLink },
+      },
+      {
+        new: true,
+      }
+    );
+    return res.status(200).send({ message: "Image Added" });
   }
+
+  return res.status(500).send({ error: "Could not add Image" });
 };
 
 const deleteRestaurantImage = async (req, res) => {
@@ -275,47 +247,35 @@ const deleteRestaurantImage = async (req, res) => {
 };
 
 const getRestaurantDetails = async (req, res) => {
-  const restId = req.params.rid;
-  if (!restId) return res.status(404).send("Provide Restaurant ID");
+  const restId = req.params.restId;
+  if (!restId) return res.status(404).send({ error: "Provide Restaurant ID" });
 
-  const filteredRestaurants = await restaurants.findOne({
-    include: [
-      {
-        model: restaurant_dishtypes,
-      },
-      {
-        model: restaurant_imgs,
-      },
-      {
-        model: dishes,
-        include: dish_imgs,
-      },
-    ],
-    where: {
-      r_id: restId,
-    },
-    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  const restDetails = await Restaurant.findOne({
+    _id: mongoose.Types.ObjectId(String(restId)),
   });
-  return res.status(201).send(filteredRestaurants);
+
+  if (restDetails) return res.status(201).send(restDetails);
+
+  return res
+    .status(404)
+    .send({ error: "Restaurant Does not exist with given Id" });
 };
 
 const getRestaurantBySearch = async (req, res) => {
   const { keyWord } = req.query;
   const custId = req.headers.id;
-  if(!custId){
-    return res.status(403).send({error: "login Again!!"});
-  } 
+  if (!custId) {
+    return res.status(403).send({ error: "login Again!!" });
+  }
 
   const [data, meta] = await sequelize.query(
     `select restaurants.*, restaurant_imgs.* from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id join dishes on restaurants.r_id=dishes.r_id WHERE restaurants.r_name like "%${keyWord}%" or restaurants.r_desc like "%${keyWord}%" or dishes.d_name like "%${keyWord}%" `
-
-    );
+  );
   return res.status(200).send(data);
 };
 
 const getAllRestaurants = async (req, res) => {
   try {
-
     const { city } = req.query;
     const { dishType } = req.query;
     let { deliveryType } = req.query;
@@ -380,7 +340,6 @@ const getAllRestaurants = async (req, res) => {
 
       if (filteredRestaurants) {
         if (restaurantsFilteredBydishTypes.length === 0) {
-          
           return res.status(200).json([]);
         }
 
@@ -395,7 +354,7 @@ const getAllRestaurants = async (req, res) => {
           }
         });
         filteredRestaurants = _.uniq(filteredRests, "r_id");
-        
+
         return res.status(200).json({ filteredRestaurants });
       }
 
@@ -405,15 +364,14 @@ const getAllRestaurants = async (req, res) => {
       });
 
       filteredRestaurants = filteredRests;
-      
+
       return res.status(200).json({ filteredRestaurants });
     }
 
     if (!filteredRestaurants) {
-      
       return res.status(200).json({ message: "No restaurants found!" });
     }
-    
+
     return res.status(200).json({ filteredRestaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });
