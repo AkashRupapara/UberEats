@@ -1,164 +1,126 @@
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
-const { dishes, dish_imgs, sequelize, restaurants } = require('../models/data.model');
+const {
+  dishes,
+  dish_imgs,
+  sequelize,
+  restaurants,
+} = require("../models/data.model");
+const Restaurant = require("../models/Restaurant");
+const mongoose = require("mongoose");
 
 const createDish = async (req, res) => {
   try {
-    const { name, ingredients, price, desc, category, type, imgs } = req.body;
-    const restID = req.headers.id;
+    const { name, ingredients, price, desc, category, dishType } = req.body;
+    const restId = req.headers.id;
 
-    if (!(name && price && category && type)) {
-      return res.status(403).send('Provide all Details');
+    if (!(name && price && category && dishType)) {
+      return res.status(400).send({ error: "Provide all Details" });
     }
 
-    const existingDish = await dishes.findOne({
-      where: {
-        r_id: restID,
-        d_name: name,
-      },
+    const rest = await Restaurant.findOne({
+      _id: mongoose.Types.ObjectId(String(restId)),
     });
 
-    const t = await sequelize.transaction();
-    try {
-      if (!existingDish) {
-        const dish = await dishes.create(
-          {
-            d_name: name,
-            d_ingredients: ingredients,
-            d_price: price,
-            d_desc: desc,
-            d_category: category,
-            d_type: type,
-            r_id: restID,
-          },
-          { transaction: t },
-        );
+    if (!rest) return res.status(404).send({ error: "Restaurant Not Found" });
 
-        if (imgs) {
-          const dishImages = imgs.map((ele) => ({
-            d_id: dish.d_id,
-            di_img: ele,
-            di_alt_text: 'Dish Image',
-          }));
+    const existingDish = await Restaurant.findOne({
+      "dishes.name": name,
+      _id: mongoose.Types.ObjectId(String(restId)),
+    });
 
-          await dish_imgs.bulkCreate(dishImages, {
-            transaction: t,
-          });
-        }
-        t.commit();
-
-        const dishDetails = await dishes.findOne({
-          where: {
-            d_id: dish.d_id,
-          },
-          include: [
-            {
-              model: dish_imgs,
-            },
-          ],
-        });
-
-        res.status(201).json({ dishDetails });
-      } else {
-        res.status(403).send({ error: 'Dish Already Exist' });
-      }
-    } catch (err) {
-      t.rollback();
-      res.status(404).send(err);
+    if (existingDish) {
+      return res
+        .status(409)
+        .send({ error: "Dish with given name already exist!" });
     }
+
+    const dishObj = {
+      name,
+      price,
+      ingredients,
+      desc,
+      dishType,
+      category,
+    };
+
+    const dishId = new mongoose.Types.ObjectId();
+    const createdRest = await Restaurant.findOneAndUpdate(
+      {
+        _id: mongoose.Types.ObjectId(String(restId)),
+      },
+      {
+        $push: { dishes: { _id: dishId, ...dishObj } },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(201).json({ dishId });
   } catch (err) {
-    res.status(404).send(err);
+    res.status(500).send({ error: "Error Adding Dish" });
   }
 };
 
 const updateDish = async (req, res) => {
-  const { name, ingredients, price, desc, category, type, imgs } = req.body;
   const dishId = req.params.did;
   const restId = req.headers.id;
 
-  if (!dishId) return res.status(403).send('Provide all Details');
-  const existDish = await dishes.findOne({
-    where: {
-      d_id: dishId,
-      r_id: restId,
-    },
-  });
-
-  if (!existDish) return res.status(404).send('Dish Does not exist!!');
-
-  if (name !== existDish.d_name) {
-    const findDishName = await dishes.findOne({
-      where: {
-        d_name: name,
-        r_id: restId,
-      },
-    });
-
-    if (findDishName) return res.status(403).send('Dish with same name Exist');
-  }
+  if (!dishId) return res.status(403).send("Provide all Details");
 
   try {
-    existDish.update(
-      {
-        d_name: name,
-        d_ingredients: ingredients,
-        d_price: price,
-        d_desc: desc,
-        d_category: category,
-        d_type: type,
-      },
-      {
-        returning: true,
-      },
-    );
-    res.status(201).send({ message: 'Dish Updated!!' });
-  } catch (err) {
-    return res.status(404).send(err);
-  }
+    const updateDishObj = {};
+    Object.keys(req.body).forEach((item) => {
+      updateDishObj[`dishes.$.${item}`] = req.body[item];
+    });
 
-  if (imgs) {
-    try {
-      await dish_imgs.destroy({
-        where: {
-          d_id: dishId,
-        },
-      });
-      const dishImages = imgs.map((ele) => ({
-        d_id: dishId,
-        di_img: ele,
-        di_alt_text: 'Dish Image',
-      }));
-      await dish_imgs.bulkCreate(dishImages);
-    } catch (err) {
-      res.status(404).send('Unable to update Dish Images');
-    }
+    const updatedDish = await Restaurant.updateOne(
+      {
+        _id: mongoose.Types.ObjectId(String(restId)),
+        "dishes._id": mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        $set: updateDishObj,
+      }
+    );
+
+    if (updatedDish) return res.status(201).send({ message: "Dish Updated!!" });
+
+    return res.status(404).send({ error: "Dish Not Found" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Error Updating Dish" });
   }
 };
 
 const deleteDish = async (req, res) => {
-  const dishId = req.params.did;
-  if (!dishId) return res.status(404).send('Dish Does not Exist');
-
-  const restId = req.headers.id;
-  const findDish = await dishes.findOne({
-    where: {
-      r_id: restId,
-      d_id: dishId,
-    },
-  });
-
   try {
-    if (findDish) {
-      await findDish.destroy({
-        where: {
-          d_id: dishId,
+    const dishId = req.params.did;
+    const restId = req.headers.id;
+    const existingDish = await Restaurant.find(
+      {
+        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
         },
-      });
-      return res.status(201).send({ message: 'Dish Deleted' });
+      },
+    );
+
+    if (existingDish.length === 0) {
+      return res.status(404).json({ error: 'Dish not found!' });
     }
-    return res.status(404).send({ error: 'Dish Not Found' });
-  } catch (err) {
-    return res.status(404).send(err);
+
+    await Restaurant.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(restId)) },
+      { $pull: { dishes: { _id: mongoose.Types.ObjectId(String(dishId)) } } },
+      { new: true },
+    );
+    return res.status(200).json({ message: 'Dish deleted successfully!' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -171,7 +133,7 @@ const getDishById = async (req, res) => {
     where: { d_id: dishId, r_id: restId },
   });
 
-  if (!dish) return res.status(404).send('Dish not found');
+  if (!dish) return res.status(404).send("Dish not found");
   return res.status(201).send(dish);
 };
 
@@ -184,7 +146,7 @@ const getAllDishes = async (req, res) => {
     },
   });
   if (dishDetails.lenght === 0) {
-    return res.status(404).send({ error: 'No Dishes Found' });
+    return res.status(404).send({ error: "No Dishes Found" });
   }
   return res.status(201).send(dishDetails);
 };
@@ -192,25 +154,40 @@ const getAllDishes = async (req, res) => {
 const insertDishImage = async (req, res) => {
   const restId = req.headers.id;
   const dishId = req.params.did;
-  const imageLink = req.body.img;
+  const imageLink = req.body.imageLink;
 
-  if (!dishId) return res.status(403).send('Provide all Details');
-  const existDish = await dishes.findOne({
-    where: {
-      d_id: dishId,
-      r_id: restId,
-    },
-  });
+  if (!dishId) return res.status(403).send({ error: "Provide all Details" });
 
-  if (!existDish) return res.status(404).send('Dish Does not exist!!');
+  try {
+    const existingDish = await Restaurant.findOne(
+      {
+        _id: mongoose.Types.ObjectId(String(restId)),
+      },
+      {
+        dishes: {
+          _id: mongoose.Types.ObjectId(String(dishId)),
+        },
+      }
+    );
 
-  await dish_imgs.create({
-    di_img: imageLink,
-    di_alt_text: 'Dish image',
-    d_id: dishId,
-  });
+    if (!existingDish)
+      return res.status(404).send({ error: "Dish Does not exist!!" });
 
-  return res.status(201).send({ message: 'Dish image Added' });
+    const updatedRest = await Restaurant.find(
+      {
+        "dishes._id": mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      }
+    );
+    return res.status(201).send({ message: "Dish image Added" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ error: "Error Adding Dish Image" });
+  }
 };
 
 const deleteDishImage = async (req, res) => {
@@ -223,14 +200,14 @@ const deleteDishImage = async (req, res) => {
     },
   });
 
-  if (!existDishImage) return res.status(404).send('Dish Does not exist!!');
+  if (!existDishImage) return res.status(404).send("Dish Does not exist!!");
 
   await dish_imgs.destroy({
     where: {
       di_id: dishImageId,
     },
   });
-  return res.status(201).send({ message: 'Dish image Deleted' });
+  return res.status(201).send({ message: "Dish image Deleted" });
 };
 
 module.exports = {

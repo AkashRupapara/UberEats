@@ -38,6 +38,8 @@ function AddDishModal(props) {
   const [dishType, setDishType] = useState("");
   const [dishCategory, setDishCategory] = useState("");
   const [dishPrice, setDishPrice] = useState(null);
+  const [dishImages, setDishImages] = useState([]);
+  const [newDishImage, setNewDishImage] = useState("");
 
   // S3 Bucket configurations
   const S3_BUCKET = "ubereats-media";
@@ -58,14 +60,15 @@ function AddDishModal(props) {
       setImageUploading(true);
       uploadFile(fileToUpload[0], config)
         .then((data) => {
-          dispatch(dishImageUploadSuccess(createdDishId, data.location));
+          dispatch(
+            dishImageUploadSuccess(createdDishId, [{ image: data.location }])
+          );
         })
         .then((res) => {
           setImageUploading(false);
           toast.success("Image Uploaded Succesfully");
         })
         .catch((err) => {
-          
           toast.success("Image Upload Unsucessfull");
         });
     }
@@ -88,7 +91,7 @@ function AddDishModal(props) {
       ingredients: dishIngredients,
       desc: dishDescription,
       category: dishCategory[0]?.category ? dishCategory[0].category : "",
-      type: dishType[0]?.type ? dishType[0].type : "",
+      dishType: dishType[0]?.type ? dishType[0].type : "",
     };
 
     checkProperties(dishObj);
@@ -100,9 +103,11 @@ function AddDishModal(props) {
       })
       .then((res) => {
         dispatch(dishCreateSuccess(true));
-        const dishId = res.data.dishDetails.d_id;
+        const dishId = res.data.dishId;
+
         uploadDishImage(dishId);
         toast.success("Dish created");
+
         setAddDishModalIsOpen(false);
         setDishName("");
         setDishPrice(null);

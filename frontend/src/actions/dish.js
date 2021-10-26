@@ -16,13 +16,13 @@ export function dishImageUploadRequest() {
   };
 }
 
-export function dishImageUploadSuccess(did, link) {
+export function dishImageUploadSuccess(did, arrayLinks) {
   return (dispatch) => {
     return axiosInstance
-      .post(
-        `/dishes/images/${did}`,
+      .put(
+        `/dishes/${did}`,
         {
-          img: link,
+          dishImages: arrayLinks,
         },
         {
           headers: {
@@ -64,4 +64,3 @@ export function dishDeleteSuccess(payload) {
     payload,
   };
 }
-

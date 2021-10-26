@@ -129,18 +129,14 @@ const RestaurantDashboard = () => {
         const temp = res.data?.dish_types?.length>0?res.data.dish_types.forEach((ele)=>{
           dishTypes = dishTypes + ele + " ";
         }):null;
-        // res.data.restaurant_dishtypes.forEach((ele) => {
-        //   dishTypes = dishTypes + ele.rdt_type + " ";
-        // });
 
-        // restData["dishType"] = dishTypes;
         setdishTypes(dishTypes);
         res.data.dishes = res.data.dishes ? res.data.dishes : [];
         restData["dishes"] = res.data.dishes;
         let dishObj = {};
 
         res.data.dishes.forEach((ele) => {
-          dishObj[ele.d_id] = false;
+          dishObj[ele._id] = false;
         });
 
         // setDishModalIsOpen(dishObj);
@@ -240,6 +236,7 @@ const RestaurantDashboard = () => {
         <br></br>
         <Button
           variant="primary"
+          style={{borderRadius:"7px"}}
           onClick={() => {
             setAddDishModalIsOpen(true);
           }}
@@ -254,35 +251,35 @@ const RestaurantDashboard = () => {
                   <Card style={{ height: "100%" }}>
                     <div
                       onClick={() => {
-                        setSelectedDishId(ele.d_id);
+                        setSelectedDishId(ele._id);
                         setDishModalIsOpen(true);
                       }}
-                      key={ele.d_id}
+                      key={ele._id}
                     >
                       <Card.Img
                         variant="top"
                         src={
-                          ele.dish_imgs.length > 0
-                            ? ele.dish_imgs[0].di_img
+                          ele.dishImages?.length > 0
+                            ? ele.dishImages[0].image
                             : ""
                         }
                         style={{ height: "180px" }}
                       />
-                        {ele.d_name}
+                       <H5> {ele.name}</H5>
                         {" "}
 
-                          {ele.d_type} {" : "}
+                          {ele.dishType} {" : "}
                           
-                          {ele.d_category}
+                          {ele.category}
                         
                     </div>
-                    <H6>$ {ele.d_price} </H6>
+                    <H6>$ {ele.price} </H6>
                       <Row style={{paddingTop:"-2500px"}}>
                         <Col>
                           <Button
                             variant="success"
                             onClick={() => {
-                              setSelectedDishId(ele.d_id);
+                              setSelectedDishId(ele._id);
                               setDishModalIsOpen(true);
                             }}
                           >
@@ -293,7 +290,7 @@ const RestaurantDashboard = () => {
                           <Button
                             variant="danger"
                             onClick={() => {
-                              deleteDish(ele.d_id);
+                              deleteDish(ele._id);
                               setAddDishModalIsOpen(false);
                             }}
                           >

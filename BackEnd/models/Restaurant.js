@@ -45,6 +45,33 @@ const RestaurantSchema = new mongoose.Schema({
     end: {
       type: Date,
     },
+    dishes: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+        ingredients: {
+          type: String,
+        },
+        desc: {
+          type: String,
+        },
+        dishType: {
+          type: String,
+          enum: ['Appetizer', 'Salad', 'Main course', 'Dessert', 'Beverage'],
+        },
+        category: {
+          type: String,
+          enum: ['Veg', 'Non-veg', 'Vegan'],
+        },
+        dishImages: [{ image: { type: String } }],
+      },
+    ],
   });
 
 module.exports = mongoose.model('Restaurant', RestaurantSchema);

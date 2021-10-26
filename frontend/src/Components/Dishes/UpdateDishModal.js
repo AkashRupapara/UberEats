@@ -66,7 +66,7 @@ function UpdateDishModal(props) {
           ingredients: dishIngredients,
           desc: dishDescription,
           category: dishCategory[0].category,
-          type: dishType[0].type,
+          dishType: dishType[0].type,
         },
         {
           headers: {
@@ -77,7 +77,7 @@ function UpdateDishModal(props) {
       .then((res) => {
         toast.success("Dish Updated Succesfully");
         setDishName("");
-        setDishImages("");
+        setDishImages([]);
         setDishModalIsOpen(false);
       })
       .catch((err) => {
@@ -89,42 +89,43 @@ function UpdateDishModal(props) {
     dispatch(dishImageUploadRequest());
     uploadFile(acceptedFiles[0], config)
       .then((data) => {
-        dispatch(dishImageUploadSuccess(selectedDishId, data.location));
+        dispatch(
+          dishImageUploadSuccess(selectedDishId, [
+            ...dishImages,
+            { image: data.location },
+          ])
+        );
       })
       .then((res) => {
         setImageUploading(false);
       })
-      .catch((err) => {
-        
-      });
+      .catch((err) => {});
   };
 
   useEffect(() => {
     if (dishes && selectedDishId) {
-      let selectedDish = dishes.filter((dish) => dish.d_id === selectedDishId);
+      let selectedDish = dishes.filter((dish) => dish._id === selectedDishId);
       if (selectedDish.length > 0) {
-        
-        setDishImages(selectedDish[0].dish_imgs);
-        setDishName(selectedDish[0].d_name ? selectedDish[0].d_name : "");
-        setDishDescription(
-          selectedDish[0].d_desc ? selectedDish[0].d_desc : ""
-        );
+        setDishImages(selectedDish[0].dishImages);
+        setDishName(selectedDish[0]?.name ? selectedDish[0].name : "");
+        setDishDescription(selectedDish[0].desc ? selectedDish[0].desc : "");
         setDishIngredients(
-          selectedDish[0].d_ingredients ? selectedDish[0].d_ingredients : ""
+          selectedDish[0].ingredients ? selectedDish[0].ingredients : ""
         );
         setDishType(
-          selectedDish[0].d_type ? [{ type: selectedDish[0].d_type }] : []
+          selectedDish[0].dishType ? [{ type: selectedDish[0].dishType }] : []
         );
         setDishCategory(
-          selectedDish[0].d_category
-            ? [{ category: selectedDish[0].d_category }]
+          selectedDish[0].category
+            ? [{ category: selectedDish[0].category }]
             : []
         );
-        setDishPrice(selectedDish[0].d_price ? selectedDish[0].d_price : null);
+        setDishPrice(selectedDish[0].price ? selectedDish[0].price : null);
       }
     }
   }, [selectedDishId, dishes]);
 
+  console.log("dishIMages", dishImages);
   return (
     <div style={{ marginLeft: "100px" }}>
       <Modal
@@ -140,7 +141,7 @@ function UpdateDishModal(props) {
               {dishImages?.length > 0
                 ? dishImages.map((ele) => (
                     <div style={{ height: "200px" }}>
-                      <img src={ele.di_img} style={{ borderRadius: "20px" }} />
+                      <img src={ele.image} style={{ borderRadius: "20px" }} />
                     </div>
                   ))
                 : null}

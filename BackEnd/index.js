@@ -76,7 +76,10 @@ app.use('/orders', orders);
 
 const main = async () =>{
   try{
-    await mongoose.connect('mongodb+srv://admin:Akash1743a@cluster0.pdnmu.mongodb.net/ubereats?retryWrites=true&w=majority');
+    await mongoose.connect('mongodb+srv://admin:Akash1743a@cluster0.pdnmu.mongodb.net/ubereats?retryWrites=true&w=majority',{
+      useNewUrlParser: 'true',
+      autoIndex: true,
+    });
     const PORT = process.env.PORT || 8080;
     app.listen(PORT, () => {
       
