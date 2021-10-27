@@ -100,7 +100,7 @@ function CustomerNavbar() {
     }).then((res)=>{
       
       if(res?.c_city !== null){
-        dispatch(setLocation(res.data.c_city));
+        dispatch(setLocation(res.data.city));
       }
     }).catch((err)=>{
       

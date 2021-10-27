@@ -30,7 +30,6 @@ function UpdateCustomer() {
     getCustomerData();
   }, []);
 
-  const [fileToUpload, setFileToUpload] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [about, setAbout] = useState("");
@@ -62,18 +61,17 @@ function UpdateCustomer() {
         },
       })
       .then((res) => {
-        setName(res.data.c_name ? res.data.c_name : "");
-        setEmail(res.data.c_email ? res.data.c_email : "");
-        setCustId(res.data.c_id ? res.data.c_id : "");
-        setDob(res.data.c_dob ? new Date(res.data.c_dob) : "");
-        setContactNo(res.data.c_contact_no ? res.data.c_contact_no : "");
-        setCity(res.data.c_city ? [{ city: res.data.c_city }] : "");
-        setStateName(res.data.c_state ? res.data.c_state : "");
-        setCountry(res.data.c_country ? res.data.c_country : "");
-        setAbout(res.data.c_about ? res.data.c_about : "");
-        setNickName(res.data.c_nick_name ? res.data.c_nick_name : "");
-        setImage(res.data.c_profile_img ? res.data.c_profile_img : "");
-        
+        setName(res.data.name ? res.data.name : "");
+        setEmail(res.data.email ? res.data.email : "");
+        setCustId(res.data._id ? res.data._id : "");
+        setDob(res.data.dob ? new Date(res.data.dob) : "");
+        setContactNo(res.data.contact_no ? res.data.contact_no : "");
+        setCity(res.data.city ? [{ city: res.data.city }] : "");
+        setStateName(res.data.state ? [{state: res.data.state}] : "");
+        setCountry(res.data.country ? res.data.country : "");
+        setAbout(res.data.about ? res.data.about : "");
+        setNickName(res.data.nick_name ? res.data.nick_name : "");
+        setImage(res.data.profile_img ? res.data.profile_img : "");
       })
       .catch((err) => {
         toast.error(err.response.data.error);
@@ -136,15 +134,16 @@ function UpdateCustomer() {
 
   const updateCustDetails = (e) => {
     e.preventDefault();
+    console.log(stateName);
     const custObj = {
       name,
       about,
       profile_img: image,
-      nname: nickName,
-      contact: finalContact,
+      nick_name: nickName,
+      contact_no: finalContact,
       dob: dob.length > 0 ? dob[0] : "",
       city: city[0]?.city ? city[0].city : "",
-      state: stateName[0]?.stateName? stateName[0].stateName:"",
+      state: stateName[0]?.state? stateName[0].state:"",
       country,
     };
 
@@ -161,6 +160,7 @@ function UpdateCustomer() {
         toast.success("Customer Updated");
       })
       .catch((err) => {
+        console.log(err);
         if (err.response.data.hasOwnProperty("errors")) {
           err.response.data.errors.forEach((error) => {
             toast.error(error.msg.error);
@@ -171,6 +171,7 @@ function UpdateCustomer() {
       });
   };
 
+  console.log(stateName);
   return (
     <div>
       <CustomerNavbar />
@@ -181,7 +182,7 @@ function UpdateCustomer() {
         <Row style={{ width: "80%" }}>
           <Col>
             <Row>
-              <img src={image} alt="No Image" />
+              <img src={image} alt="No Image" style={{height: "500px", width:"100%", marginBottom:"2%"}}/>
             </Row>
             <Row>
               <Button onClick={() => setModalIsOpen(true)}>Upload Image</Button>
@@ -294,7 +295,6 @@ function UpdateCustomer() {
                     value={stateName}
                     onChange={({value}) => setStateName(value)}
                   />
-
                 </FormControl>
                 <FormControl label="Country">
                   <Input

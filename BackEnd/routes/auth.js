@@ -17,30 +17,46 @@ const { validator, restaurantValidationRules, customerValidationRules } = requir
 
 
 /**
- * @typedef RegisterRestaurant
+ * @typedef Register
  * @property {string} name.required
  * @property {string} email.required
  * @property {string} password.required
  */
 
 /**
- * @typedef LoginRestaurant
+ * @typedef Login
  * @property {string} email.required
  * @property {string} password.required
  */
 
 
 /// Customer Registration API
+/**
+ * @route POST /auth/register
+ * @group  Register
+ * @param {Register.model} Register.body.required
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ */
 router.post('/register', customerValidationRules(), validator, createCustomer);
 
 /// Customer Login API
+/**
+ * @route POST /auth/login
+ * @group  Login
+ * @param {Login.model} Login.body.required
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ */
 router.post('/login', customerValidationRules(), validator, customerLogin);
 
 /// Restuarant Registration API
 /**
  * @route POST /auth/reslogin
  * @group  Login
- * @param {LoginRestaurant.model} LoginRestaurant.body.required
+ * @param {Login.model} Login.body.required
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - All fields not entered
  * @returns {Error}  500 - Internal server error
@@ -53,7 +69,7 @@ router.post('/reslogin', restaurantValidationRules(), validator, restaurantLogin
 /**
  * @route POST /auth/resregister
  * @group  Register
- * @param {RegisterRestaurant.model} RegisterRestaurant.body.required
+ * @param {Register.model} Register.body.required
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - All fields not entered
  * @returns {Error}  500 - Internal server error

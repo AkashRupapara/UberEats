@@ -49,13 +49,13 @@ function CustomerProfile({ match }) {
   const history = useHistory();
   const getCustomerData = () => {
     const token = localStorage.getItem("token");
+    console.log(token);
     const tokenData = jwt.decode(token);
     if (tokenData.r_id === null || tokenData.r_id === undefined) {
       toast.error("Unauthorised Access!!");
       history.push("/");
     }
-
-    
+    console.log(match.params.custId);
     axiosConfig
       .get(`/customers/profile/${match.params.custId}`, {
         headers: {
@@ -63,6 +63,8 @@ function CustomerProfile({ match }) {
         },
       })
       .then((res) => {
+        console.log("rewasdsfsdfdsf");
+        console.log(res.data);
         setName(res.data.c_name ? res.data.c_name : "");
         setEmail(res.data.c_email ? res.data.c_email : "");
         setCustId(res.data.c_id ? res.data.c_id : "");
@@ -74,12 +76,10 @@ function CustomerProfile({ match }) {
         setAbout(res.data.c_about ? res.data.c_about : "");
         setNickName(res.data.c_nick_name ? res.data.c_nick_name : "");
         setImage(res.data.c_profile_img ? res.data.c_profile_img : "");
-        
       })
       .catch((err) => {
-        
-        toast.error(err.response.data.error);
-        
+        console.log(err);
+        toast.error(err.response?.data?.error ? err.response.data.error : null);
       });
   };
 
@@ -182,7 +182,11 @@ function CustomerProfile({ match }) {
         <Row style={{ width: "50%" }}>
           <Col>
             <Row>
-              <img src={image} alt="No Image" style={{width:"50%", height:"50%"}} />
+              <img
+                src={image}
+                alt="No Image"
+                style={{ width: "50%", height: "50%" }}
+              />
             </Row>
           </Col>
           <Col>

@@ -2,6 +2,7 @@
 /* eslint-disable consistent-return */
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const mongoose = require('mongoose');
 
 const {
   customers,
@@ -12,25 +13,21 @@ const {
   restaurant_imgs,
   restaurant_dishtypes,
 } = require("../models/data.model");
+const Customer = require("../models/Customer");
 
 const createCustomer = async (req, res) => {
   try {
     // Get user input
     // eslint-disable-next-line object-curly-newline
-    const { email, password, name, dob, city, state, country, nname, contact } =
-      req.body;
-
     // Validate user input
-    if (!(name && email && password)) {
-      res.status(400).send("All input is required");
+    if (!(req.body.name && req.body.email && req.body.password)) {
+      res.status(400).send({ error: "All input is required" });
     }
 
     // check if user already exist
     // Validate if user exist in our database
-    const oldCust = await customers.findOne({
-      where: {
-        c_email: email,
-      },
+    const oldCust = await Customer.findOne({
+      email: req.body.email,
     });
 
     if (oldCust) {
@@ -40,60 +37,49 @@ const createCustomer = async (req, res) => {
     }
 
     // Encrypt user password
-    const encryptedPassword = await bcrypt.hash(password, 10);
+    const encryptedPassword = await bcrypt.hash(req.body.password, 10);
     // Create user in our database---------------
-    const customer = await customers.create({
-      c_name: name,
-      c_email: email, // sanitize: convert email to lowercase
-      c_password: encryptedPassword,
-      c_dob: dob,
-      c_city: city,
-      c_state: state,
-      c_zipcode: req.body.zipcode,
-      c_country: country,
-      c_nick_name: nname,
-      c_contact_no: contact,
-    });
+    req.body.password = encryptedPassword;
 
-    // Create token
+    const newCustomer = new Customer(req.body);
+    const createdCust = await newCustomer.save();
+    const email = req.body.email;
+
+    console.log(createdCust._id);
     const token = jwt.sign(
-      { c_id: customer.c_id, email, role: "customer" },
+      { c_id: createdCust._id, email, role: "customer" },
       "UberEats",
       {
         expiresIn: "2h",
       }
     );
-    // save customer token
-    customer.token = token;
     return res.status(201).json({ token });
   } catch (err) {
+    console.log(err);
     return res.status(400).send(err);
   }
 };
 
 const customerLogin = async (req, res) => {
-  const { email, password } = req.body;
+  if (!(req.body.email && req.body.password)) res.status(400).send({error: "All input is required"});
 
-  if (!(email && password)) res.status(400).send("All input is required");
-
-  const cust = await customers.findOne({
-    where: {
-      c_email: email,
-    },
-  });
+  const cust = await Customer.findOne({
+      email: req.body.email,
+  }).select("password");
 
   if (!cust) {
-    res.status(409).send("User does not exist");
+    res.status(409).send({error: "User does not exist"});
   } else {
-    bcrypt.compare(password, cust.c_password, (err, result) => {
+    bcrypt.compare(req.body.password, cust.password, (err, result) => {
       if (err) {
         // handle error
-        res.status(409).send("Error Verifying details!!!");
+        res.status(409).send({error: "Error Verifying details!"});
       }
+      const email = req.body.email;
       if (result) {
         // Send JWT
         const token = jwt.sign(
-          { c_id: cust.c_id, email, role: "customer" },
+          { c_id: cust._id, email, role: "customer" },
           "UberEats",
           {
             expiresIn: "2h",
@@ -109,60 +95,27 @@ const customerLogin = async (req, res) => {
 };
 
 const updateCustomer = async (req, res) => {
-  const custID = req.headers.id;
-  if (String(custID) !== String(req.params.cid))
+  const custId = req.headers.id;
+  if (String(custId) !== String(req.params.cid))
     return res.status(401).send("Unauthorised");
 
-  const {
-    name,
-    email,
-    about,
-    profile_img,
-    dob,
-    city,
-    state,
-    country,
-    nname,
-    contact,
-  } = req.body;
-
   const cust = await customers.findOne({
-    where: {
-      c_id: custID,
-    },
+    _id: mongoose.Types.ObjectId(String(custId)),
   });
 
-  if (email && email !== cust.c_email) {
-    const checkCust = await customers.findOne({
-      where: {
-        c_email: email,
-      },
-    });
-
-    if (checkCust) {
-      return res.status(403).send({error: "Customer already exist with given email"});
-    }
-  }
-
   try {
-    await cust.update(
+    await Customer.findOneAndUpdate(
       {
-        c_name: name,
-        c_email: email,
-        c_about: about,
-        c_profile_img: profile_img,
-        c_dob: dob,
-        c_city: city,
-        c_state: state,
-        c_country: country,
-        c_nick_name: nname,
-        c_contact_no: contact,
+        _id: mongoose.Types.ObjectId(String(custId)),
       },
       {
-        returning: true,
+        $set: req.body,
+      },
+      {
+        new: true,
       }
     );
-    return res.status(201).send({message: "Customer Updated"});
+    return res.status(201).send({ message: "Customer Updated" });
   } catch (err) {
     return res.status(404).send(err);
   }
@@ -241,29 +194,22 @@ const deleteCustomer = async (req, res) => {
 
 const getCustomerProfile = async (req, res) => {
   const custId = req.headers.id;
-  const cust = await customers.findOne({
-    where: {
-      c_id: custId,
-    },
-    attributes: { exclude: ["c_password", "createdAt", "updatedAt"] },
+  const cust = await Customer.findOne({
+    _id: mongoose.Types.ObjectId(String(custId)),
   });
 
-  
   if (!cust) {
-    return res.status(404).send("Customer does not exists");
+    return res.status(404).send({error: "Customer does not exists"});
   }
   return res.status(201).send(cust);
 };
 
 const getCustomerById = async (req, res) => {
-  const cust = await customers.findOne({
-    where: {
-      c_id: req.params.cid,
-    },
-    attributes: { exclude: ["c_password", "createdAt", "updatedAt"] },
+  const cust = await Customer.findOne({
+    _id: mongoose.Types.ObjectId(String(req.params.cid)),
   });
   if (!cust) {
-    return res.status(404).send("Customer does not exists");
+    return res.status(404).send({error: "Customer does not exists"});
   }
   return res.status(201).send(cust);
 };
@@ -353,8 +299,13 @@ const getAllFavorites = async (req, res) => {
 
   try {
     const custFvrts = await fvrts.findAll({
-      include: [{model: restaurants, include: [restaurant_imgs, restaurant_dishtypes]}],
-      where:{
+      include: [
+        {
+          model: restaurants,
+          include: [restaurant_imgs, restaurant_dishtypes],
+        },
+      ],
+      where: {
         c_id: custId,
       },
     });

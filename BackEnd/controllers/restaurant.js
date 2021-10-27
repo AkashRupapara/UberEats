@@ -33,25 +33,21 @@ const createRestaurant = async (req, res) => {
       // Encrypt user password
       const encryptedPassword = await bcrypt.hash(req.body.password, 10);
       let token;
+      req.body.password = encryptedPassword;
 
-      try {
-        req.body.password = encryptedPassword;
+      const newRestaurant = new Restaurant(req.body);
+      const createdRest = await newRestaurant.save();
 
-        const newRestaurant = new Restaurant(req.body);
-        const createdRest = await newRestaurant.save();
+      const email = req.body.email;
+      token = jwt.sign(
+        { r_id: createdRest._id, email, role: "restaurant" },
+        "UberEats",
+        {
+          expiresIn: "2h",
+        }
+      );
 
-        const email = req.body.email;
-        token = jwt.sign(
-          { r_id: createdRest._id, email, role: "restaurant" },
-          "UberEats",
-          {
-            expiresIn: "2h",
-          }
-        );
-        res.status(201).json({ token });
-      } catch (error) {
-        res.status(404).send(error);
-      }
+      res.status(201).json({ token });
     }
   } catch (err) {
     console.log(err);
