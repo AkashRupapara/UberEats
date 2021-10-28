@@ -69,6 +69,19 @@ router.delete('/:rid', deleteRestaurant);
  */
 router.get('/rest/:restId', getRestaurantDetails);
 router.get('/all/search?', getRestaurantBySearch);
+
+/**
+ * @route GET /restaurant/all
+ * @summary Get All Restaurant
+ * @group  Restaurant
+ * @param {string} city.query
+ * @param {string} deliveryType.query
+ * @param {string} dishType.query
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.get('/all?', getAllRestaurants);
 router.post('/restImages/', addRestaurantImage)
 router.delete('/restImages/:imgId', deleteRestaurantImage);

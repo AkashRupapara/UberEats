@@ -36,7 +36,7 @@ function RestaurantLogin() {
 
   return (
     <div className="flexbox-container login">
-      <img src={logo} alt="Logo" style={{ width: '20%' }} />
+      <img src={logo} alt="Logo" onClick={()=> history.push('/')} style={{ width: '20%' }} />
       <h1 style={{  fontFamily: 'sans-serif' }}> Welcome Back Restaurant Manager </h1>
       <form onSubmit={RestaurantLogin}>
         <div style={{ width: '40vw', margin: '2%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>

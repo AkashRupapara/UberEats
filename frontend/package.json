@@ -21,6 +21,7 @@
     "npm": "^8.0.0",
     "react": "^17.0.2",
     "react-bootstrap": "^1.6.4",
+    "react-bootstrap-counter": "^1.0.1",
     "react-dom": "^17.0.2",
     "react-hot-toast": "^2.1.1",
     "react-redux": "^7.2.5",

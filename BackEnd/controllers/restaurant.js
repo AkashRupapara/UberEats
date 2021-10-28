@@ -264,10 +264,21 @@ const getRestaurantBySearch = async (req, res) => {
     return res.status(403).send({ error: "login Again!!" });
   }
 
-  const [data, meta] = await sequelize.query(
-    `select restaurants.*, restaurant_imgs.* from restaurants join restaurant_imgs on restaurants.r_id = restaurant_imgs.r_id join dishes on restaurants.r_id=dishes.r_id WHERE restaurants.r_name like "%${keyWord}%" or restaurants.r_desc like "%${keyWord}%" or dishes.d_name like "%${keyWord}%" `
-  );
-  return res.status(200).send(data);
+  const restaurants = await Restaurant.find({
+    $or: [
+      { name: new RegExp(`.*${keyWord}.*`, 'i') },
+      { desc: new RegExp(`.*${keyWord}.*`, 'i') },
+      {
+        dishes:{
+          $elemMatch:{
+            name: new RegExp(`.*${keyWord}.*`, 'i'),
+          }
+        }
+      }
+    ],
+  });
+
+  return res.status(200).send(restaurants);
 };
 
 const getAllRestaurants = async (req, res) => {
@@ -284,8 +295,9 @@ const getAllRestaurants = async (req, res) => {
     }
 
     const searchObject = {
-      r_city: city,
-      r_delivery_type: deliveryType,
+      city: city,
+      del_type: deliveryType,
+      dish_types: dishType,
     };
 
     const checkProperties = (obj) => {
@@ -298,76 +310,14 @@ const getAllRestaurants = async (req, res) => {
     };
 
     checkProperties(searchObject);
-
-    let filteredRestaurants = await restaurants.findAll({
+    console.log(searchObject);
+    let filteredRestaurants = await Restaurant.find({
       // limit,
       // offset,
-      include: [
-        {
-          model: restaurant_imgs,
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-        },
+      $and: [
+        searchObject,
       ],
-      attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-      where: searchObject,
     });
-
-    if (dishType && dishType.length > 0) {
-      const restaurantsFilteredBydishTypes = await restaurant_dishtypes.findAll(
-        {
-          // limit,
-          // offset,
-          include: [
-            {
-              model: restaurants,
-              attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-              include: [
-                {
-                  model: restaurant_imgs,
-                  attributes: { exclude: ["createdAt", "updatedAt"] },
-                },
-              ],
-            },
-          ],
-          attributes: { exclude: ["createdAt", "updatedAt"] },
-          where: { rdt_type: dishType },
-        }
-      );
-
-      if (filteredRestaurants) {
-        if (restaurantsFilteredBydishTypes.length === 0) {
-          return res.status(200).json([]);
-        }
-
-        const filteredRests = [];
-        restaurantsFilteredBydishTypes.forEach((dishTypeObj) => {
-          const findFlag = _.find(
-            filteredRestaurants,
-            (item) => item.r_id === dishTypeObj.restaurant.r_id
-          );
-          if (findFlag) {
-            filteredRests.push(dishTypeObj.restaurant);
-          }
-        });
-        filteredRestaurants = _.uniq(filteredRests, "r_id");
-
-        return res.status(200).json({ filteredRestaurants });
-      }
-
-      const filteredRests = [];
-      restaurantsFilteredBydishTypes.forEach((dishTypeObj) => {
-        filteredRests.push(dishTypeObj.restaurant);
-      });
-
-      filteredRestaurants = filteredRests;
-
-      return res.status(200).json({ filteredRestaurants });
-    }
-
-    if (!filteredRestaurants) {
-      return res.status(200).json({ message: "No restaurants found!" });
-    }
-
     return res.status(200).json({ filteredRestaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });

@@ -32,10 +32,9 @@ function CustomerDashboard() {
         },
       })
       .then(async (res) => {
-        
         const uniqueData = await _.uniq(
           res.data,
-          (x)=>x.r_id,
+          (x)=>x._id,
         );
 
         uniqueData.forEach((rest)=>{
@@ -69,6 +68,7 @@ function CustomerDashboard() {
       })
       .catch((err) => {
         // history.push("/");
+        console.log(err);
         toast.error("Session expired Please Login");
       });
   };
@@ -114,7 +114,7 @@ function CustomerDashboard() {
             <Col xs={3} style={{ marginTop: "30px" }}>
               <div
                 onClick={() => {
-                  history.push(`/customer/restaurant/${ele.r_id}`);
+                  history.push(`/customer/restaurant/${ele._id}`);
                 }}
                 style={{ height: "100%" }}
               >
@@ -124,8 +124,8 @@ function CustomerDashboard() {
                       variant="top"
                       src={
                         ele
-                          ? ele.restaurant_imgs?.length > 0
-                            ? ele.restaurant_imgs[0].ri_img
+                          ? ele.restaurantImages?.length > 0
+                            ? ele.restaurantImages[0]
                             : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"
                           : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"
                       }
@@ -134,28 +134,28 @@ function CustomerDashboard() {
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
-                        addToFavourite(ele?.r_id);
+                        addToFavourite(ele?._id);
                       }}
                     >
                       <HeartSvg />
                     </div>
                   </div>
                   <Card.Body>
-                    <Card.Title>{ele.r_name}</Card.Title>
+                    <Card.Title>{ele.name}</Card.Title>
                     <Card.Text>
                       <b>
                         {ele
-                          ? ele.restaurant_dishtypes?.length > 0
-                            ? ele.restaurant_dishtypes.map((dishType) => {
-                                return dishType.rdt_type + " ";
+                          ? ele.dish_types?.length > 0
+                            ? ele.dish_types.map((dishType) => {
+                                return dishType + " ";
                               })
                             : " "
                           : " "}
                         <br />
                       </b>
-                      {ele.r_address_line} {ele.r_city ? ", " + ele.r_city : ""}
-                      {ele.r_state ? ", " + ele.r_state : " "}{" "}
-                      {ele.r_zipcode ? ", " + ele.r_zipcode : " "}
+                      {ele.address_line} {ele.city ? ", " + ele.city : ""}
+                      {ele.state ? ", " + ele.state : " "}{" "}
+                      {ele.zipcode ? ", " + ele.zipcode : " "}
                     </Card.Text>
                   </Card.Body>
                 </Card>

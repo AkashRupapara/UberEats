@@ -80,7 +80,6 @@ const RestaurantDashboard = () => {
       })
       .then((res) => {
         setName(res.data.name);
-        console.log("fetched Data", res.data);
         setimages(res.data.restaurantImages ? res.data.restaurantImages : []);
         const restData = {};
         restData["name"] = res.data.name ? res.data.name : "";

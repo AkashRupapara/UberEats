@@ -28,6 +28,9 @@ const RestaurantDetails = ({ match }) => {
   const history = useHistory();
   const [index, setIndex] = useState(0);
   const dispatch = useDispatch();
+
+  const [name, setName] = useState("");
+
   const handleSelect = (selectedIndex, e) => {
     setIndex(selectedIndex);
   };
@@ -37,11 +40,19 @@ const RestaurantDetails = ({ match }) => {
   const [dishModalIsOpen, setDishModalIsOpen] = React.useState(false);
   const [selectedDishId, setSelectedDishId] = React.useState(null);
   const [restId, setRestId] = useState("");
+  const [timings, setTimings] = useState("");
+  const [address, setAddress] = useState("");
+  const [dishTypes, setDishTypes] = useState("");
+  const [contactNo, setContactNo] = useState("");
+  const [deliveryType, setDeliveryType] = useState("");
+  const [desc, setDesc] = useState("");
+
+  const [dishes, setDishes] = useState([]);
+
   const dish = useSelector((state) => state.dish);
 
   const getRestData = () => {
     const token = localStorage.getItem("token");
-    
 
     if (token === null || token === undefined) {
       //   dispatch(restaurantLogout());
@@ -61,85 +72,56 @@ const RestaurantDetails = ({ match }) => {
         },
       })
       .then((res) => {
-        
-        setimages(res.data.restaurant_imgs ? res.data.restaurant_imgs : []);
+        console.log(res.data);
+        setimages(res.data.restaurantImages ? res.data.restaurantImages : []);
         const restData = {};
-        restData["name"] = res.data.r_name ? res.data.r_name : "";
-
+        setName(res.data.name? res.data.name: "");
         if (
           !(
-            res.data.r_address_line &&
-            res.data.r_city &&
-            res.data.r_state &&
-            res.data.r_zipcode
+            res.data.address_line &&
+            res.data.city &&
+            res.data.state &&
+            res.data.zipcode
           )
         ) {
-          res.data.r_address_line = "";
-          res.data.r_city = "";
-          res.data.r_state = "";
-          res.data.r_zipcode = null;
+          res.data.address_line = "";
+          res.data.city = "";
+          res.data.state = "";
+          res.data.zipcode = null;
         }
         let address =
-          res.data.r_address_line +
+          res.data.address_line +
           ", " +
-          res.data.r_city +
+          res.data.city +
           ", " +
-          res.data.r_state +
+          res.data.state +
           " - " +
-          res.data.r_zipcode;
-        restData["address"] = address;
-        restData["desc"] = res.data.r_desc ? res.data.r_desc : "";
-        restData["contactNo"] = res.data.r_contact ? res.data.r_contact : "";
-        restData["restId"] = res.data.r_id;
+          res.data.zipcode;
+        setAddress(address);
+        setDesc(res.data.desc ? res.data.desc : "");
+        setContactNo(res.data.contact_no ? res.data.contact_no : "");
+        setRestId(res.data._id);
 
-        res.data.r_delivery_type = res.data.r_delivery_type
-          ? res.data.r_delivery_type
-          : "";
-        if (res.data.r_delivery_type === "Both") {
-          restData["deliveryType"] = "Pickup and Delivery";
+        if (res.data.del_type === "Both" || res.data.del_type === "both" ) {
+          setDeliveryType("Pickup and Delivery");
         } else {
-          restData["deliveryType"] = res.data.r_delivery_type;
+          setDeliveryType(res.data.del_type);
         }
+        
+        const startTime = new Date(res.data?.start?res.data.start:null);
+        const endTime = new Date(res.data?.end? res.data.end:null);
 
-        res.data.r_start = res.data.r_start ? res.data.r_start : "";
-        let splitStartTime = res.data.r_start.split(":");
-
-        let startTime;
-        if (parseInt(splitStartTime[0]) >= 12) {
-          startTime =
-            String(splitStartTime[0] - 12) +
-            ":" +
-            String(splitStartTime[1] + " PM");
-        } else {
-          startTime =
-            String(splitStartTime[0]) + ":" + String(splitStartTime[1] + " AM");
-        }
-        res.data.r_end = res.data.r_end ? res.data.r_end : "";
-
-        let splitEndTime = res.data.r_end.split(":");
-        let endTime;
-        if (parseInt(splitEndTime[0]) >= 12) {
-          endTime =
-            String(splitEndTime[0] - 12) +
-            ":" +
-            String(splitEndTime[1] + " PM");
-        } else {
-          endTime =
-            String(splitEndTime[0]) + ":" + String(splitEndTime[1] + " AM");
-        }
-
-        let timings = startTime + " to " + endTime;
-        restData["openTime"] = timings;
-
+        setTimings(startTime.getHours()+":" + startTime.getMinutes() + " to " + endTime.getHours() + ":" + endTime.getMinutes());
+        
         let dishTypes = "";
-        res.data.restaurant_dishtypes.forEach((ele) => {
-          dishTypes = dishTypes + ele.rdt_type + " ";
-        });
+        const temp = res.data?.dish_types?.length>0?res.data.dish_types.forEach((ele)=>{
+          dishTypes = dishTypes + ele + " ";
+        }):null;
 
-        restData["dishType"] = dishTypes;
+        setDishTypes(dishTypes);
 
         res.data.dishes = res.data.dishes ? res.data.dishes : [];
-        restData["dishes"] = res.data.dishes;
+        setDishes(res.data.dishes);
         let dishObj = {};
 
         res.data.dishes.forEach((ele) => {
@@ -171,19 +153,19 @@ const RestaurantDetails = ({ match }) => {
       <ShowDishModal
         dishModalIsOpen={dishModalIsOpen}
         setDishModalIsOpen={setDishModalIsOpen}
-        dishes={restDetails.dishes}
+        dishes={dishes}
         selectedDishId={selectedDishId}
-        restId={restDetails.restId}
-        restName={restDetails.name}
+        restId={restId}
+        restName={name}
       />
       <CustomerNavbar />
       <Carousel showArrows showThumbs={false}>
         {images?.length > 0
           ? images.map((ele) => (
               <div style={{ height: "500px" }}>
-                <img src={ele.ri_img} />
+                <img src={ele} />
                 <p style={{ height: "80px", fontSize: "30px" }}>
-                  {restDetails.name}
+                  {name}
                 </p>
               </div>
             ))
@@ -192,17 +174,17 @@ const RestaurantDetails = ({ match }) => {
       <br></br>
       <div style={{ textAlign: "left", marginLeft: "2%" }}>
         <H5>
-          {restDetails.name} ({restDetails.deliveryType})
+          {name} ({deliveryType}) 
         </H5>
-        <H6>{restDetails.desc}</H6>
+        <H6>{desc}</H6> <H6> Contact: +1 {contactNo}</H6>
         <H6>
-          <FontAwesomeIcon icon={faMapMarkerAlt} /> {restDetails.address}
+          <FontAwesomeIcon icon={faMapMarkerAlt} /> {address}
         </H6>
         <H6>
-          <FontAwesomeIcon icon={faClock} /> {restDetails.openTime}
+          <FontAwesomeIcon icon={faClock} /> {timings}
         </H6>
         <H6>
-          <FontAwesomeIcon icon={faUtensils} /> {restDetails.dishType}
+          <FontAwesomeIcon icon={faUtensils} /> {dishTypes}
         </H6>
       </div>
       <div>
@@ -214,35 +196,35 @@ const RestaurantDetails = ({ match }) => {
         <br></br>
         <Container fluid>
           <Row>
-            {restDetails.dishes?.length > 0 ? (
-              restDetails.dishes.map((ele) => (
+            {dishes?.length > 0 ? (
+              dishes.map((ele) => (
                 <Col xs={3} key={index} style={{ marginTop: "30px" }}>
                   <Card style={{ height: "100%" }}>
                     <div
                       onClick={() => {
-                        setSelectedDishId(ele.d_id);
+                        setSelectedDishId(ele._id);
                         setDishModalIsOpen(true);
                       }}
-                      key={ele.d_id}
+                      key={ele._id}
                     >
                       <Card.Img
                         variant="top"
                         src={
-                          ele.dish_imgs.length > 0
-                            ? ele.dish_imgs[0].di_img
+                          ele.dishImages?.length > 0
+                            ? ele.dishImages[0].image
                             : ""
                         }
                         style={{ height: "200px" }}
                       />
                       <Card.Body  style={{textAlign: "left"}}>
-                        <h3 style={{textAlign: "left"}}>{ele.d_name}</h3>
+                        <h3 style={{textAlign: "left"}}>{ele.name}</h3>
                         <Card.Text>
-                         <h6 style={{color:"gray"}}> {ele.d_type+ " - "}
-                          {ele.d_category}</h6>
+                         <h6 style={{color:"gray"}}> {ele.dishType+ " - "}
+                          {ele.category}</h6>
                         </Card.Text>
                       </Card.Body>
                       <div  style={{textAlign: "right", marginRight:"2%"}}>
-                        <h5>${ele.d_price} </h5>
+                        <h5>${ele.price} </h5>
                       </div>
                     </div>
                   </Card>
