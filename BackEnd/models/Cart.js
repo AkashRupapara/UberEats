@@ -11,7 +11,7 @@ const CartSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
     },
     qty:{
-        type: String,
+        type: Number,
     },
     totalPrice:{
         type: Number,

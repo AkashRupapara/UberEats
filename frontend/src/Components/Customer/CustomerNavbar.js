@@ -6,23 +6,20 @@ import {
   StyledNavigationList as NavigationList,
 } from "baseui/header-navigation";
 
-import { Card, StyledBody, StyledAction, StyledThumbnail } from "baseui/card";
-
 import { StatefulSelect as Search, TYPE } from "baseui/select";
 import "../../assets/css/customerNavbar.css";
 import { useHistory } from "react-router";
 import logo from "../../assets/images/ubereats.png";
 import cartLogo from "../../assets/images/cartIcon.jpg";
 import { Menu } from "baseui/icon";
-import { Button, KIND } from "baseui/button";
+import { Button, KIND, SIZE, SHAPE } from "baseui/button";
 import { Col, Form, Row } from "react-bootstrap";
 import { Drawer, ANCHOR } from "baseui/drawer";
 import { Avatar } from "baseui/avatar";
-import { useStyletron, expandBorderStyles } from "baseui/styles";
+import { expandBorderStyles } from "baseui/styles";
 import axiosConfig from "../../axiosConfig";
 import toast from "react-hot-toast";
-import { H3, H5 } from "baseui/typography";
-
+import { H3, H4, H5, H6 } from "baseui/typography";
 
 import {
   Modal,
@@ -32,10 +29,15 @@ import {
   ModalButton,
 } from "baseui/modal";
 import { useDispatch, useSelector } from "react-redux";
-import { setDeliveryTypeAction, setDishTypeAction, setLocation, setSearchKeyWordAction } from "../../actions/searchFilter";
+import {
+  setDeliveryTypeAction,
+  setDishTypeAction,
+  setLocation,
+  setSearchKeyWordAction,
+} from "../../actions/searchFilter";
 import { customerLogout } from "../../actions/customer";
-const jwt = require('jsonwebtoken')
-
+import { setCartItems } from "../../actions/cart";
+const jwt = require("jsonwebtoken");
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -48,12 +50,17 @@ function CustomerNavbar() {
   const [dishType, setDishType] = React.useState(null);
   const [keyWord, setKeyWord] = React.useState("");
 
+  const [orderPrice, setOrderPrice] = React.useState(0)
   const dispatch = useDispatch();
 
   const searchFilter = useSelector((state) => state.searchFilter);
+  const cartItems = useSelector((state) => state.cartItems);
 
   React.useEffect(() => {
-    if (history.location.pathname === "/customer/update" || history.location.pathname === "/customer/orders") {
+    if (
+      history.location.pathname === "/customer/update" ||
+      history.location.pathname === "/customer/orders"
+    ) {
       setItemDisable(true);
     } else {
       setItemDisable(false);
@@ -63,7 +70,7 @@ function CustomerNavbar() {
   React.useEffect(() => {
     dispatch(setDeliveryTypeAction(deliveryType));
   }, [deliveryType]);
-  
+
   React.useEffect(() => {
     dispatch(setSearchKeyWordAction(keyWord));
   }, [keyWord]);
@@ -86,6 +93,7 @@ function CustomerNavbar() {
         getCartItems();
       })
       .catch((err) => {
+        console.log(err);
         toast.error(err.response.data.error);
       });
   };
@@ -93,18 +101,20 @@ function CustomerNavbar() {
   const getCartItems = () => {
     const token = localStorage.getItem("token");
     const data = jwt.decode(token);
-    axiosConfig.get(`/customers/myprofile/`,{
-      headers:{
-        Authorization: token,
-      },
-    }).then((res)=>{
-      
-      if(res?.c_city !== null){
-        dispatch(setLocation(res.data.city));
-      }
-    }).catch((err)=>{
-      
-    });
+    axiosConfig
+      .get(`/customers/myprofile/`, {
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((res) => {
+        if (res.data?.city !== null) {
+          dispatch(setLocation(res.data.city));
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 
     axiosConfig
       .get("/cart/", {
@@ -113,12 +123,43 @@ function CustomerNavbar() {
         },
       })
       .then((res) => {
+        console.log("ers", res.data);
+        dispatch(setCartItems(res.data.cartItems));
         setCartDetails(res.data);
+        let price = 0;
+        if(res.data.cartItems.length>0){
+          res.data.cartItems.map((item)=>{
+            price += item.totalPrice;
+          });
+        }
+        setOrderPrice(price);
       })
       .catch((err) => {
-        
-        toast.error("Session Expired!! Please Sign In Again!!")
-        history.push("/customer/login");
+        console.log(err);
+        toast.error("Session Expired!! Please Sign In Again!!");
+        // history.push("/customer/login");
+      });
+  };
+
+  const updateCartItem = (id, qty) => {
+    const token = localStorage.getItem("token");
+    const cartId = id;
+
+    axiosConfig
+      .put(
+        `/cart/update/${cartId}`,
+        {
+          qty,
+        },
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      )
+      .then((res) => {})
+      .catch((err) => {
+        console.log(err);
       });
   };
 
@@ -137,6 +178,7 @@ function CustomerNavbar() {
       toast.success(res.data.message);
       getCartItems();
     } catch (err) {
+      console.log(err);
       toast.error(err.response.data.error);
     }
   };
@@ -147,7 +189,6 @@ function CustomerNavbar() {
 
   const goToPlaceOrder = () => {
     const token = localStorage.getItem("token");
-
     axiosConfig
       .post(
         "/orders/neworder",
@@ -162,14 +203,13 @@ function CustomerNavbar() {
         history.push(`/customer/placeorder/${res.data.orderId}`);
       })
       .catch((err) => {
-        
         toast.error(err?.response?.data?.error);
       });
     return;
   };
 
   return (
-    <HeaderNavigation  style={{height:"80px"}}>
+    <HeaderNavigation style={{ height: "80px" }}>
       <NavigationList $align={ALIGN.left}>
         <Button kind={KIND.minimal} onClick={() => setIsDrawerOpen(true)}>
           <Menu />
@@ -204,16 +244,34 @@ function CustomerNavbar() {
               </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
-              <Button style={{ width: "100%" }}
-              onClick={()=>  history.push("/customer/orders")}> Past Orders </Button>
+              <Button
+                style={{ width: "100%" }}
+                onClick={() => history.push("/customer/orders")}
+              >
+                {" "}
+                Past Orders{" "}
+              </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
-              <Button style={{ width: "100%" }}
-              onClick={()=>  history.push("/customer/fvrts")}> Favorites </Button>
+              <Button
+                style={{ width: "100%" }}
+                onClick={() => history.push("/customer/fvrts")}
+              >
+                {" "}
+                Favorites{" "}
+              </Button>
             </div>
             <div style={{ marginTop: "5%" }}>
-              <Button style={{ width: "100%" }}
-              onClick={()=> {dispatch(customerLogout()); history.push("/")}}> Logout </Button>
+              <Button
+                style={{ width: "100%" }}
+                onClick={() => {
+                  dispatch(customerLogout());
+                  history.push("/");
+                }}
+              >
+                {" "}
+                Logout{" "}
+              </Button>
             </div>
           </div>
         </Drawer>
@@ -229,11 +287,25 @@ function CustomerNavbar() {
           onclick=""
           style={{ marginTop: "3%" }}
         >
-          <input type="checkbox" disabled={itemDisable}  />
+          <input type="checkbox" disabled={itemDisable} />
           <a></a>
           <span>
-            <span class="left-span" onClick={(e)=>{setDeliveryType("Pickup")}}>Pickup</span>
-            <span class="right-span" onClick={(e)=>{setDeliveryType("Delivery")}}>Delivery</span>
+            <span
+              class="left-span"
+              onClick={(e) => {
+                setDeliveryType("Pickup");
+              }}
+            >
+              Pickup
+            </span>
+            <span
+              class="right-span"
+              onClick={(e) => {
+                setDeliveryType("Delivery");
+              }}
+            >
+              Delivery
+            </span>
           </span>
         </label>
       </NavigationList>
@@ -259,7 +331,9 @@ function CustomerNavbar() {
                     border: "0",
                     backgroundColor: "transparent",
                   }}
-                  onChange={(e)=>{setDishType(e.target.value)}}
+                  onChange={(e) => {
+                    setDishType(e.target.value);
+                  }}
                   disabled={itemDisable}
                 >
                   <option value="">Dish Type</option>
@@ -289,7 +363,9 @@ function CustomerNavbar() {
                   }}
                   disabled={itemDisable}
                   value={searchFilter.location}
-                  onChange={(e)=>{dispatch(setLocation(e.target.value))}}
+                  onChange={(e) => {
+                    dispatch(setLocation(e.target.value));
+                  }}
                 >
                   <option value="">Location</option>
                   <option value="San Jose">San Jose</option>
@@ -346,42 +422,69 @@ function CustomerNavbar() {
                 ? cartDetails.cartItems?.length > 0
                   ? cartDetails.cartItems.map((item) => {
                       return (
-                        <div
-                          className="card mb-3"
-                          style={{ width: "100%", height: "80px" }}
-                        >
+                        <div className="card mb-3" style={{ width: "100%" }}>
                           <div className="row no-gutters">
                             <div className="col-md-4">
                               <img
-                                src={
-                                  item.dish.dish_imgs.length > 0
-                                    ? item.dish.dish_imgs[0].di_img
-                                    : null
-                                }
+                                src={item?.image ? item.image : null}
                                 style={{
                                   height: "80px",
                                   width: "100%",
                                   marginLeft: "-28px",
                                 }}
                               />
-                              <title>Placeholder</title>
                               <rect width="100%" height="100%" fill="#868e96" />
                             </div>
                             <div className="col-md-5">
                               <div className="card-body">
-                                <h5 className="card-title">
-                                  {item.dish.d_name}
-                                </h5>
-                                <p className="card-text">
-                                  {cartDetails.restDetails.r_name}
-                                </p>
+                                <h5 className="card-title">{item.name}</h5>
+                                <p className="card-text">{item.restName}</p>
+                                <Button
+                                  size={SIZE.mini}
+                                  disabled={item.qty === 1 ? true : false}
+                                  shape={SHAPE.circle}
+                                  style={{ marginLeft: "10px" }}
+                                  onClick={async () => {
+                                    item.qty = item.qty - 1;
+                                    await setCartDetails(cartDetails);
+                                    dispatch(
+                                      setCartItems(cartDetails.cartItems)
+                                    );
+                                    updateCartItem(item._id, item.qty);
+                                  }}
+                                >
+                                  -
+                                </Button>
+                                <span
+                                  style={{
+                                    marginLeft: "10px",
+                                    marginRight: "10px",
+                                    fontSize: "20px",
+                                  }}
+                                >
+                                  {item.qty}
+                                </span>
+                                <Button
+                                  size={SIZE.mini}
+                                  shape={SHAPE.circle}
+                                  onClick={async () => {
+                                    item.qty = item.qty + 1;
+                                    await setCartDetails(cartDetails);
+                                    dispatch(
+                                      setCartItems(cartDetails.cartItems)
+                                    );
+                                    updateCartItem(item._id, item.qty);
+                                  }}
+                                >
+                                  +
+                                </Button>
                               </div>
                             </div>
                             <div className="col-md-3">
                               <div className="card-body">
                                 <Button
                                   onClick={() => {
-                                    deleteItemFromCart(item.cart_id);
+                                    deleteItemFromCart(item._id);
                                   }}
                                 >
                                   Delete
@@ -417,20 +520,37 @@ function CustomerNavbar() {
             isOpen={orderInitModalIsOpen}
           >
             <ModalHeader>
-              <H3> {cartDetails?.restDetails?.r_name}</H3>
+              <H3>
+                {" "}
+                {cartItems?.cartDetails.length > 0
+                  ? cartItems?.cartDetails[0].restName
+                  : null}
+              </H3>
             </ModalHeader>
             <ModalBody>
-              {cartDetails?.cartItems?.length > 0
-                ? cartDetails.cartItems.map((item) => {
+              <Row>
+                <Col><b>Dish Name</b></Col>
+                <Col><b>Qty</b></Col>
+                <Col><b>Per Dish</b></Col>
+                <Col><b>Total Price</b></Col>
+                <hr />
+              </Row>
+              {cartItems?.cartDetails?.length > 0
+                ? cartItems.cartDetails.map((item) => {
                     return (
                       <Row>
-                        <Col>{item?.dish?.d_name}</Col>
-                        <Col>${item?.dish?.d_price}</Col>
+                        <Col>{item?.name}</Col>
+                        <Col>{item?.qty}</Col>
+                        <Col>${item?.totalPrice/item?.qty}</Col>
+                        <Col>${item?.totalPrice}</Col>
                         <hr />
                       </Row>
                     );
                   })
                 : ""}
+                <div style={{textAlign:"right", marginRight:"50px"}}>
+                  Final Price:<H6> <b>${orderPrice}</b></H6>
+                </div>
             </ModalBody>
             <ModalFooter>
               <ModalButton

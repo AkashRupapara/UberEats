@@ -14,43 +14,39 @@ const Customer = require("../models/Customer");
 const Cart = require("../models/Cart");
 
 const getCartDetails = async (req, res) => {
-  const custID = req.headers.id;
-
-  const existCart = await carts.findAll({
-    where: {
-      c_id: custID,
-    },
-  });
-
-  if (existCart.length === 0) {
-    // return res.status(404).send({error: "No Items in Cart"});
-  }
-
-  const cartItems = await carts.findAll({
-    include: [
-      {
-        model: dishes,
-        include: dish_imgs,
+  const custId = req.headers.id;
+  const cartItems = await Cart.aggregate([
+    {
+      $match: {
+        custId: mongoose.Types.ObjectId(String(custId)),
       },
-    ],
-    where: {
-      c_id: custID,
     },
+  ]);
+
+  const restId = cartItems[0].restId;
+  const dish = await Restaurant.findOne({
+    _id: mongoose.Types.ObjectId(String(restId)),
+  })
+    .select("dishes")
+    .select("name");
+
+  let dishMap = new Map();
+  const temp = dish.dishes.map((item) => {
+    dishMap.set(item._id.toString(), item);
   });
 
-  const r_id = cartItems.length > 0 ? cartItems[0].dish.r_id : null;
+  cartItems.forEach((item) => {
+    item["name"] = dishMap.get(item.dishId.toString()).name;
+    item["restName"] = dish.name;
+    if (dishMap.get(item.dishId.toString()).dishImages.length > 0) {
+      item["image"] = dishMap.get(item.dishId.toString()).dishImages[0].image;
+    }
+  });
 
-  if (r_id === null) {
-    return res.status(201).send({ message: "No Items in cart" });
+  if (cartItems.length === 0) {
+    return res.status(404).send({ error: "No Items in Cart" });
   }
-
-  const restDetails = await restaurants.findOne({
-    where: {
-      r_id,
-    },
-    attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
-  });
-  return res.status(201).json({ cartItems, restDetails });
+  return res.status(201).json({ cartItems });
 };
 
 const addItemToCart = async (req, res) => {
@@ -78,10 +74,6 @@ const addItemToCart = async (req, res) => {
   //Price of Selected dish to add to cart
   const pricePerQty = checkDish.dishes[0].price;
 
-  // const checkCart = await Cart.findOne({
-  //   custId: mongoose.Types.ObjectId(String(custId)),
-  // });
-
   const checkCart = await Cart.aggregate([
     {
       $lookup: {
@@ -97,7 +89,7 @@ const addItemToCart = async (req, res) => {
   ]);
 
   req.body["custId"] = custId;
-  req.body["totalPrice"] = req.body.qty * pricePerQty;
+  req.body["totalPrice"] = (Math.round(req.body.qty * pricePerQty * 100) / 100).toFixed(2);;
 
   if (!checkCart || checkCart.length === 0) {
     const newCartItem = new Cart(req.body);
@@ -107,11 +99,10 @@ const addItemToCart = async (req, res) => {
       .send({ createdCartItem, message: "Dish added to Cart" });
   }
 
-  
   if (
     checkCart &&
     checkCart.length > 0 &&
-    checkCart[0].restaurants.length > 0 && 
+    checkCart[0].restaurants.length > 0 &&
     checkCart[0].restaurants[0]._id.toString() !== restId
   ) {
     return res.status(409).send({
@@ -127,31 +118,20 @@ const addItemToCart = async (req, res) => {
 
 const resetCart = async (req, res) => {
   const custId = req.headers.id;
-  const { dishId, restId } = req.body;
+  const { dishId, restId, qty } = req.body;
 
   if ((restId && !dishId) || (!restId && dishId)) {
     return res.status(400).send({ error: "Provide all details" });
   }
-  const t = await sequelize.transaction();
   try {
-    await carts.destroy(
-      {
-        where: {
-          c_id: custId,
-        },
-      },
-      { transaction: t }
-    );
+    await Cart.find({
+      custId: mongoose.Types.ObjectId(String(custId)), 
+    }).remove();
 
-    await carts.create({
-      c_id: custId,
-      d_id: dishId,
-      r_id: restId,
-    });
-    t.commit();
+    const newCartItem = new Cart(req.body);
+    const createdCartItem = await newCartItem.save();
     return res.status(201).send({ message: "Dish Added to Cart" });
   } catch (err) {
-    t.rollback();
     return res.status(500).send(err);
   }
 };
@@ -160,11 +140,10 @@ const deleteCart = async (req, res) => {
   const custId = req.headers.id;
 
   try {
-    await carts.destroy({
-      where: {
-        c_id: custId,
-      },
-    });
+    await Cart.find({
+      custId: mongoose.Types.ObjectId(String(custId)),
+    }).remove();
+
   } catch (err) {
     res.status(500).send({ error: "Error Deleting Cart" });
   }
@@ -177,22 +156,43 @@ const deleteCartItem = async (req, res) => {
   const cartItemId = req.params.cartId;
 
   try {
-    const item = await carts.findOne({
-      where: {
-        cart_id: cartItemId,
-        c_id: custId,
-      },
-    });
-
-    if (!item) {
-      return res.status(404).send({ error: "Cannot find Item in cart" });
-    }
-    await item.destroy();
-
+    const item = await Cart.find({
+      _id: mongoose.Types.ObjectId(String(cartItemId)),
+    }).remove();
     return res.status(201).send({ message: "Cart Item Deleted" });
   } catch (err) {
     return res.status(400).send({ error: "Error Deleting Cart Item" });
   }
+};
+
+const updateCart = async (req, res) => {
+  const custId = req.headers.id;
+  if (custId === null || custId === undefined) {
+    return res.status(403).send({ error: "Session Expired!" });
+  }
+  const cartId = req.params.cartId;
+  const qty = req.body.qty;
+
+  const cartItem = await Cart.findOne({
+    _id: mongoose.Types.ObjectId(String(cartId)),
+  });
+
+  if (!cartItem || cartItem === undefined) {
+    return res.status(404).send({ error: "Cart Item not found" });
+  }
+  const pricePerItem = cartItem.totalPrice / cartItem.qty;
+  const updateCartItem = await Cart.findOneAndUpdate(
+    {
+      _id: mongoose.Types.ObjectId(String(cartId)),
+    },
+    {
+      $set: { qty, totalPrice: (Math.round(qty * pricePerItem * 100) / 100).toFixed(2) },
+    },
+    {
+      new: true,
+    }
+  );
+  return res.status(200).send({ updateCartItem });
 };
 
 module.exports = {
@@ -201,4 +201,5 @@ module.exports = {
   resetCart,
   deleteCart,
   deleteCartItem,
+  updateCart,
 };

@@ -5,6 +5,7 @@ const {
   resetCart,
   deleteCart,
   deleteCartItem,
+  updateCart,
 } = require('../controllers/cart');
 
 /**
@@ -29,6 +30,8 @@ router.get('/', getCartDetails);
  * @security JWT
  */
 router.post('/add', addItemToCart);
+
+router.put('/update/:cartId', updateCart);
 
 router.delete("/item/:cartId", deleteCartItem);
 

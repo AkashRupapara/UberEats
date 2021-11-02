@@ -58,6 +58,7 @@ function ShowDishModal(props) {
         {
           dishId: selectedDishId,
           restId,
+          qty: count,
         },
         {
           headers: {

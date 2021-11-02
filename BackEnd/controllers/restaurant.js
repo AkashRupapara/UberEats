@@ -310,7 +310,6 @@ const getAllRestaurants = async (req, res) => {
     };
 
     checkProperties(searchObject);
-    console.log(searchObject);
     let filteredRestaurants = await Restaurant.find({
       // limit,
       // offset,
