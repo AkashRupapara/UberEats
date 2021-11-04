@@ -94,26 +94,28 @@ const createOrder = async (req, res) => {
 };
 
 const placeOrder = async (req, res) => {
-  const { type, address, id } = req.body;
+  const { type, address, id, notes } = req.body;
+
+  let newAddr = '';
+  if (type === 'Pickup') {
+    newAddr = 'Pickup From Restaurant';
+  } else {
+    newAddr = address;
+  }
   try {
-    const updateOrder = await orders.update(
+    const updateOrder = await Order.findOneAndUpdate(
       {
-        o_status: 'Placed',
-        o_type: type,
-        o_address: address,
-        o_date_time: sequelize.literal('CURRENT_TIMESTAMP'),
+        _id: mongoose.Types.ObjectId(String(id)),
       },
       {
-        where: {
-          o_id: id,
-        },
+        status: 'Placed',
+        orderType: type,
+        orderAddress: newAddr,
+        updatedAt: new Date(),
+        notes,
       }
     );
-    // Checking if Update was successfull or not
-    if (updateOrder[0] !== 1) {
-      return res.status(404).send('Order Not found');
-    }
-    return res.status(201).send('Order Placed');
+    return res.status(201).send({ message: 'Order Placed' });
   } catch (err) {
     return res.status(400).send(err);
   }
@@ -122,20 +124,29 @@ const placeOrder = async (req, res) => {
 const updateOrder = async (req, res) => {
   const { status } = req.body;
   const { oid } = req.params;
+
+  const orderDetails = await Order.findOne({
+    _id: mongoose.Types.ObjectId(String(oid)),
+  });
+
+  const orderStatus = orderDetails.status;
+
+  if(status === 'Cancelled' && orderStatus !== 'Initialized' && orderStatus !== 'Placed'){
+    return res.status(400).send({error: 'Order cannot be Cancelled'});
+  }
   try {
-    const updateStatus = await orders.update(
+    const updateStatus = await Order.updateOne(
       {
-        o_status: status,
+        _id: mongoose.Types.ObjectId(String(oid)),
       },
       {
-        where: {
-          o_id: oid,
-        },
+        status,
+      },
+      {
+        new: true,
       }
-    ); // Checking if Update was successfull or not
-    if (updateStatus[0] !== 1) {
-      return res.status(404).send({ error: 'Order Not found' });
-    }
+    );
+    
     return res.status(201).send({ message: 'Order Status Updated' });
   } catch (err) {
     return res.status(404).send(err);
@@ -143,67 +154,109 @@ const updateOrder = async (req, res) => {
 };
 
 const filterOrders = async (req, res) => {
-  const { role } = req.headers;
-  const { id } = req.headers;
-
+  const { role, id } = req.headers;
   const { orderStatus } = req.query;
+  let orders;
   if (role === 'customer') {
-    try {
-      const filteredOrders = await orders.findAll({
-        include: [
-          {
-            model: customers,
-            exclude: ['c_password', 'createdAt', 'updatedAt'],
-          },
-          {
-            model: restaurants,
-            include: restaurant_imgs,
-            exclude: ['r_password', 'createdAt', 'updatedAt'],
-          },
-          {
-            model: order_dishes,
-            include: dishes,
-            exclude: ['createdAt', 'updatedAt'],
-          },
-        ],
-        where: {
-          c_id: id,
-          o_status: orderStatus,
+    orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'restaurants',
+          localField: 'restId',
+          foreignField: '_id',
+          as: 'restaurant',
         },
-      });
-      return res.status(200).send(filteredOrders);
-    } catch (err) {
-      return res.status(500).send({ error: 'Error Fetching Record' });
-    }
+      },
+      {
+        $match: { custId: mongoose.Types.ObjectId(String(id)), status: orderStatus },
+      },
+    ]);
   } else if (role === 'restaurant') {
-    try {
-      const filteredOrders = await orders.findAll({
-        include: [
-          {
-            model: customers,
-            exclude: ['c_password', 'createdAt', 'updatedAt'],
-          },
-          {
-            model: restaurants,
-            include: restaurant_imgs,
-            exclude: ['r_password', 'createdAt', 'updatedAt'],
-          },
-          {
-            model: order_dishes,
-            include: dishes,
-            exclude: ['createdAt', 'updatedAt'],
-          },
-        ],
-        where: {
-          r_id: id,
-          o_status: orderStatus,
+    orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'restaurants',
+          localField: 'restId',
+          foreignField: '_id',
+          as: 'restaurant',
         },
-      });
-      return res.status(200).send(filteredOrders);
-    } catch (err) {
-      return res.status(500).send({ error: 'Error Fetching Record' });
-    }
+      },
+      {
+        $match: { restId: mongoose.Types.ObjectId(String(id)), status: orderStatus },
+      },
+    ]);
   }
+
+  orders.forEach((item) => {
+    item['restName'] = item.restaurant[0].name;
+    if (item.restaurant[0].restaurantImages.length > 0)
+      item['restImage'] = item.restaurant[0].restaurantImages[0];
+    else item['restImage'] = '';
+    delete item.restaurant;
+  });
+
+  return res.status(200).send(orders);
+  // const { role } = req.headers;
+  // const { id } = req.headers;
+
+  // const { orderStatus } = req.query;
+  // if (role === 'customer') {
+  //   try {
+  //     const filteredOrders = await Order.find({
+  //       include: [
+  //         {
+  //           model: customers,
+  //           exclude: ['c_password', 'createdAt', 'updatedAt'],
+  //         },
+  //         {
+  //           model: restaurants,
+  //           include: restaurant_imgs,
+  //           exclude: ['r_password', 'createdAt', 'updatedAt'],
+  //         },
+  //         {
+  //           model: order_dishes,
+  //           include: dishes,
+  //           exclude: ['createdAt', 'updatedAt'],
+  //         },
+  //       ],
+  //       where: {
+  //         c_id: id,
+  //         o_status: orderStatus,
+  //       },
+  //     });
+  //     return res.status(200).send(filteredOrders);
+  //   } catch (err) {
+  //     return res.status(500).send({ error: 'Error Fetching Record' });
+  //   }
+  // } else if (role === 'restaurant') {
+  //   try {
+  //     const filteredOrders = await orders.findAll({
+  //       include: [
+  //         {
+  //           model: customers,
+  //           exclude: ['c_password', 'createdAt', 'updatedAt'],
+  //         },
+  //         {
+  //           model: restaurants,
+  //           include: restaurant_imgs,
+  //           exclude: ['r_password', 'createdAt', 'updatedAt'],
+  //         },
+  //         {
+  //           model: order_dishes,
+  //           include: dishes,
+  //           exclude: ['createdAt', 'updatedAt'],
+  //         },
+  //       ],
+  //       where: {
+  //         r_id: id,
+  //         o_status: orderStatus,
+  //       },
+  //     });
+  //     return res.status(200).send(filteredOrders);
+  //   } catch (err) {
+  //     return res.status(500).send({ error: 'Error Fetching Record' });
+  //   }
+  // }
 };
 
 const getOrders = async (req, res) => {
@@ -241,6 +294,9 @@ const getOrders = async (req, res) => {
 
   orders.forEach((item) => {
     item['restName'] = item.restaurant[0].name;
+    if (item.restaurant[0].restaurantImages.length > 0)
+      item['restImage'] = item.restaurant[0].restaurantImages[0];
+    else item['restImage'] = '';
     delete item.restaurant;
   });
 

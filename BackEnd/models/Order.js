@@ -48,6 +48,9 @@ const OrderSchema = new mongoose.Schema({
   },
   updatedAt:{
     type: Date
+  },
+  notes:{
+    type: String
   }
 });
 

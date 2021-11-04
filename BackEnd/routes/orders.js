@@ -15,6 +15,11 @@ const {
 const router = express.Router();
 
 /**
+ * @typedef updateOrderStatus
+ * @property {string} status
+ */
+
+/**
  * @route POST /orders/neworder
  * @summary Create Order of Customer
  * @group  Order
@@ -26,6 +31,18 @@ const router = express.Router();
 router.post('/neworder', createOrder);
 router.get('/filterorders?', filterOrders);
 router.put('/finalorder', placeOrder);
+
+/**
+ * @route PUT /orders/updatestatus/{oid}
+ * @summary Updagte Order Status
+ * @group  Order
+ * @param {string} oid.path.required
+ * @param {updateOrderStatus.model} updateOrderStatus.body.required
+ * @returns {object} 201 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.put('/updatestatus/:oid', updateOrder);
 
 /**
