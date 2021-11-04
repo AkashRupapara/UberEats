@@ -1,7 +1,9 @@
 /* eslint-disable prefer-const */
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
+const mongoose = require('mongoose');
 
+const Cart = require('../models/Cart');
 const {
   orders,
   carts,
@@ -12,86 +14,83 @@ const {
   restaurants,
   restaurant_imgs,
   customers,
-} = require("../models/data.model");
+} = require('../models/data.model');
+const Order = require('../models/Order');
 
 const createOrder = async (req, res) => {
   const custId = req.headers.id;
-  const cartDetails = await carts.findAll({
-    attributes: ["d_id", "r_id"],
-    where: {
-      c_id: custId,
+  const cartDetails = await Cart.aggregate([
+    {
+      $match: {
+        custId: mongoose.Types.ObjectId(String(custId)),
+      },
     },
-  });
+    {
+      $lookup: {
+        from: 'restaurants',
+        localField: 'restId',
+        foreignField: '_id',
+        as: 'restaurants',
+      },
+    },
+    {
+      $unwind: {
+        path: '$restaurants',
+      },
+    },
+  ]);
 
   if (cartDetails.length === 0) {
-    return res.status(404).send("No Items in Cart");
+    return res.status(404).send({ error: 'No Items in Cart' });
   }
 
-  let dishIds = [];
+  let dishes = new Map();
+  if (
+    cartDetails &&
+    cartDetails.length > 0 &&
+    cartDetails[0].restaurants &&
+    cartDetails[0].restaurants.dishes &&
+    cartDetails[0].restaurants.dishes.length > 0
+  ) {
+    cartDetails[0].restaurants.dishes.forEach((dish) => {
+      dishes.set(dish._id.toString(), dish);
+    });
+  }
 
-  cartDetails.forEach((element) => {
-    dishIds.push(element.d_id);
-  });
-  const dishPriceDetails = await dishes.findAll({
-    attributes: ["d_id", "d_price"],
-    where: {
-      d_id: dishIds,
-    },
-  });
+  let sumTotal = 0;
+  let orderDishArray = [];
 
-  let sum = 0;
-  dishIds.forEach((element) => {
-    dishPriceDetails.forEach((ele) => {
-      if (element === ele.d_id) {
-        sum += ele.d_price;
-      }
+  cartDetails.forEach((item) => {
+    sumTotal += item.totalPrice;
+    orderDishArray.push({
+      dishId: item.dishId,
+      qty: item.qty,
+      totalPrice: item.totalPrice,
+      name: dishes.get(item.dishId.toString()).name,
     });
   });
 
-  const restId = cartDetails[0].r_id;
+  let orderObj = {};
+  orderObj['restId'] = cartDetails[0].restaurants._id;
+  orderObj['custId'] = cartDetails[0].custId;
+  orderObj['totalOrderPrice'] = sumTotal;
+  orderObj['tax'] = (sumTotal * 0.18).toFixed(2);
+  orderObj['finalOrderPrice'] = (sumTotal * 1.18).toFixed(2);
+  orderObj['dishes'] = orderDishArray;
+  orderObj['status'] = 'Initialized';
+  orderObj['createdAt'] = new Date();
+  orderObj['updatedAt'] = new Date();
 
-  const t = await sequelize.transaction();
-  try {
-    const initOrder = await orders.create(
-      {
-        o_status: "Initialized",
-        o_total_price: sum,
-        c_id: custId,
-        r_id: restId,
-        o_tax: sum * 0.18,
-        o_final_price: sum + sum * 0.18,
-      },
-      { transaction: t }
-    );
+  const newOrder = new Order(orderObj);
+  const createdOrder = await newOrder.save();
 
-    if (dishIds) {
-      const listDishes = dishIds.map((ele) => ({
-        o_id: initOrder.o_id,
-        d_id: ele,
-      }));
-
-      await order_dishes.bulkCreate(listDishes, {
-        transaction: t,
-      });
-
-      await carts.destroy({
-        where: {
-          c_id: custId,
-        },
-        transaction: t,
-      });
-
-      await orders;
-      await t.commit();
-      return res.status(201).send({
-        orderId: initOrder.o_id,
-        message: "Order Initialised Successfully",
-      });
-    }
-  } catch (err) {
-    await t.rollback();
-    return res.status(400).send(err);
+  if (createdOrder) {
+    await Cart.find({
+      custId: mongoose.Types.ObjectId(String(custId)),
+    }).remove();
+    return res.status(201).send({ orderId: createdOrder._id, message: 'Order Created' });
   }
+  return res.status(500).send({ error: 'Error Creating Order' });
 };
 
 const placeOrder = async (req, res) => {
@@ -99,10 +98,10 @@ const placeOrder = async (req, res) => {
   try {
     const updateOrder = await orders.update(
       {
-        o_status: "Placed",
+        o_status: 'Placed',
         o_type: type,
         o_address: address,
-        o_date_time: sequelize.literal("CURRENT_TIMESTAMP"),
+        o_date_time: sequelize.literal('CURRENT_TIMESTAMP'),
       },
       {
         where: {
@@ -112,9 +111,9 @@ const placeOrder = async (req, res) => {
     );
     // Checking if Update was successfull or not
     if (updateOrder[0] !== 1) {
-      return res.status(404).send("Order Not found");
+      return res.status(404).send('Order Not found');
     }
-    return res.status(201).send("Order Placed");
+    return res.status(201).send('Order Placed');
   } catch (err) {
     return res.status(400).send(err);
   }
@@ -135,12 +134,10 @@ const updateOrder = async (req, res) => {
       }
     ); // Checking if Update was successfull or not
     if (updateStatus[0] !== 1) {
-      return res.status(404).send({ error: "Order Not found" });
+      return res.status(404).send({ error: 'Order Not found' });
     }
-    return res.status(201).send({ message: "Order Status Updated" });
+    return res.status(201).send({ message: 'Order Status Updated' });
   } catch (err) {
-    
-
     return res.status(404).send(err);
   }
 };
@@ -150,23 +147,23 @@ const filterOrders = async (req, res) => {
   const { id } = req.headers;
 
   const { orderStatus } = req.query;
-  if (role === "customer") {
+  if (role === 'customer') {
     try {
       const filteredOrders = await orders.findAll({
         include: [
           {
             model: customers,
-            exclude: ["c_password", "createdAt", "updatedAt"],
+            exclude: ['c_password', 'createdAt', 'updatedAt'],
           },
           {
             model: restaurants,
             include: restaurant_imgs,
-            exclude: ["r_password", "createdAt", "updatedAt"],
+            exclude: ['r_password', 'createdAt', 'updatedAt'],
           },
           {
             model: order_dishes,
             include: dishes,
-            exclude: ["createdAt", "updatedAt"],
+            exclude: ['createdAt', 'updatedAt'],
           },
         ],
         where: {
@@ -176,26 +173,25 @@ const filterOrders = async (req, res) => {
       });
       return res.status(200).send(filteredOrders);
     } catch (err) {
-      
-      return res.status(500).send({ error: "Error Fetching Record" });
+      return res.status(500).send({ error: 'Error Fetching Record' });
     }
-  } else if (role === "restaurant") {
+  } else if (role === 'restaurant') {
     try {
       const filteredOrders = await orders.findAll({
         include: [
           {
             model: customers,
-            exclude: ["c_password", "createdAt", "updatedAt"],
+            exclude: ['c_password', 'createdAt', 'updatedAt'],
           },
           {
             model: restaurants,
             include: restaurant_imgs,
-            exclude: ["r_password", "createdAt", "updatedAt"],
+            exclude: ['r_password', 'createdAt', 'updatedAt'],
           },
           {
             model: order_dishes,
             include: dishes,
-            exclude: ["createdAt", "updatedAt"],
+            exclude: ['createdAt', 'updatedAt'],
           },
         ],
         where: {
@@ -205,57 +201,50 @@ const filterOrders = async (req, res) => {
       });
       return res.status(200).send(filteredOrders);
     } catch (err) {
-      
-      return res.status(500).send({ error: "Error Fetching Record" });
+      return res.status(500).send({ error: 'Error Fetching Record' });
     }
   }
 };
 
 const getOrders = async (req, res) => {
-  const { role } = req.headers;
-
-  let getorders;
-  if (role === "customer") {
-    getorders = await orders.findAll({
-      include: [
-        { model: customers, exclude: ["c_password", "createdAt", "updatedAt"] },
-        {
-          model: restaurants,
-          include: restaurant_imgs,
-          exclude: ["r_password", "createdAt", "updatedAt"],
+  const { role, id } = req.headers;
+  let orders;
+  if (role === 'customer') {
+    orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'restaurants',
+          localField: 'restId',
+          foreignField: '_id',
+          as: 'restaurant',
         },
-        {
-          model: order_dishes,
-          include: dishes,
-          exclude: ["createdAt", "updatedAt"],
-        },
-      ],
-      where: {
-        c_id: req.headers.id,
       },
-      order: [["createdAt", "DESC"]],
-    });
-  } else if (role === "restaurant") {
-    getorders = await orders.findAll({
-      include: [
-        { model: customers, exclude: ["c_password", "createdAt", "updatedAt"] },
-        {
-          model: restaurants,
-          include: restaurant_imgs,
-          exclude: ["r_password", "createdAt", "updatedAt"],
-        },
-        {
-          model: order_dishes,
-          include: dishes,
-          exclude: ["createdAt", "updatedAt"],
-        },
-      ],
-      where: {
-        r_id: req.headers.id,
+      {
+        $match: { custId: mongoose.Types.ObjectId(String(id)) },
       },
-    });
+    ]);
+  } else if (role === 'restaurant') {
+    orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'restaurants',
+          localField: 'restId',
+          foreignField: '_id',
+          as: 'restaurant',
+        },
+      },
+      {
+        $match: { restId: mongoose.Types.ObjectId(String(id)) },
+      },
+    ]);
   }
-  return res.status(201).send(getorders);
+
+  orders.forEach((item) => {
+    item['restName'] = item.restaurant[0].name;
+    delete item.restaurant;
+  });
+
+  return res.status(200).send(orders);
 };
 
 const getOrderById = async (req, res) => {
@@ -263,49 +252,70 @@ const getOrderById = async (req, res) => {
   const { oid } = req.params;
   const { id } = req.headers;
 
-  if (role === "restaurant") {
-    const findRestOrder = await orders.findOne({
-      include: [
-        { model: order_dishes, include: dishes },
-        {
-          model: restaurants,
-          attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  let orderDetails = {};
+  if (role === 'restaurant') {
+    orderDetails = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'restaurants',
+          localField: 'restId',
+          foreignField: '_id',
+          as: 'restaurant',
         },
-      ],
-      where: {
-        o_id: oid,
-        r_id: id,
       },
-      exclude: ["r_password", "createdAt", "updatedAt"],
-    });
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(String(oid)),
+          restId: mongoose.Types.ObjectId(String(id)),
+        },
+      },
+    ]);
 
-    if (findRestOrder) {
-      return res.status(200).send(findRestOrder);
+    if (orderDetails) {
+      orderDetails.forEach((item) => {
+        item['restName'] = item.restaurant[0].name;
+        item['delType'] = item.restaurant[0].del_type;
+        if (item.restaurant[0].restaurantImages && item.restaurant[0].restaurantImages.length > 0)
+          item['restImage'] = item.restaurant[0].restaurantImages[0];
+        else item['restImage'] = '';
+        delete item.restaurant;
+      });
+      return res.status(200).send(orderDetails[0]);
     }
 
-    return res.status(404).send({ error: "Restuarant Order Not Found" });
+    return res.status(404).send({ error: 'Restuarant Order Not Found' });
   }
 
-  const findCustOrder = await orders.findOne({
-    include: [
-      { model: order_dishes, include: dishes },
-      {
-        model: restaurants,
-        include: restaurant_imgs,
-        attributes: { exclude: ["r_password", "createdAt", "updatedAt"] },
+  orderDetails = await Order.aggregate([
+    {
+      $lookup: {
+        from: 'restaurants',
+        localField: 'restId',
+        foreignField: '_id',
+        as: 'restaurant',
       },
-    ],
-    where: {
-      o_id: oid,
-      c_id: id,
     },
-  });
+    {
+      $match: {
+        _id: mongoose.Types.ObjectId(String(oid)),
+        custId: mongoose.Types.ObjectId(String(id)),
+      },
+    },
+  ]);
 
-  if (findCustOrder) {
-    return res.status(201).send(findCustOrder);
+  if (orderDetails) {
+    orderDetails.forEach((item) => {
+      item['restName'] = item.restaurant[0].name;
+      item['delType'] = item.restaurant[0].del_type;
+      if (item.restaurant[0].restaurantImages && item.restaurant[0].restaurantImages.length > 0)
+        item['restImage'] = item.restaurant[0].restaurantImages[0];
+      else item['restImage'] = '';
+      delete item.restaurant;
+    });
+    return res.status(201).send(orderDetails[0]);
   }
 
-  return res.status(404).send({ error: "Customer Order Not Found" });
+  return res.status(404).send({ error: 'Customer Order Not Found' });
 };
 module.exports = {
   createOrder,

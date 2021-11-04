@@ -30,6 +30,12 @@ const router = express.Router();
  */
 
 /**
+ * @typedef AddCustomerAddress
+ * @property {string} address
+ * @property {string} zipcode
+ */
+
+/**
  * @route PUT /customers/{cid}
  * @summary Update Customer Details
  * @group  Customer
@@ -67,7 +73,29 @@ router.get('/myprofile', getCustomerProfile);
 router.get('/profile/:cid', getCustomerById);
 
 router.get('/fvrts', getAllFavorites);
+
+/**
+ * @route GET /customers/address/
+ * @summary Get Customer Addresses
+ * @group  Customer
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.get('/address', getAddress);
+
+/**
+ * @route POST /customers/address
+ * @summary Add Customer Address
+ * @group  Customer
+ * @param {string} cid.path.required
+ * @param {AddCustomerAddress.model} AddCustomerAddress.body.required
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.post('/address', addAddress);
 router.post('/fvrts', addToFavorites);
 router.delete('/fvrts/:rid', deleteFromFavorites);

@@ -23,6 +23,10 @@ const getCartDetails = async (req, res) => {
     },
   ]);
 
+  if (cartItems.length === 0) {
+    return res.status(404).send({ error: "No Items in Cart" });
+  }
+  
   const restId = cartItems[0].restId;
   const dish = await Restaurant.findOne({
     _id: mongoose.Types.ObjectId(String(restId)),
@@ -43,9 +47,7 @@ const getCartDetails = async (req, res) => {
     }
   });
 
-  if (cartItems.length === 0) {
-    return res.status(404).send({ error: "No Items in Cart" });
-  }
+  
   return res.status(201).json({ cartItems });
 };
 

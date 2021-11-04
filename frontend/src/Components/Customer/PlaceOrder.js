@@ -52,11 +52,10 @@ function PlaceOrder({ match }) {
           res.data.length > 0
             ? res.data.forEach((ele) => {
                 addrOpt.push({
-                  address: ele.ca_address_line + ", " + ele.ca_zipcode,
+                  address: ele.address_line + ", " + ele.zipcode,
                 });
               })
             : null;
-        // if(res?.data?.)
         setAddressOptions(addrOpt);
       })
       .catch((err) => {
@@ -104,28 +103,28 @@ function PlaceOrder({ match }) {
   const getOrderDetails = () => {
     const token = localStorage.getItem("token");
     axiosConfig
-      .get(`/orders/${match.params.oid}`, {
+      .get(`/orders/details/${match.params.oid}`, {
         headers: {
           Authorization: token,
         },
       })
       .then((res) => {
-        
+        console.log(res.data);
         const delOpt = [];
-        if (res.data.restaurant.r_delivery_type === "Both") {
+        if (res.data.delType === "Both") {
           delOpt.push({ deliveryType: "Pickup" });
           delOpt.push({ deliveryType: "Delivery" });
           setDelTypeOptions(delOpt);
         } else {
-          delOpt.push({ deliveryType: res?.data?.restaurant?.r_delivery_type });
+          delOpt.push({ deliveryType: res?.data?.delType });
           setDelTypeOptions({ deliveryType: delOpt });
         }
         setOrderDetails(res.data);
       })
       .catch((err) => {
+        console.log(err);
         toast.error("Order Not Found");
-        history.push("/customer/dashboard");
-        
+        // history.push("/customer/dashboard");
       });
   };
 
@@ -242,9 +241,7 @@ function PlaceOrder({ match }) {
           <H2>{orderDetails?.restaurant?.r_name}</H2>
           <img
             src={
-              orderDetails?.restaurant?.restaurant_imgs?.length > 0
-                ? orderDetails?.restaurant?.restaurant_imgs[0]?.ri_img
-                : ""
+              orderDetails?.restImage? orderDetails.restImage : ''
             }
             style={{ height: "300px", width: "600px" }}
           />
@@ -314,8 +311,8 @@ function PlaceOrder({ match }) {
               <h6> Delivery Fee </h6>
             </Col>
             <Col style={{ textAlign: "right" }}>
-              <h6> ${orderDetails ? orderDetails.o_total_price : null} </h6>
-              <h6> ${orderDetails ? orderDetails.o_tax : null} </h6>
+              <h6> ${orderDetails ? orderDetails.totalOrderPrice : null} </h6>
+              <h6> ${orderDetails ? orderDetails.tax : null} </h6>
               <h6> $0</h6>
             </Col>
           </Row>
@@ -325,7 +322,7 @@ function PlaceOrder({ match }) {
               <h6> Total </h6>
             </Col>
             <Col style={{ textAlign: "right" }}>
-              <h6> ${orderDetails ? orderDetails.o_final_price : null} </h6>
+              <h6> ${orderDetails.finalOrderPrice ? orderDetails.finalOrderPrice : null} </h6>
             </Col>
           </Row>
         </Col>

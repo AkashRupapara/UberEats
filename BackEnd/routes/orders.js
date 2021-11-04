@@ -1,6 +1,8 @@
 /* eslint-disable consistent-return */
 /* eslint-disable camelcase */
 const express = require('express');
+const mongoose = require("mongoose");
+
 const {
   createOrder,
   placeOrder,
@@ -12,11 +14,41 @@ const {
 
 const router = express.Router();
 
+/**
+ * @route POST /orders/neworder
+ * @summary Create Order of Customer
+ * @group  Order
+ * @returns {object} 201 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.post('/neworder', createOrder);
 router.get('/filterorders?', filterOrders);
 router.put('/finalorder', placeOrder);
 router.put('/updatestatus/:oid', updateOrder);
+
+/**
+ * @route Get /orders/
+ * @summary Get Orders of Customer/ Restaurant
+ * @group  Order
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.get('/', getOrders);
-router.get('/:oid', getOrderById);
+
+/**
+ * @route Get /orders/details/{oid}
+ * @summary Get Order Detail of Customer/ Restaurant
+ * @group  Order
+ * @param {string} oid.path.required
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
+router.get('/details/:oid', getOrderById);
 
 module.exports = router;

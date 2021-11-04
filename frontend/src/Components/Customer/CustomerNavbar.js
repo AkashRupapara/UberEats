@@ -1,43 +1,38 @@
-import * as React from "react";
+/* eslint-disable jsx-a11y/alt-text */
+import * as React from 'react';
 import {
   HeaderNavigation,
   ALIGN,
   StyledNavigationItem as NavigationItem,
   StyledNavigationList as NavigationList,
-} from "baseui/header-navigation";
+} from 'baseui/header-navigation';
 
-import { StatefulSelect as Search, TYPE } from "baseui/select";
-import "../../assets/css/customerNavbar.css";
-import { useHistory } from "react-router";
-import logo from "../../assets/images/ubereats.png";
-import cartLogo from "../../assets/images/cartIcon.jpg";
-import { Menu } from "baseui/icon";
-import { Button, KIND, SIZE, SHAPE } from "baseui/button";
-import { Col, Form, Row } from "react-bootstrap";
-import { Drawer, ANCHOR } from "baseui/drawer";
-import { Avatar } from "baseui/avatar";
-import { expandBorderStyles } from "baseui/styles";
-import axiosConfig from "../../axiosConfig";
-import toast from "react-hot-toast";
-import { H3, H4, H5, H6 } from "baseui/typography";
+import { StatefulSelect as Search, TYPE } from 'baseui/select';
+import '../../assets/css/customerNavbar.css';
+import { useHistory } from 'react-router';
+import logo from '../../assets/images/ubereats.png';
+import cartLogo from '../../assets/images/cartIcon.jpg';
+import { Menu } from 'baseui/icon';
+import { Button, KIND, SIZE, SHAPE } from 'baseui/button';
+import { Col, Form, Row } from 'react-bootstrap';
+import { Drawer, ANCHOR } from 'baseui/drawer';
+import { Avatar } from 'baseui/avatar';
+import { expandBorderStyles } from 'baseui/styles';
+import axiosConfig from '../../axiosConfig';
+import toast from 'react-hot-toast';
+import { H3, H4, H5, H6 } from 'baseui/typography';
 
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalButton,
-} from "baseui/modal";
-import { useDispatch, useSelector } from "react-redux";
+import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from 'baseui/modal';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setDeliveryTypeAction,
   setDishTypeAction,
   setLocation,
   setSearchKeyWordAction,
-} from "../../actions/searchFilter";
-import { customerLogout } from "../../actions/customer";
-import { setCartItems } from "../../actions/cart";
-const jwt = require("jsonwebtoken");
+} from '../../actions/searchFilter';
+import { customerLogout } from '../../actions/customer';
+import { setCartItems } from '../../actions/cart';
+const jwt = require('jsonwebtoken');
 
 function CustomerNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -46,11 +41,11 @@ function CustomerNavbar() {
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [cartDetails, setCartDetails] = React.useState({});
   const [orderInitModalIsOpen, setOrderInitModalIsOpen] = React.useState(false);
-  const [deliveryType, setDeliveryType] = React.useState("Pickup");
+  const [deliveryType, setDeliveryType] = React.useState('Pickup');
   const [dishType, setDishType] = React.useState(null);
-  const [keyWord, setKeyWord] = React.useState("");
+  const [keyWord, setKeyWord] = React.useState('');
 
-  const [orderPrice, setOrderPrice] = React.useState(0)
+  const [orderPrice, setOrderPrice] = React.useState(0);
   const dispatch = useDispatch();
 
   const searchFilter = useSelector((state) => state.searchFilter);
@@ -58,8 +53,8 @@ function CustomerNavbar() {
 
   React.useEffect(() => {
     if (
-      history.location.pathname === "/customer/update" ||
-      history.location.pathname === "/customer/orders"
+      history.location.pathname === '/customer/update' ||
+      history.location.pathname === '/customer/orders'
     ) {
       setItemDisable(true);
     } else {
@@ -80,15 +75,15 @@ function CustomerNavbar() {
   }, [dishType]);
 
   const deleteCartItems = () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     axiosConfig
-      .delete("/cart/", {
+      .delete('/cart/', {
         headers: {
           Authorization: token,
         },
       })
       .then((res) => {
-        toast.success("Cart Items Deleted");
+        toast.success('Cart Items Deleted');
         setCartDetails({});
         getCartItems();
       })
@@ -99,8 +94,7 @@ function CustomerNavbar() {
   };
 
   const getCartItems = () => {
-    const token = localStorage.getItem("token");
-    const data = jwt.decode(token);
+    const token = localStorage.getItem('token');
     axiosConfig
       .get(`/customers/myprofile/`, {
         headers: {
@@ -117,18 +111,18 @@ function CustomerNavbar() {
       });
 
     axiosConfig
-      .get("/cart/", {
+      .get('/cart/', {
         headers: {
           Authorization: token,
         },
       })
       .then((res) => {
-        console.log("ers", res.data);
+        console.log('ers', res.data);
         dispatch(setCartItems(res.data.cartItems));
         setCartDetails(res.data);
         let price = 0;
-        if(res.data.cartItems.length>0){
-          res.data.cartItems.map((item)=>{
+        if (res.data.cartItems.length > 0) {
+          res.data.cartItems.map((item) => {
             price += item.totalPrice;
           });
         }
@@ -136,13 +130,15 @@ function CustomerNavbar() {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Session Expired!! Please Sign In Again!!");
-        // history.push("/customer/login");
+        if (err.response.status !== 404) {
+          toast.error('Session Expired!! Please Sign In Again!!');
+          history.push('/customer/login');
+        }
       });
   };
 
   const updateCartItem = (id, qty) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     const cartId = id;
 
     axiosConfig
@@ -168,7 +164,7 @@ function CustomerNavbar() {
   }, [isCartOpen]);
 
   const deleteItemFromCart = async (id) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     try {
       const res = await axiosConfig.delete(`cart/item/${id}`, {
         headers: {
@@ -188,10 +184,10 @@ function CustomerNavbar() {
   };
 
   const goToPlaceOrder = () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     axiosConfig
       .post(
-        "/orders/neworder",
+        '/orders/neworder',
         {},
         {
           headers: {
@@ -209,7 +205,7 @@ function CustomerNavbar() {
   };
 
   return (
-    <HeaderNavigation style={{ height: "80px" }}>
+    <HeaderNavigation style={{ height: '80px' }}>
       <NavigationList $align={ALIGN.left}>
         <Button kind={KIND.minimal} onClick={() => setIsDrawerOpen(true)}>
           <Menu />
@@ -234,66 +230,53 @@ function CustomerNavbar() {
               src="https://not-a-real-image.png"
             />
           </div>
-          <div style={{ marginTop: "10%" }}>
-            <div style={{ marginTop: "5%" }}>
-              <Button
-                style={{ width: "100%" }}
-                onClick={() => history.push("/customer/update")}
-              >
+          <div style={{ marginTop: '10%' }}>
+            <div style={{ marginTop: '5%' }}>
+              <Button style={{ width: '100%' }} onClick={() => history.push('/customer/update')}>
                 Update Profile
               </Button>
             </div>
-            <div style={{ marginTop: "5%" }}>
-              <Button
-                style={{ width: "100%" }}
-                onClick={() => history.push("/customer/orders")}
-              >
-                {" "}
-                Past Orders{" "}
+            <div style={{ marginTop: '5%' }}>
+              <Button style={{ width: '100%' }} onClick={() => history.push('/customer/orders')}>
+                {' '}
+                Past Orders{' '}
               </Button>
             </div>
-            <div style={{ marginTop: "5%" }}>
-              <Button
-                style={{ width: "100%" }}
-                onClick={() => history.push("/customer/fvrts")}
-              >
-                {" "}
-                Favorites{" "}
+            <div style={{ marginTop: '5%' }}>
+              <Button style={{ width: '100%' }} onClick={() => history.push('/customer/fvrts')}>
+                {' '}
+                Favorites{' '}
               </Button>
             </div>
-            <div style={{ marginTop: "5%" }}>
+            <div style={{ marginTop: '5%' }}>
               <Button
-                style={{ width: "100%" }}
+                style={{ width: '100%' }}
                 onClick={() => {
                   dispatch(customerLogout());
-                  history.push("/");
+                  history.push('/');
                 }}
               >
-                {" "}
-                Logout{" "}
+                {' '}
+                Logout{' '}
               </Button>
             </div>
           </div>
         </Drawer>
         <NavigationItem>
           <a href="/customer/dashboard">
-            <img src={logo} style={{ width: "100%", height: "80px" }} />
+            <img src={logo} style={{ width: '100%', height: '80px' }} />
           </a>
         </NavigationItem>
       </NavigationList>
       <NavigationList $align={ALIGN.center}>
-        <label
-          class="toggleSwitch nolabel"
-          onclick=""
-          style={{ marginTop: "3%" }}
-        >
+        <label class="toggleSwitch nolabel" onclick="" style={{ marginTop: '3%' }}>
           <input type="checkbox" disabled={itemDisable} />
           <a></a>
           <span>
             <span
               class="left-span"
               onClick={(e) => {
-                setDeliveryType("Pickup");
+                setDeliveryType('Pickup');
               }}
             >
               Pickup
@@ -301,7 +284,7 @@ function CustomerNavbar() {
             <span
               class="right-span"
               onClick={(e) => {
-                setDeliveryType("Delivery");
+                setDeliveryType('Delivery');
               }}
             >
               Delivery
@@ -311,25 +294,25 @@ function CustomerNavbar() {
       </NavigationList>
 
       <NavigationList $align={ALIGN.right}>
-        <NavigationItem style={{ marginTop: "3%" }}>
+        <NavigationItem style={{ marginTop: '3%' }}>
           <Row>
             <Col>
               <div
                 style={{
-                  display: "flex",
-                  border: "1px solid #777",
-                  padding: "0 10px",
-                  borderRadius: "25px",
+                  display: 'flex',
+                  border: '1px solid #777',
+                  padding: '0 10px',
+                  borderRadius: '25px',
                 }}
               >
                 <Form.Control
                   as="select"
                   custom
                   style={{
-                    height: "30px",
-                    marginBottom: "10%",
-                    border: "0",
-                    backgroundColor: "transparent",
+                    height: '30px',
+                    marginBottom: '10%',
+                    border: '0',
+                    backgroundColor: 'transparent',
                   }}
                   onChange={(e) => {
                     setDishType(e.target.value);
@@ -346,20 +329,20 @@ function CustomerNavbar() {
             <Col>
               <div
                 style={{
-                  display: "flex",
-                  border: "1px solid #777",
-                  padding: "0 10px",
-                  borderRadius: "25px",
+                  display: 'flex',
+                  border: '1px solid #777',
+                  padding: '0 10px',
+                  borderRadius: '25px',
                 }}
               >
                 <Form.Control
                   as="select"
                   custom
                   style={{
-                    height: "30px",
-                    marginBottom: "10%",
-                    border: "0",
-                    backgroundColor: "transparent",
+                    height: '30px',
+                    marginBottom: '10%',
+                    border: '0',
+                    backgroundColor: 'transparent',
                   }}
                   disabled={itemDisable}
                   value={searchFilter.location}
@@ -379,20 +362,20 @@ function CustomerNavbar() {
         </NavigationItem>
       </NavigationList>
       <NavigationList>
-        <NavigationItem style={{ width: "400px" }}>
+        <NavigationItem style={{ width: '400px' }}>
           <div
             style={{
-              display: "flex",
-              border: "1px solid #777",
-              padding: "0 10px",
-              borderRadius: "25px",
+              display: 'flex',
+              border: '1px solid #777',
+              padding: '0 10px',
+              borderRadius: '25px',
             }}
           ></div>
           <Search
             style={{
-              border: "0",
-              backgroundColor: "transparent",
-              marginBottom: "10%",
+              border: '0',
+              backgroundColor: 'transparent',
+              marginBottom: '10%',
             }}
             disabled={itemDisable}
             type={TYPE.search}
@@ -402,11 +385,7 @@ function CustomerNavbar() {
         </NavigationItem>
         <NavigationItem>
           <div>
-            <img
-              src={cartLogo}
-              style={{ height: "80px" }}
-              onClick={() => setIsCartOpen(true)}
-            />
+            <img src={cartLogo} style={{ height: '80px' }} onClick={() => setIsCartOpen(true)} />
           </div>
           <Drawer
             isOpen={isCartOpen}
@@ -417,67 +396,69 @@ function CustomerNavbar() {
             <div>
               <h3> Cart Items</h3>
             </div>
-            <div style={{ marginTop: "10%", textAlign: "center" }}>
+            <div style={{ marginTop: '10%', textAlign: 'center' }}>
               {cartDetails
                 ? cartDetails.cartItems?.length > 0
                   ? cartDetails.cartItems.map((item) => {
                       return (
-                        <div className="card mb-3" style={{ width: "100%" }}>
+                        <div className="card mb-3" style={{ width: '100%', height: '100%' }}>
                           <div className="row no-gutters">
-                            <div className="col-md-4">
+                            <div className="col-md-5">
                               <img
                                 src={item?.image ? item.image : null}
                                 style={{
-                                  height: "80px",
-                                  width: "100%",
-                                  marginLeft: "-28px",
+                                  height: '100%',
+                                  width: '100%',
+                                  marginLeft: '-28px',
                                 }}
                               />
-                              <rect width="100%" height="100%" fill="#868e96" />
                             </div>
-                            <div className="col-md-5">
-                              <div className="card-body">
-                                <h5 className="card-title">{item.name}</h5>
-                                <p className="card-text">{item.restName}</p>
-                                <Button
-                                  size={SIZE.mini}
-                                  disabled={item.qty === 1 ? true : false}
-                                  shape={SHAPE.circle}
-                                  style={{ marginLeft: "10px" }}
-                                  onClick={async () => {
-                                    item.qty = item.qty - 1;
-                                    await setCartDetails(cartDetails);
-                                    dispatch(
-                                      setCartItems(cartDetails.cartItems)
-                                    );
-                                    updateCartItem(item._id, item.qty);
-                                  }}
-                                >
-                                  -
-                                </Button>
-                                <span
-                                  style={{
-                                    marginLeft: "10px",
-                                    marginRight: "10px",
-                                    fontSize: "20px",
-                                  }}
-                                >
-                                  {item.qty}
-                                </span>
-                                <Button
-                                  size={SIZE.mini}
-                                  shape={SHAPE.circle}
-                                  onClick={async () => {
-                                    item.qty = item.qty + 1;
-                                    await setCartDetails(cartDetails);
-                                    dispatch(
-                                      setCartItems(cartDetails.cartItems)
-                                    );
-                                    updateCartItem(item._id, item.qty);
-                                  }}
-                                >
-                                  +
-                                </Button>
+                            <div className="col-md-4">
+                              <div className="row no-gutters">
+                                <div className="card-body">
+                                  <h5 className="card-title">{item.name}</h5>
+                                  <p className="card-text">{item.restName}</p>
+                                </div>
+                              </div>
+                              <div className="row no-gutters">
+                                <div>
+                                  <Button
+                                    size={SIZE.mini}
+                                    disabled={item.qty === 1 ? true : false}
+                                    shape={SHAPE.circle}
+                                    style={{ marginLeft: '10px' }}
+                                    onClick={async () => {
+                                      item.qty = item.qty - 1;
+                                      await setCartDetails(cartDetails);
+                                      dispatch(setCartItems(cartDetails.cartItems));
+                                      updateCartItem(item._id, item.qty);
+                                    }}
+                                  >
+                                    -
+                                  </Button>
+                                  <span
+                                    style={{
+                                      marginLeft: '10px',
+                                      marginRight: '10px',
+                                      fontSize: '20px',
+                                    }}
+                                  >
+                                    {item.qty}
+                                  </span>
+                                  <Button
+                                    size={SIZE.mini}
+                                    shape={SHAPE.circle}
+                                    onClick={async () => {
+                                      item.qty = item.qty + 1;
+                                      await setCartDetails(cartDetails);
+                                      dispatch(setCartItems(cartDetails.cartItems));
+                                      updateCartItem(item._id, item.qty);
+                                    }}
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                                
                               </div>
                             </div>
                             <div className="col-md-3">
@@ -490,6 +471,12 @@ function CustomerNavbar() {
                                   Delete
                                 </Button>
                               </div>
+                              <div>
+                                Total Price: 
+                              </div>
+                              <H5>
+                                ${item.totalPrice} 
+                              </H5>
                             </div>
                           </div>
                         </div>
@@ -501,12 +488,12 @@ function CustomerNavbar() {
             {cartDetails.cartItems?.length > 0 ? (
               <div>
                 <p>
-                  <Button style={{ width: "100%" }} onClick={deleteCartItems}>
+                  <Button style={{ width: '100%' }} onClick={deleteCartItems}>
                     Clear Cart
                   </Button>
                 </p>
                 <p>
-                  <Button style={{ width: "100%" }} onClick={initOrder}>
+                  <Button style={{ width: '100%' }} onClick={initOrder}>
                     Initiate Order
                   </Button>
                 </p>
@@ -515,24 +502,26 @@ function CustomerNavbar() {
               <H5>"NO ITEMS IN CART"</H5>
             )}
           </Drawer>
-          <Modal
-            onClose={() => setOrderInitModalIsOpen(false)}
-            isOpen={orderInitModalIsOpen}
-          >
+          <Modal onClose={() => setOrderInitModalIsOpen(false)} isOpen={orderInitModalIsOpen}>
             <ModalHeader>
               <H3>
-                {" "}
-                {cartItems?.cartDetails.length > 0
-                  ? cartItems?.cartDetails[0].restName
-                  : null}
+                {cartItems?.cartDetails.length > 0 ? cartItems?.cartDetails[0].restName : null}
               </H3>
             </ModalHeader>
             <ModalBody>
               <Row>
-                <Col><b>Dish Name</b></Col>
-                <Col><b>Qty</b></Col>
-                <Col><b>Per Dish</b></Col>
-                <Col><b>Total Price</b></Col>
+                <Col>
+                  <b>Dish Name</b>
+                </Col>
+                <Col>
+                  <b>Qty</b>
+                </Col>
+                <Col>
+                  <b>Per Dish</b>
+                </Col>
+                <Col>
+                  <b>Total Price</b>
+                </Col>
                 <hr />
               </Row>
               {cartItems?.cartDetails?.length > 0
@@ -541,22 +530,22 @@ function CustomerNavbar() {
                       <Row>
                         <Col>{item?.name}</Col>
                         <Col>{item?.qty}</Col>
-                        <Col>${item?.totalPrice/item?.qty}</Col>
+                        <Col>${item?.totalPrice / item?.qty}</Col>
                         <Col>${item?.totalPrice}</Col>
                         <hr />
                       </Row>
                     );
                   })
-                : ""}
-                <div style={{textAlign:"right", marginRight:"50px"}}>
-                  Final Price:<H6> <b>${orderPrice}</b></H6>
-                </div>
+                : ''}
+              <div style={{ textAlign: 'right', marginRight: '50px' }}>
+                Final Price:
+                <H6>
+                  <b>${orderPrice}</b>
+                </H6>
+              </div>
             </ModalBody>
             <ModalFooter>
-              <ModalButton
-                kind="tertiary"
-                onClick={() => setOrderInitModalIsOpen(false)}
-              >
+              <ModalButton kind="tertiary" onClick={() => setOrderInitModalIsOpen(false)}>
                 Cancel
               </ModalButton>
               <ModalButton onClick={goToPlaceOrder}>Go to Checkout</ModalButton>
