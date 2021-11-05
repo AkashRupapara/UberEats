@@ -23,7 +23,7 @@ function CustomerOrders() {
 
   const getFilteredOrders = (params) => {
     console.log(params)
-    if (params === null || params === undefined || params.length > 0 || params[0]?.label === '' || params[0]?.label === 'All') {
+    if (params.length > 0 && params[0]?.label === 'All') {
       getCustOrders();
       return;
     }

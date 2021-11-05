@@ -131,8 +131,8 @@ const updateOrder = async (req, res) => {
 
   const orderStatus = orderDetails.status;
 
-  if(status === 'Cancelled' && orderStatus !== 'Initialized' && orderStatus !== 'Placed'){
-    return res.status(400).send({error: 'Order cannot be Cancelled'});
+  if (status === 'Cancelled' && orderStatus !== 'Initialized' && orderStatus !== 'Placed') {
+    return res.status(400).send({ error: 'Order cannot be Cancelled' });
   }
   try {
     const updateStatus = await Order.updateOne(
@@ -146,7 +146,7 @@ const updateOrder = async (req, res) => {
         new: true,
       }
     );
-    
+
     return res.status(201).send({ message: 'Order Status Updated' });
   } catch (err) {
     return res.status(404).send(err);
@@ -156,6 +156,7 @@ const updateOrder = async (req, res) => {
 const filterOrders = async (req, res) => {
   const { role, id } = req.headers;
   const { orderStatus } = req.query;
+  console.log(role, id);
   let orders;
   if (role === 'customer') {
     orders = await Order.aggregate([
@@ -171,92 +172,40 @@ const filterOrders = async (req, res) => {
         $match: { custId: mongoose.Types.ObjectId(String(id)), status: orderStatus },
       },
     ]);
+    orders.forEach((item) => {
+      item['restName'] = item.restaurant[0].name;
+      if (item.restaurant[0].restaurantImages.length > 0)
+        item['restImage'] = item.restaurant[0].restaurantImages[0];
+      else item['restImage'] = '';
+      delete item.restaurant;
+    });
+
+    return res.status(200).send(orders);
   } else if (role === 'restaurant') {
+    console.log("INSIDE REST");
     orders = await Order.aggregate([
       {
         $lookup: {
-          from: 'restaurants',
-          localField: 'restId',
+          from: 'customers',
+          localField: 'custId',
           foreignField: '_id',
-          as: 'restaurant',
+          as: 'customer',
         },
       },
       {
         $match: { restId: mongoose.Types.ObjectId(String(id)), status: orderStatus },
       },
     ]);
+
+    orders.forEach((item) => {
+      item['custName'] = item.customer[0].name;
+      item['custImage'] = item.customer[0].profile_img;
+      delete item.customer;
+    });
+
+    return res.status(200).send(orders);
   }
 
-  orders.forEach((item) => {
-    item['restName'] = item.restaurant[0].name;
-    if (item.restaurant[0].restaurantImages.length > 0)
-      item['restImage'] = item.restaurant[0].restaurantImages[0];
-    else item['restImage'] = '';
-    delete item.restaurant;
-  });
-
-  return res.status(200).send(orders);
-  // const { role } = req.headers;
-  // const { id } = req.headers;
-
-  // const { orderStatus } = req.query;
-  // if (role === 'customer') {
-  //   try {
-  //     const filteredOrders = await Order.find({
-  //       include: [
-  //         {
-  //           model: customers,
-  //           exclude: ['c_password', 'createdAt', 'updatedAt'],
-  //         },
-  //         {
-  //           model: restaurants,
-  //           include: restaurant_imgs,
-  //           exclude: ['r_password', 'createdAt', 'updatedAt'],
-  //         },
-  //         {
-  //           model: order_dishes,
-  //           include: dishes,
-  //           exclude: ['createdAt', 'updatedAt'],
-  //         },
-  //       ],
-  //       where: {
-  //         c_id: id,
-  //         o_status: orderStatus,
-  //       },
-  //     });
-  //     return res.status(200).send(filteredOrders);
-  //   } catch (err) {
-  //     return res.status(500).send({ error: 'Error Fetching Record' });
-  //   }
-  // } else if (role === 'restaurant') {
-  //   try {
-  //     const filteredOrders = await orders.findAll({
-  //       include: [
-  //         {
-  //           model: customers,
-  //           exclude: ['c_password', 'createdAt', 'updatedAt'],
-  //         },
-  //         {
-  //           model: restaurants,
-  //           include: restaurant_imgs,
-  //           exclude: ['r_password', 'createdAt', 'updatedAt'],
-  //         },
-  //         {
-  //           model: order_dishes,
-  //           include: dishes,
-  //           exclude: ['createdAt', 'updatedAt'],
-  //         },
-  //       ],
-  //       where: {
-  //         r_id: id,
-  //         o_status: orderStatus,
-  //       },
-  //     });
-  //     return res.status(200).send(filteredOrders);
-  //   } catch (err) {
-  //     return res.status(500).send({ error: 'Error Fetching Record' });
-  //   }
-  // }
 };
 
 const getOrders = async (req, res) => {
@@ -276,31 +225,38 @@ const getOrders = async (req, res) => {
         $match: { custId: mongoose.Types.ObjectId(String(id)) },
       },
     ]);
+    orders.forEach((item) => {
+      item['restName'] = item.restaurant[0].name;
+      if (item.restaurant[0].restaurantImages.length > 0)
+        item['restImage'] = item.restaurant[0].restaurantImages[0];
+      else item['restImage'] = '';
+      delete item.restaurant;
+    });
+
+    return res.status(200).send(orders);
   } else if (role === 'restaurant') {
     orders = await Order.aggregate([
       {
         $lookup: {
-          from: 'restaurants',
-          localField: 'restId',
+          from: 'customers',
+          localField: 'custId',
           foreignField: '_id',
-          as: 'restaurant',
+          as: 'customer',
         },
       },
       {
         $match: { restId: mongoose.Types.ObjectId(String(id)) },
       },
     ]);
+
+    orders.forEach((item) => {
+      item['custName'] = item.customer[0].name;
+      item['custImage'] = item.customer[0].profile_img;
+      delete item.customer;
+    });
+
+    return res.status(200).send(orders);
   }
-
-  orders.forEach((item) => {
-    item['restName'] = item.restaurant[0].name;
-    if (item.restaurant[0].restaurantImages.length > 0)
-      item['restImage'] = item.restaurant[0].restaurantImages[0];
-    else item['restImage'] = '';
-    delete item.restaurant;
-  });
-
-  return res.status(200).send(orders);
 };
 
 const getOrderById = async (req, res) => {
@@ -311,6 +267,14 @@ const getOrderById = async (req, res) => {
   let orderDetails = {};
   if (role === 'restaurant') {
     orderDetails = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'custId',
+          foreignField: '_id',
+          as: 'customer',
+        },
+      },
       {
         $lookup: {
           from: 'restaurants',
@@ -326,15 +290,16 @@ const getOrderById = async (req, res) => {
         },
       },
     ]);
-
+    console.log(orderDetails[0].customer)
     if (orderDetails) {
       orderDetails.forEach((item) => {
-        item['restName'] = item.restaurant[0].name;
+        item['custName'] = item.customer[0].name;
         item['delType'] = item.restaurant[0].del_type;
         if (item.restaurant[0].restaurantImages && item.restaurant[0].restaurantImages.length > 0)
           item['restImage'] = item.restaurant[0].restaurantImages[0];
         else item['restImage'] = '';
         delete item.restaurant;
+        delete item.customer;
       });
       return res.status(200).send(orderDetails[0]);
     }
