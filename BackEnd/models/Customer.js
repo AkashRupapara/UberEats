@@ -49,7 +49,7 @@ const CustomerSchema = new mongoose.Schema({
       },
     },
   ],
-  fvrts: [{ restId: { type: mongoose.Schema.Types.ObjectId } }],
+  fvrts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' }],
 });
 
 module.exports = mongoose.model('Customer', CustomerSchema);

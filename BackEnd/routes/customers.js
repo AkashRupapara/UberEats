@@ -27,13 +27,17 @@ const router = express.Router();
  * @property {string} state
  * @property {string} country
  * @property {string} profile_img
- */
 
 /**
  * @typedef AddCustomerAddress
  * @property {string} address
  * @property {string} zipcode
  */
+
+/**
+ * @typedef AddToFavorites
+ * @property {string} restId
+*/
 
 /**
  * @route PUT /customers/{cid}
@@ -72,6 +76,15 @@ router.get('/myprofile', getCustomerProfile);
  */
 router.get('/profile/:cid', getCustomerById);
 
+/**
+ * @route GET /customers/fvrts
+ * @summary Get Favorites
+ * @group  Customer
+ * @returns {object} 201 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.get('/fvrts', getAllFavorites);
 
 /**
@@ -97,6 +110,17 @@ router.get('/address', getAddress);
  * @security JWT
  */
 router.post('/address', addAddress);
+
+/**
+ * @route POST /customers/fvrts
+ * @summary Add To Favorites
+ * @group  Customer
+ * @param {AddToFavorites.model} AddToFavorites.body.required
+ * @returns {object} 201 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.post('/fvrts', addToFavorites);
 router.delete('/fvrts/:rid', deleteFromFavorites);
 

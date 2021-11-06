@@ -117,7 +117,6 @@ function CustomerNavbar() {
         },
       })
       .then((res) => {
-        console.log('ers', res.data);
         dispatch(setCartItems(res.data.cartItems));
         setCartDetails(res.data);
         let price = 0;
@@ -153,7 +152,9 @@ function CustomerNavbar() {
           },
         }
       )
-      .then((res) => {})
+      .then((res) => {
+        setCartDetails(res.data);
+      })
       .catch((err) => {
         console.log(err);
       });
@@ -530,7 +531,7 @@ function CustomerNavbar() {
                       <Row>
                         <Col>{item?.name}</Col>
                         <Col>{item?.qty}</Col>
-                        <Col>${item?.totalPrice / item?.qty}</Col>
+                        <Col>${(item?.totalPrice / item?.qty).toFixed(2)}</Col>
                         <Col>${item?.totalPrice}</Col>
                         <hr />
                       </Row>

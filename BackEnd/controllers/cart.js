@@ -194,7 +194,39 @@ const updateCart = async (req, res) => {
       new: true,
     }
   );
-  return res.status(200).send({ updateCartItem });
+  const cartItems = await Cart.aggregate([
+    {
+      $match: {
+        custId: mongoose.Types.ObjectId(String(custId)),
+      },
+    },
+  ]);
+
+  if (cartItems.length === 0) {
+    return res.status(404).send({ error: "No Items in Cart" });
+  }
+  
+  const restId = cartItems[0].restId;
+  const dish = await Restaurant.findOne({
+    _id: mongoose.Types.ObjectId(String(restId)),
+  })
+    .select("dishes")
+    .select("name");
+
+  let dishMap = new Map();
+  const temp = dish.dishes.map((item) => {
+    dishMap.set(item._id.toString(), item);
+  });
+
+  cartItems.forEach((item) => {
+    item["name"] = dishMap.get(item.dishId.toString()).name;
+    item["restName"] = dish.name;
+    if (dishMap.get(item.dishId.toString()).dishImages.length > 0) {
+      item["image"] = dishMap.get(item.dishId.toString()).dishImages[0].image;
+    }
+  });
+
+  return res.status(201).json({ cartItems });
 };
 
 module.exports = {

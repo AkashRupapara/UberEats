@@ -47,10 +47,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const { getAccessMiddleware } = require('u-server-utils');
 
-const { sequelize } = require('./models/data.model');
+// const { sequelize } = require('./models/data.model');
 
 // sequelize.sync({ alter: true });
-sequelize.sync();
+// sequelize.sync();
 
 const authRouter = require('./routes/auth');
 const { validateToken } = require('./config/validateToken');

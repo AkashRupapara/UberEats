@@ -91,7 +91,7 @@ function RestaurantOrders() {
         setCustomerProfile(res.data);
       })
       .catch((err) => {
-        
+        console.log(err);
       });
   };
 
@@ -169,37 +169,37 @@ function RestaurantOrders() {
           >
             <StyledThumbnail
               src={
-                customerProfile?.c_profile_img
-                  ? customerProfile.c_profile_img
+                customerProfile?.profile_img
+                  ? customerProfile.profile_img
                   : "https://ubereats-media.s3.amazonaws.com/guest-user.jpg"
               }
             />
             <StyledBody style={{ textAlign: "left" }}>
               <b> About: </b>
-              {customerProfile?.c_about
-                ? customerProfile?.c_about
+              {customerProfile?.about
+                ? customerProfile?.about
                 : "Not Updated"}
               <br />
               <b> City: </b>
 
-              {customerProfile?.c_city}
+              {customerProfile?.city}
               <br />
               <b> State: </b>
-              {customerProfile?.c_state}
+              {customerProfile?.state}
               <br />
               <b> Country: </b>
 
-              {customerProfile?.c_country}
+              {customerProfile?.country}
               <br />
               <b> Date Of Birth: </b>
 
               {customerProfile
-                ? new Date(customerProfile?.c_dob).toUTCString().substr(5, 11)
+                ? new Date(customerProfile?.dob).toUTCString().substr(5, 11)
                 : null}
               <br />
               <b> Nick Name: </b>
 
-              {customerProfile?.c_nick_name}
+              {customerProfile?.nick_name}
               <br />
               <br />
             </StyledBody>
@@ -286,7 +286,7 @@ function RestaurantOrders() {
                           alt="sans"
                           style={{ height: "200px" }}
                           onClick={async () => {
-                            await getCustDetails(order?.customer?._id);
+                            await getCustDetails(order?.custId);
                             setModalIsOpen(true);
                           }}
                         />

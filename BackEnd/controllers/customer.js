@@ -3,16 +3,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
-
-const {
-  customers,
-  orders,
-  customer_address,
-  fvrts,
-  restaurants,
-  restaurant_imgs,
-  restaurant_dishtypes,
-} = require('../models/data.model');
+const Order = require('../models/Order');
 const Customer = require('../models/Customer');
 
 const createCustomer = async (req, res) => {
@@ -88,11 +79,6 @@ const customerLogin = async (req, res) => {
 const updateCustomer = async (req, res) => {
   const custId = req.headers.id;
   if (String(custId) !== String(req.params.cid)) return res.status(401).send('Unauthorised');
-
-  const cust = await customers.findOne({
-    _id: mongoose.Types.ObjectId(String(custId)),
-  });
-
   try {
     await Customer.findOneAndUpdate(
       {
@@ -161,11 +147,9 @@ const getAddress = async (req, res) => {
   const custId = req.headers.id;
 
   try {
-    const custDetails = await Customer.findOne(
-      {
-        _id: mongoose.Types.ObjectId(String(custId)),
-      }
-    );
+    const custDetails = await Customer.findOne({
+      _id: mongoose.Types.ObjectId(String(custId)),
+    });
 
     if (custDetails && custDetails.addresses.length === 0) {
       return res.staus(404).send({ error: 'No Addresses Found' });
@@ -177,18 +161,13 @@ const getAddress = async (req, res) => {
 };
 
 const deleteCustomer = async (req, res) => {
-  const custID = req.params.cid;
-  if (!custID) return res.status(404).send('Need Customer ID');
+  const custId = req.params.cid;
+  if (!custId) return res.status(404).send('Need Customer ID');
+  try { 
+    const cust = await Customer.findOneAndDelete({
+      _id: mongoose.Types.ObjectId(String(custId)),
+    });
 
-  const cust = await customers.findOne({
-    where: {
-      c_id: custID,
-    },
-  });
-
-  if (!cust) return res.status(403).send('Customer does not exist');
-  try {
-    cust.destroy();
     return res.status(201).send('Customer deleted');
   } catch (err) {
     return res.status(404).send(err);
@@ -220,57 +199,61 @@ const getCustomerById = async (req, res) => {
 const getAllCustomers = async (req, res) => {
   const rid = req.headers.id;
 
-  const custs = await orders.findAll({
-    attributes: ['c_id'],
-    include: [
-      {
-        model: customers,
+  const orders = await Order.find(
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'custId',
+        foreignField: '_id',
+        as: 'customer',
       },
-    ],
-    where: {
-      r_id: rid,
     },
-  });
-  return res.status(201).send(custs);
+    {
+      restId: mongoose.Types.ObjectId(String(rid)),
+    },
+    {
+      $unwind: {
+        path: '$customer',
+      },
+    }
+  );
+  return res.status(201).send(orders);
 };
 
 const addToFavorites = async (req, res) => {
   const custId = req.headers.id;
-  const restId = req.body.rid;
+  const restId = req.body.restId;
+
   if (!custId) {
-    return res.status(404).send({ error: 'Customer Id Not FOund' });
+    return res.status(404).send({ error: 'Customer Id Not Found' });
   }
 
   try {
-    const findRest = await restaurants.findOne({
-      where: {
-        r_id: restId,
-      },
+    const existingFvrt = await Customer.findOne({
+      _id: mongoose.Types.ObjectId(String(custId)),
     });
 
-    if (!findRest) {
-      return res.status(404).send({ error: 'Restaurant do not exist' });
+    if (existingFvrt.fvrts.includes(mongoose.Types.ObjectId(restId))) {
+      return res.status(200).send({ message: 'Restaurant is already added to fvrts' });
     }
 
-    const existingFvrt = await fvrts.findOne({
-      where: {
-        c_id: custId,
-        r_id: restId,
+    const addFavorite = await Customer.findOneAndUpdate(
+      {
+        _id: mongoose.Types.ObjectId(String(custId)),
       },
-    });
-
-    if (existingFvrt) {
-      return res.status(201).send({ message: 'Restaurant is already added to fvrts' });
-    }
-    const addFavorite = await fvrts.create({
-      r_id: restId,
-      c_id: custId,
-    });
+      {
+        $addToSet: {
+          fvrts: { _id: mongoose.Types.ObjectId(String(restId)) },
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    return res.status(201).send({ message: 'Added to Favorites', addFavorite });
   } catch (err) {
     return res.status(500).send(err);
   }
-
-  return res.status(200).send({ message: 'Added to Favorites' });
 };
 
 const deleteFromFavorites = async (req, res) => {
@@ -281,14 +264,14 @@ const deleteFromFavorites = async (req, res) => {
   }
 
   try {
-    await fvrts.destroy({
-      r_id: restId,
-      c_id: custId,
-    });
+    await Customer.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(custId)) },
+      { $pull: { fvrts: { restId: mongoose.Types.ObjectId(String(restId)) } } },
+      { new: true }
+    );
   } catch (err) {
     return res.status(500).send(err);
   }
-
   return res.status(200).send({ message: 'Removed from Favorites' });
 };
 
@@ -299,19 +282,23 @@ const getAllFavorites = async (req, res) => {
   }
 
   try {
-    const custFvrts = await fvrts.findAll({
-      include: [
-        {
-          model: restaurants,
-          include: [restaurant_imgs, restaurant_dishtypes],
-        },
-      ],
-      where: {
-        c_id: custId,
+    const custFvrts = await Customer.find({
+      _id: mongoose.Types.ObjectId(String(custId)),
+    }).populate({
+      path: 'fvrts',
+      select: {
+        _id: 1,
+        name: 1,
+        city: 1,
+        state: 1,
+        address_line: 1,
+        dish_types: 1,
+        zipcode: 1,
+        restaurantImages: 1,
       },
     });
 
-    return res.status(200).send(custFvrts);
+    if (custFvrts.length) return res.status(200).send(custFvrts[0].fvrts);
   } catch (err) {
     return res.status(500).send(err);
   }

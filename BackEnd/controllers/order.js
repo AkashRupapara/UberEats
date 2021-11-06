@@ -4,17 +4,7 @@
 const mongoose = require('mongoose');
 
 const Cart = require('../models/Cart');
-const {
-  orders,
-  carts,
-  dishes,
-  order_dishes,
-  sequelize,
-  dish_imgs,
-  restaurants,
-  restaurant_imgs,
-  customers,
-} = require('../models/data.model');
+
 const Order = require('../models/Order');
 
 const createOrder = async (req, res) => {
@@ -131,7 +121,7 @@ const updateOrder = async (req, res) => {
 
   const orderStatus = orderDetails.status;
 
-  if (status === 'Cancelled' && orderStatus !== 'Initialized' && orderStatus !== 'Placed') {
+  if (req.headers.role === 'customer' && status === 'Cancelled' && orderStatus !== 'Initialized' && orderStatus !== 'Placed') {
     return res.status(400).send({ error: 'Order cannot be Cancelled' });
   }
   try {
@@ -290,7 +280,6 @@ const getOrderById = async (req, res) => {
         },
       },
     ]);
-    console.log(orderDetails[0].customer)
     if (orderDetails) {
       orderDetails.forEach((item) => {
         item['custName'] = item.customer[0].name;

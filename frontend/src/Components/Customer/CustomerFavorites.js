@@ -19,8 +19,8 @@ function CustomerFavorites() {
         },
       })
       .then((res) => {
+        console.log(res.data);
           setFvrtRests(res.data);
-        
       })
       .catch((err) => {
         
@@ -48,41 +48,13 @@ function CustomerFavorites() {
                 }}
                 style={{ height: "100%" }}
               >
-                {/* <Card
-                  overrides={{ Root: { style: { width: "300px" } } }}
-                  title={ele.r_name}
-                  style={{ height: "100%", display:"flex", flexDirection:"column", alignContent:"space-between", justifyContent: "space-between" }}
-                >
-                  <img src={
-                    ele.restaurant_imgs.length > 0
-                      ? ele.restaurant_imgs[0].ri_img
-                      : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"
-                  }
-                  style={{height:"170px", width:"100%"}}
-                  />
-                  <StyledBody>
-                    {ele.r_address_line} {ele.r_city ? ", " + ele.r_city : ""}{" "}
-                    {ele.r_state ? ", " + ele.r_state : " "}{" "}
-                    {ele.r_zipcode ? ", " + ele.r_zipcode : " "}
-                    <br></br>
-                  </StyledBody>
-                  <ModalFooter style={{height:"100px", paddingBottom:"1000px" }}>
-                    <b>
-                      {ele.restaurant_dishtypes.length > 0
-                        ? ele.restaurant_dishtypes.map((dishType) => {
-                            return dishType.rdt_type + " ";
-                          })
-                        : " "}
-                    </b>
-                  </ModalFooter>
-                </Card> */}
                 <Card style={{ height: "325px", borderRadius: "20px" }}>
                   <div className="img-overlay-wrap">
                     <Card.Img
                       variant="top"
                       src={
-                        ele.restaurant?.restaurant_imgs?.length > 0
-                          ? ele?.restaurant?.restaurant_imgs[0].ri_img
+                        ele.restaurantImages?.length > 0
+                          ? ele?.restaurantImages[0]
                           : "https://ubereats-media.s3.amazonaws.com/defaultRest.png"
                       }
                       style={{ height: "200px", width: "100%" }}
@@ -96,19 +68,19 @@ function CustomerFavorites() {
                     </div>
                   </div>
                   <Card.Body>
-                    <Card.Title>{ele?.restaurant?.r_name}</Card.Title>
+                    <Card.Title>{ele?.name}</Card.Title>
                     <Card.Text>
                       <b>
-                        {ele?.restaurant?.restaurant_dishtypes?.length > 0
-                          ? ele?.restaurant?.restaurant_dishtypes.map((dishType) => {
-                              return dishType.rdt_type + " ";
+                        {ele?.dish_types?.length > 0
+                          ? ele?.dish_types.map((dishType) => {
+                              return dishType + " ";
                             })
                           : " "}
                         <br />
                       </b>
-                      {ele?.restaurant?.r_address_line} {ele?.restaurant?.r_city ? ", " + ele?.restaurant?.r_city : ""}
-                      {ele?.restaurant?.r_state ? ", " + ele?.restaurant?.r_state : " "}{" "}
-                      {ele?.restaurant?.r_zipcode ? ", " + ele?.restaurant?.r_zipcode : " "}
+                      {ele?.address_line} {ele?.city ? ", " + ele?.city : ""}
+                      {ele?.state ? ", " + ele?.state : " "}{" "}
+                      {ele?.zipcode ? " " + ele?.zipcode : " "}
                     </Card.Text>
                   </Card.Body>
                 </Card>

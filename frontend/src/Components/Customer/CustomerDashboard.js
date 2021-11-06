@@ -79,7 +79,7 @@ function CustomerDashboard() {
       .post(
         "/customers/fvrts",
         {
-          rid,
+          restId: rid,
         },
         {
           headers: {
@@ -91,7 +91,8 @@ function CustomerDashboard() {
         toast.success(res.data.message);
       })
       .catch((err) => {
-        toast.error();
+        console.log(err);
+        toast.error(err.response.error);
         
       });
   };
