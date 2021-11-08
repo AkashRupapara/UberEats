@@ -19,7 +19,6 @@ function CustomerFavorites() {
         },
       })
       .then((res) => {
-        console.log(res.data);
           setFvrtRests(res.data);
       })
       .catch((err) => {

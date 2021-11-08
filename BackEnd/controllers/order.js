@@ -146,7 +146,6 @@ const updateOrder = async (req, res) => {
 const filterOrders = async (req, res) => {
   const { role, id } = req.headers;
   const { orderStatus } = req.query;
-  console.log(role, id);
   let orders;
   if (role === 'customer') {
     orders = await Order.aggregate([
@@ -172,7 +171,6 @@ const filterOrders = async (req, res) => {
 
     return res.status(200).send(orders);
   } else if (role === 'restaurant') {
-    console.log("INSIDE REST");
     orders = await Order.aggregate([
       {
         $lookup: {

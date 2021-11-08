@@ -1,6 +1,5 @@
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
-const { restaurants, customers } = require('../models/data.model');
 const Restaurant = require('../models/Restaurant');
 const Customer = require('../models/Customer');
 

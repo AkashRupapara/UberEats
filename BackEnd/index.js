@@ -8,37 +8,34 @@ const expressSwagger = require('express-swagger-generator')(app);
 
 let options = {
   swaggerDefinition: {
-      info: {
-          description: 'Ubereats',
-          title: 'Swagger',
-          version: '1.0.0',
+    info: {
+      description: 'Ubereats',
+      title: 'Swagger',
+      version: '1.0.0',
+    },
+    host: 'localhost:8080',
+    basePath: '/',
+    produces: ['application/json'],
+    schemes: ['http', 'https'],
+    securityDefinitions: {
+      JWT: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'Authorization',
+        description: '',
       },
-      host: 'localhost:8080',
-      basePath: '/',
-      produces: [
-          "application/json",
-      ],
-      schemes: ['http', 'https'],
-      securityDefinitions: {
-          JWT: {
-              type: 'apiKey',
-              in: 'header',
-              name: 'Authorization',
-              description: "",
-          }
-      }
+    },
   },
   basedir: __dirname, //app absolute path
-  files: ['./routes/**/*.js'] //Path to the API handle folder
+  files: ['./routes/**/*.js'], //Path to the API handle folder
 };
-expressSwagger(options)
+expressSwagger(options);
 
 let corsOptions = {
   origin: 'http://localhost:8081',
 };
 
 // app.use(cors(corsOptions));
-
 app.use(cors());
 // parse requests of content-type - application/json
 app.use(express.json());
@@ -46,11 +43,6 @@ app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 const { getAccessMiddleware } = require('u-server-utils');
-
-// const { sequelize } = require('./models/data.model');
-
-// sequelize.sync({ alter: true });
-// sequelize.sync();
 
 const authRouter = require('./routes/auth');
 const { validateToken } = require('./config/validateToken');
@@ -72,21 +64,20 @@ app.use('/customers', customers);
 app.use('/cart', cart);
 app.use('/orders', orders);
 
-
-
-const main = async () =>{
-  try{
-    await mongoose.connect('mongodb+srv://admin:Akash1743a@cluster0.pdnmu.mongodb.net/ubereats?retryWrites=true&w=majority',{
-      useNewUrlParser: 'true',
-      autoIndex: true,
-    });
+const main = async () => {
+  try {
+    await mongoose.connect(
+      'mongodb+srv://admin:Akash1743a@cluster0.pdnmu.mongodb.net/ubereats?retryWrites=true&w=majority',
+      {
+        useNewUrlParser: 'true',
+        autoIndex: true,
+      }
+    );
     const PORT = process.env.PORT || 8080;
-    app.listen(PORT, () => {
-      
-    });
-  }catch(err){
+    app.listen(PORT, () => {});
+  } catch (err) {
     console.log(err);
   }
-}
+};
 
 main().catch(console.error);

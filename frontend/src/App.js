@@ -23,7 +23,6 @@ import RestaurantDetails from './Components/Customer/RestaurantDetails';
 import CustomerOrders from './Components/Customer/CustomerOrders';
 import CustomerFavorites from './Components/Customer/CustomerFavorites';
 import RestaurantOrders from './Components/Restaurant/RestaurantOrders';
-import CustomerProfile from './Components/Customer/CustomerProfile';
 import AccessComponent from './Components/AccessComponent';
 
 const engine = new Styletron();
@@ -44,7 +43,6 @@ function App() {
                 <Route path="/restaurant/dashboard" component={AccessComponent(RestaurantDashboard)} />
                 <Route path="/customer/dashboard" component={AccessComponent(CustomerDashboard)} />
                 <Route path="/customer/fvrts" component={AccessComponent(CustomerFavorites)} />
-                <Route path="/restaurant/customer/:custId" component={AccessComponent(CustomerProfile)} />
                 <Route path="/customer/orders" component={AccessComponent(CustomerOrders)} />
                 <Route path="/restaurant/update" component={AccessComponent(UpdateRestaurant)} />
                 <Route path="/customer/update" component={AccessComponent(UpdateCustomer)} />

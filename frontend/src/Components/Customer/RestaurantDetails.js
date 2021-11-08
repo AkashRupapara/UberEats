@@ -72,7 +72,6 @@ const RestaurantDetails = ({ match }) => {
         },
       })
       .then((res) => {
-        console.log(res.data);
         setimages(res.data.restaurantImages ? res.data.restaurantImages : []);
         const restData = {};
         setName(res.data.name? res.data.name: "");

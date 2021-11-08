@@ -134,7 +134,6 @@ function UpdateCustomer() {
 
   const updateCustDetails = (e) => {
     e.preventDefault();
-    console.log(stateName);
     const custObj = {
       name,
       about,
@@ -171,7 +170,6 @@ function UpdateCustomer() {
       });
   };
 
-  console.log(stateName);
   return (
     <div>
       <CustomerNavbar />

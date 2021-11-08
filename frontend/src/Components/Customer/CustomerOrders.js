@@ -18,11 +18,10 @@ function CustomerOrders() {
   const history = useHistory();
 
   useEffect(() => {
-    getFilteredOrders([{label: 'All'}]);
+    getFilteredOrders([{ label: 'All' }]);
   }, []);
 
   const getFilteredOrders = (params) => {
-    console.log(params)
     if (params.length > 0 && params[0]?.label === 'All') {
       getCustOrders();
       return;
@@ -56,7 +55,6 @@ function CustomerOrders() {
         },
       })
       .then((res) => {
-        console.log(res.data);
         setOrderDetails(res.data);
       })
       .catch((err) => {
@@ -78,16 +76,16 @@ function CustomerOrders() {
           headers: {
             Authorization: token,
           },
-        },
+        }
       )
       .then(async (res) => {
-        await getFilteredOrders([{label: 'All'}]);
+        await getFilteredOrders([{ label: 'All' }]);
         setIsCancelled(!isCancelled);
       })
       .catch((err) => {
-        if(err.response.status === 400){
+        if (err.response.status === 400) {
           toast.error(err.response.data.error);
-          getFilteredOrders([{label: 'All'}]);
+          getFilteredOrders([{ label: 'All' }]);
         }
         console.log(err);
       });
@@ -108,7 +106,7 @@ function CustomerOrders() {
         console.log(err);
       });
   };
-  
+
   return (
     <div>
       <CustomerNavbar />
@@ -227,16 +225,18 @@ function CustomerOrders() {
                       </Col>
                       <Col style={{ marginRight: '45px' }}>
                         <div style={{ justifyContent: 'center' }}>
-                          <Button
-                            disabled={
-                              order.status === 'Placed' || order.status === 'Initialized'
-                                ? false
-                                : true
-                            }
-                            onClick={() => {cancelOrder(order._id); setIsCancelled(!isCancelled)}}
-                          >
-                            Cancel Order
-                          </Button>
+                          {order.status === 'Placed' || order.status === 'Initialized' ? (
+                            <Button
+                              onClick={() => {
+                                cancelOrder(order._id);
+                                setIsCancelled(!isCancelled);
+                              }}
+                            >
+                              Cancel Order
+                            </Button>
+                          ) : (
+                            ''
+                          )}
                         </div>
                       </Col>
                     </div>

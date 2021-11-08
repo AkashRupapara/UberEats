@@ -105,7 +105,6 @@ function PlaceOrder({ match }) {
         },
       })
       .then((res) => {
-        console.log(res.data);
         const delOpt = [];
         if (res.data.status !== 'Initialized') {
           history.push('/customer/orders');
