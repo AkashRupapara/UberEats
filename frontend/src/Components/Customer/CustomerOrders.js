@@ -144,7 +144,7 @@ function CustomerOrders() {
                 value={[{ label: filterOrderStatus }]}
                 placeholder="Select Order Status"
                 onChange={({ value }) => {
-                  setFilterOrderStatus(value[0].label);
+                  setFilterOrderStatus(value[0]?.label);
                 }}
               />
             </div>
