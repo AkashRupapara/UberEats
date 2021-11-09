@@ -121,7 +121,12 @@ const updateOrder = async (req, res) => {
 
   const orderStatus = orderDetails.status;
 
-  if (req.headers.role === 'customer' && status === 'Cancelled' && orderStatus !== 'Initialized' && orderStatus !== 'Placed') {
+  if (
+    req.headers.role === 'customer' &&
+    status === 'Cancelled' &&
+    orderStatus !== 'Initialized' &&
+    orderStatus !== 'Placed'
+  ) {
     return res.status(400).send({ error: 'Order cannot be Cancelled' });
   }
   try {
@@ -145,9 +150,27 @@ const updateOrder = async (req, res) => {
 
 const filterOrders = async (req, res) => {
   const { role, id } = req.headers;
-  const { orderStatus } = req.query;
+  const { page = 1, limit = 5, orderStatus } = req.query;
+
   let orders;
+  const checkProperties = (obj) => {
+    Object.keys(obj).forEach((key) => {
+      if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+        // eslint-disable-next-line no-param-reassign
+        delete obj[key];
+      }
+    });
+  };
+
   if (role === 'customer') {
+    const custId = id;
+    const filterParams = { custId: mongoose.Types.ObjectId(String(custId)), status: orderStatus };
+
+    checkProperties(filterParams);
+    const custOrders = await Order.find(filterParams);
+
+    const count = custOrders.length;
+
     orders = await Order.aggregate([
       {
         $lookup: {
@@ -158,9 +181,21 @@ const filterOrders = async (req, res) => {
         },
       },
       {
-        $match: { custId: mongoose.Types.ObjectId(String(id)), status: orderStatus },
+        $match: filterParams,
+      },
+      {
+        $sort: {
+          'createdAt': -1,
+        },
+      },
+      {
+        $skip: (page - 1) * limit,
+      },
+      {
+        $limit: limit * 1,
       },
     ]);
+
     orders.forEach((item) => {
       item['restName'] = item.restaurant[0].name;
       if (item.restaurant[0].restaurantImages.length > 0)
@@ -169,8 +204,17 @@ const filterOrders = async (req, res) => {
       delete item.restaurant;
     });
 
-    return res.status(200).send(orders);
+    return res
+      .status(200)
+      .send({ orders, totalDocs: count, totalPages: Math.ceil(count / limit), currentPage: page });
   } else if (role === 'restaurant') {
+    const restId = id;
+    const filterParams = { restId: mongoose.Types.ObjectId(String(restId)), status: orderStatus };
+    checkProperties(filterParams);
+
+    const restOrders = await Order.find(filterParams);
+
+    const count = restOrders.length;
     orders = await Order.aggregate([
       {
         $lookup: {
@@ -181,7 +225,18 @@ const filterOrders = async (req, res) => {
         },
       },
       {
-        $match: { restId: mongoose.Types.ObjectId(String(id)), status: orderStatus },
+        $match: filterParams,
+      },
+      {
+        $sort: {
+          'createdAt': -1,
+        },
+      },
+      {
+        $limit: limit * 1,
+      },
+      {
+        $skip: (page - 1) * limit,
       },
     ]);
 
@@ -191,9 +246,10 @@ const filterOrders = async (req, res) => {
       delete item.customer;
     });
 
-    return res.status(200).send(orders);
+    return res
+      .status(200)
+      .send({ orders, totalDocs: count, totalPages: Math.ceil(count / limit), currentPage: page });
   }
-
 };
 
 const getOrders = async (req, res) => {

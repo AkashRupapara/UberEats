@@ -74,7 +74,7 @@ const addItemToCart = async (req, res) => {
         foreignField: "_id",
         as: "restaurants",
       },
-    },
+    },  
     {
       $match: { custId: mongoose.Types.ObjectId(String(custId)) },
     },

@@ -29,6 +29,19 @@ const router = express.Router();
  * @security JWT
  */
 router.post('/neworder', createOrder);
+
+/**
+ * @route Get /orders/filterorders
+ * @summary Get Filtered Orders of Customer/ Restaurant
+ * @group  Order
+ * @param {string} page.query
+ * @param {string} limit.query
+ * @param {string} orderStatus.query
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - All fields not entered
+ * @returns {Error}  500 - Internal server error
+ * @security JWT
+ */
 router.get('/filterorders?', filterOrders);
 router.put('/finalorder', placeOrder);
 

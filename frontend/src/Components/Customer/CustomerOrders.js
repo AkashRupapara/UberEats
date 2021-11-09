@@ -8,30 +8,40 @@ import { useHistory } from 'react-router';
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from 'baseui/modal';
 import { Select } from 'baseui/select';
 import { Button } from 'baseui/button';
+import { Pagination } from 'baseui/pagination';
 
 function CustomerOrders() {
   const [allOrderDetails, setAllOrderDetails] = useState([]);
   const [orderDetails, setOrderDetails] = useState({});
   const [orderModalIsOpen, setOrderModalIsOpen] = useState(false);
-  const [filterOrderStatus, setFilterOrderStatus] = useState([{ label: 'All' }]);
+  const [filterOrderStatus, setFilterOrderStatus] = useState('All');
   const [isCancelled, setIsCancelled] = useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [limit, setLimit] = useState('5');
+  const [pages, setPages] = useState(1);
+
   const history = useHistory();
 
   useEffect(() => {
-    getFilteredOrders([{ label: 'All' }]);
-  }, []);
+    getFilteredOrders();
+  }, [limit, currentPage, filterOrderStatus]);
 
-  const getFilteredOrders = (params) => {
-    if (params.length > 0 && params[0]?.label === 'All') {
-      getCustOrders();
-      return;
-    }
-
-    const orderStatus = params[0]?.label;
+  const getFilteredOrders = () => {
+    let orderStatus = filterOrderStatus ? filterOrderStatus : null;
     const token = localStorage.getItem('token');
+
+    if (filterOrderStatus === 'All') {
+      orderStatus = null;
+    }
+    console.log('status', filterOrderStatus);
+
+    console.log('currentPage',currentPage);
+    console.log('limit',limit);
     axiosConfig
       .get(`/orders/filterorders`, {
         params: {
+          page: currentPage,
+          limit,
           orderStatus,
         },
         headers: {
@@ -39,9 +49,13 @@ function CustomerOrders() {
         },
       })
       .then((res) => {
-        setAllOrderDetails(res.data);
+        console.log(res.data);
+        setAllOrderDetails(res.data.orders);
+        setPages(res.data.totalPages);
+        // setCurrentPage(res.data.currentPage);
       })
       .catch((err) => {
+        console.log(err);
         toast.error('Error Fetching Filtered Records');
       });
   };
@@ -110,30 +124,58 @@ function CustomerOrders() {
   return (
     <div>
       <CustomerNavbar />
-      <center>
-        <div style={{ marginTop: '3%', width: '50%' }}>
-          <Select
-            options={[
-              { label: 'All', id: '#F0F8FF' },
-              { label: 'Placed', id: '#F0F8FF' },
-              { label: 'On the Way', id: '#FAEBD7' },
-              { label: 'Picked Up', id: '#FAEBD7' },
-              { label: 'Preparing', id: '#FAEBD7' },
-              { label: 'Ready', id: '#FAEBD7' },
-              { label: 'Delivered', id: '#FAEBD7' },
-              { label: 'Cancelled', id: '#FAEBD7' },
-            ]}
-            valueKey="label"
-            labelKey="label"
-            value={filterOrderStatus}
-            placeholder="Select Order Status"
-            onChange={({ value }) => {
-              setFilterOrderStatus(value);
-              getFilteredOrders(value);
+      <Row style={{ height: '100px', marginTop: '3%', marginLeft: '3%', marginRight: '3%' }}>
+        <Col>
+          <center>
+            <div>
+              <Select
+                options={[
+                  { label: 'All', id: '#F0F8FF' },
+                  { label: 'Placed', id: '#F0F8FF' },
+                  { label: 'On the Way', id: '#FAEBD7' },
+                  { label: 'Picked Up', id: '#FAEBD7' },
+                  { label: 'Preparing', id: '#FAEBD7' },
+                  { label: 'Ready', id: '#FAEBD7' },
+                  { label: 'Delivered', id: '#FAEBD7' },
+                  { label: 'Cancelled', id: '#FAEBD7' },
+                ]}
+                valueKey="label"
+                labelKey="label"
+                value={[{ label: filterOrderStatus }]}
+                placeholder="Select Order Status"
+                onChange={({ value }) => {
+                  setFilterOrderStatus(value[0].label);
+                }}
+              />
+            </div>
+          </center>
+        </Col>
+        <Col>
+          <Pagination
+            numPages={pages}
+            currentPage={currentPage}
+            onPageChange={({ nextPage }) => {
+              setCurrentPage(Math.min(Math.max(nextPage, 1), 20));
             }}
           />
-        </div>
-      </center>
+        </Col>
+        <Col>
+          <Select
+            options={[
+              { label: '2', id: '#F0F8FF' },
+              { label: '5', id: '#FAEBD7' },
+              { label: '10', id: '#00FFFF' },
+            ]}
+            value={[{ label: limit }]}
+            placeholder="Select Page Limit"
+            onChange={({ value }) => {
+              setLimit(value[0].label);
+              setCurrentPage(1);
+              getFilteredOrders();
+            }}
+          />
+        </Col>
+      </Row>
       <Modal onClose={() => setOrderModalIsOpen(false)} isOpen={orderModalIsOpen}>
         <div style={{ margin: '5%' }}>
           <ModalHeader>Reciept</ModalHeader>
