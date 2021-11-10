@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const Restaurant = require("../models/Restaurant");
-const Customer = require("../models/Customer");
-const Cart = require("../models/Cart");
+const mongoose = require('mongoose');
+const Restaurant = require('../models/Restaurant');
+const Customer = require('../models/Customer');
+const Cart = require('../models/Cart');
 
 const getCartDetails = async (req, res) => {
   const custId = req.headers.id;
@@ -14,15 +14,15 @@ const getCartDetails = async (req, res) => {
   ]);
 
   if (cartItems.length === 0) {
-    return res.status(404).send({ error: "No Items in Cart" });
+    return res.status(404).send({ error: 'No Items in Cart' });
   }
-  
+
   const restId = cartItems[0].restId;
   const dish = await Restaurant.findOne({
     _id: mongoose.Types.ObjectId(String(restId)),
   })
-    .select("dishes")
-    .select("name");
+    .select('dishes')
+    .select('name');
 
   let dishMap = new Map();
   const temp = dish.dishes.map((item) => {
@@ -30,14 +30,13 @@ const getCartDetails = async (req, res) => {
   });
 
   cartItems.forEach((item) => {
-    item["name"] = dishMap.get(item.dishId.toString()).name;
-    item["restName"] = dish.name;
+    item['name'] = dishMap.get(item.dishId.toString()).name;
+    item['restName'] = dish.name;
     if (dishMap.get(item.dishId.toString()).dishImages.length > 0) {
-      item["image"] = dishMap.get(item.dishId.toString()).dishImages[0].image;
+      item['image'] = dishMap.get(item.dishId.toString()).dishImages[0].image;
     }
   });
 
-  
   return res.status(201).json({ cartItems });
 };
 
@@ -45,7 +44,7 @@ const addItemToCart = async (req, res) => {
   const { dishId, restId } = req.body;
   const custId = req.headers.id;
   if ((restId && !dishId) || (!restId && dishId)) {
-    return res.status(400).send({ error: "Provide all details" });
+    return res.status(400).send({ error: 'Provide all details' });
   }
 
   const checkDish = await Restaurant.findOne(
@@ -60,7 +59,7 @@ const addItemToCart = async (req, res) => {
   );
 
   if (!checkDish || checkDish.dishes.length === 0) {
-    return res.status(404).send({ error: "Dish does not exist!" });
+    return res.status(404).send({ error: 'Dish does not exist!' });
   }
 
   //Price of Selected dish to add to cart
@@ -69,26 +68,24 @@ const addItemToCart = async (req, res) => {
   const checkCart = await Cart.aggregate([
     {
       $lookup: {
-        from: "restaurants",
-        localField: "restId",
-        foreignField: "_id",
-        as: "restaurants",
+        from: 'restaurants',
+        localField: 'restId',
+        foreignField: '_id',
+        as: 'restaurants',
       },
-    },  
+    },
     {
       $match: { custId: mongoose.Types.ObjectId(String(custId)) },
     },
   ]);
 
-  req.body["custId"] = custId;
-  req.body["totalPrice"] = (Math.round(req.body.qty * pricePerQty * 100) / 100).toFixed(2);;
+  req.body['custId'] = custId;
+  req.body['totalPrice'] = (Math.round(req.body.qty * pricePerQty * 100) / 100).toFixed(2);
 
   if (!checkCart || checkCart.length === 0) {
     const newCartItem = new Cart(req.body);
     const createdCartItem = await newCartItem.save();
-    return res
-      .status(201)
-      .send({ createdCartItem, message: "Dish added to Cart" });
+    return res.status(201).send({ createdCartItem, message: 'Dish added to Cart' });
   }
 
   if (
@@ -100,12 +97,12 @@ const addItemToCart = async (req, res) => {
     return res.status(409).send({
       restId: checkCart[0].restId,
       restName: checkCart[0].restaurants[0].name,
-      error: "Cannot added dishes for multiple restaurants",
+      error: 'Cannot added dishes for multiple restaurants',
     });
   }
   const newCartItem = new Cart(req.body);
   const createdCartItem = await newCartItem.save();
-  return res.status(201).send({ message: "Dish Added to Cart" });
+  return res.status(201).send({ message: 'Dish Added to Cart' });
 };
 
 const resetCart = async (req, res) => {
@@ -113,16 +110,37 @@ const resetCart = async (req, res) => {
   const { dishId, restId, qty } = req.body;
 
   if ((restId && !dishId) || (!restId && dishId)) {
-    return res.status(400).send({ error: "Provide all details" });
+    return res.status(400).send({ error: 'Provide all details' });
   }
   try {
-    await Cart.find({
-      custId: mongoose.Types.ObjectId(String(custId)), 
-    }).remove();
+    await Cart.deleteMany({
+      custId: mongoose.Types.ObjectId(String(custId)),
+    });
+
+    const checkDish = await Restaurant.findOne(
+      {
+        _id: mongoose.Types.ObjectId(String(restId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      }
+    );
+
+    if (!checkDish || checkDish.dishes.length === 0) {
+      return res.status(404).send({ error: 'Dish does not exist!' });
+    }
+
+    //Price of Selected dish to add to cart
+    const pricePerQty = checkDish.dishes[0].price;
+    console.log(req.body);
+    req.body['custId'] = custId;
+    req.body['totalPrice'] = (Math.round(req.body.qty * pricePerQty * 100) / 100).toFixed(2);
 
     const newCartItem = new Cart(req.body);
     const createdCartItem = await newCartItem.save();
-    return res.status(201).send({ message: "Dish Added to Cart" });
+    return res.status(201).send({ message: 'Dish Added to Cart' });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -135,12 +153,11 @@ const deleteCart = async (req, res) => {
     await Cart.find({
       custId: mongoose.Types.ObjectId(String(custId)),
     }).remove();
-
   } catch (err) {
-    res.status(500).send({ error: "Error Deleting Cart" });
+    res.status(500).send({ error: 'Error Deleting Cart' });
   }
 
-  res.status(201).send({ message: "Cart deleted for Customer" });
+  res.status(201).send({ message: 'Cart deleted for Customer' });
 };
 
 const deleteCartItem = async (req, res) => {
@@ -151,16 +168,16 @@ const deleteCartItem = async (req, res) => {
     const item = await Cart.find({
       _id: mongoose.Types.ObjectId(String(cartItemId)),
     }).remove();
-    return res.status(201).send({ message: "Cart Item Deleted" });
+    return res.status(201).send({ message: 'Cart Item Deleted' });
   } catch (err) {
-    return res.status(400).send({ error: "Error Deleting Cart Item" });
+    return res.status(400).send({ error: 'Error Deleting Cart Item' });
   }
 };
 
 const updateCart = async (req, res) => {
   const custId = req.headers.id;
   if (custId === null || custId === undefined) {
-    return res.status(403).send({ error: "Session Expired!" });
+    return res.status(403).send({ error: 'Session Expired!' });
   }
   const cartId = req.params.cartId;
   const qty = req.body.qty;
@@ -170,7 +187,7 @@ const updateCart = async (req, res) => {
   });
 
   if (!cartItem || cartItem === undefined) {
-    return res.status(404).send({ error: "Cart Item not found" });
+    return res.status(404).send({ error: 'Cart Item not found' });
   }
   const pricePerItem = cartItem.totalPrice / cartItem.qty;
   const updateCartItem = await Cart.findOneAndUpdate(
@@ -193,15 +210,15 @@ const updateCart = async (req, res) => {
   ]);
 
   if (cartItems.length === 0) {
-    return res.status(404).send({ error: "No Items in Cart" });
+    return res.status(404).send({ error: 'No Items in Cart' });
   }
-  
+
   const restId = cartItems[0].restId;
   const dish = await Restaurant.findOne({
     _id: mongoose.Types.ObjectId(String(restId)),
   })
-    .select("dishes")
-    .select("name");
+    .select('dishes')
+    .select('name');
 
   let dishMap = new Map();
   const temp = dish.dishes.map((item) => {
@@ -209,10 +226,10 @@ const updateCart = async (req, res) => {
   });
 
   cartItems.forEach((item) => {
-    item["name"] = dishMap.get(item.dishId.toString()).name;
-    item["restName"] = dish.name;
+    item['name'] = dishMap.get(item.dishId.toString()).name;
+    item['restName'] = dish.name;
     if (dishMap.get(item.dishId.toString()).dishImages.length > 0) {
-      item["image"] = dishMap.get(item.dishId.toString()).dishImages[0].image;
+      item['image'] = dishMap.get(item.dishId.toString()).dishImages[0].image;
     }
   });
 

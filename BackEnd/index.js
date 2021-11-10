@@ -52,6 +52,7 @@ const customers = require('./routes/customers');
 const cart = require('./routes/cart');
 const orders = require('./routes/orders');
 const accessControl = require('./controllers/accessController');
+const { createKafkaTopics } = require('./kafka/topics');
 
 app.use('/auth', authRouter);
 
@@ -66,6 +67,7 @@ app.use('/orders', orders);
 
 const main = async () => {
   try {
+    await createKafkaTopics();
     await mongoose.connect(
       'mongodb+srv://admin:Akash1743a@cluster0.pdnmu.mongodb.net/ubereats?retryWrites=true&w=majority',
       {

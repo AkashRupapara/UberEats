@@ -1,9 +1,10 @@
 /* eslint-disable consistent-return */
 /* eslint-disable camelcase */
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const _ = require("underscore");
-const mongoose = require("mongoose");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const _ = require('underscore');
+const mongoose = require('mongoose');
+const { make_request } = require('../kafka/client');
 
 const {
   restaurants,
@@ -12,81 +13,46 @@ const {
   dishes,
   sequelize,
   restaurant_imgs,
-} = require("../models/data.model");
-const Restaurant = require("../models/Restaurant");
+} = require('../models/data.model');
+const Restaurant = require('../models/Restaurant');
 
 const createRestaurant = async (req, res) => {
-  try {
-    // Validate user input
-    if (!(req.body.name && req.body.email && req.body.password)) {
-      res.status(400).send({ error: "All input is required" });
+  make_request('restaurant.create', req.body, (err, response) => {
+    if (err || !response) {
+      return res.status(500).send({ err });
     }
-
-    // check if Restaurant already exist
-    const oldRes = await Restaurant.findOne({
-      email: req.body.email,
-    });
-
-    if (oldRes) {
-      res.status(409).send({ error: "Restaurant Already Exist. Please Login" });
-    } else {
-      // Encrypt user password
-      const encryptedPassword = await bcrypt.hash(req.body.password, 10);
-      let token;
-      req.body.password = encryptedPassword;
-
-      const newRestaurant = new Restaurant(req.body);
-      const createdRest = await newRestaurant.save();
-
-      const email = req.body.email;
-      token = jwt.sign(
-        { r_id: createdRest._id, email, role: "restaurant" },
-        "UberEats",
-        {
-          expiresIn: "2h",
-        }
-      );
-
-      res.status(201).json({ token });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(404).send(err);
-  }
+    return res.status(201).send({ response });
+  });
 };
 
 const restaurantLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  if (!(email && password)) res.status(400).send("All input is required");
+  if (!(email && password)) res.status(400).send('All input is required');
 
   const rest = await Restaurant.findOne({
     email,
-  }).select("password");
+  }).select('password');
 
   if (!rest) {
-    res.status(409).send({ error: "Restaurant does not exist" });
+    res.status(409).send({ error: 'Restaurant does not exist' });
   } else {
     bcrypt.compare(password, rest.password, (err, result) => {
       if (err) {
         // handle error
-        res.status(409).send({ error: "Error Verifying details!!!" });
+        res.status(409).send({ error: 'Error Verifying details!!!' });
       }
       if (result) {
         // Send JWT
         // Create token
-        const token = jwt.sign(
-          { r_id: rest._id, email, role: "restaurant" },
-          "UberEats",
-          {
-            expiresIn: "2h",
-          }
-        );
+        const token = jwt.sign({ r_id: rest._id, email, role: 'restaurant' }, 'UberEats', {
+          expiresIn: '2h',
+        });
         // save customer token
         rest.token = token;
         return res.status(201).json({ token });
       }
-      return res.json({ success: false, message: "passwords do not match" });
+      return res.json({ success: false, message: 'passwords do not match' });
     });
   }
 };
@@ -100,7 +66,7 @@ const updateRestaurant = async (req, res) => {
       _id: mongoose.Types.ObjectId(String(restId)),
     });
 
-    if (!rest) return res.status(404).send({ error: "Restaurant Not Found" });
+    if (!rest) return res.status(404).send({ error: 'Restaurant Not Found' });
 
     if (req.body.email && req.body.email !== rest.email) {
       const checkRest = await Restaurant.findOne({
@@ -108,9 +74,7 @@ const updateRestaurant = async (req, res) => {
       });
 
       if (checkRest) {
-        return res
-          .status(403)
-          .send("Restaurant already exist with given email");
+        return res.status(403).send('Restaurant already exist with given email');
       }
     }
 
@@ -164,7 +128,7 @@ const updateRestaurant = async (req, res) => {
         );
       }
 
-      return res.status(200).send({ message: "Restaurant Updated" });
+      return res.status(200).send({ message: 'Restaurant Updated' });
     } catch (err) {
       console.log(err);
       return res.status(404).send(err);
@@ -184,7 +148,7 @@ const deleteRestaurant = async (req, res) => {
       },
     });
     if (!findEntry) {
-      res.status(404).send("Restaurant Does not Exist to delete");
+      res.status(404).send('Restaurant Does not Exist to delete');
     } else {
       await restaurants.destroy({
         where: {
@@ -213,10 +177,10 @@ const addRestaurantImage = async (req, res) => {
         new: true,
       }
     );
-    return res.status(200).send({ message: "Image Added" });
+    return res.status(200).send({ message: 'Image Added' });
   }
 
-  return res.status(500).send({ error: "Could not add Image" });
+  return res.status(500).send({ error: 'Could not add Image' });
 };
 
 const deleteRestaurantImage = async (req, res) => {
@@ -231,12 +195,12 @@ const deleteRestaurantImage = async (req, res) => {
   });
 
   if (!img) {
-    return res.status(404).send({ error: "Image not found" });
+    return res.status(404).send({ error: 'Image not found' });
   }
 
   try {
     await img.destroy();
-    return res.status(200).send({ message: "Restaurant Image deleted" });
+    return res.status(200).send({ message: 'Restaurant Image deleted' });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -244,7 +208,7 @@ const deleteRestaurantImage = async (req, res) => {
 
 const getRestaurantDetails = async (req, res) => {
   const restId = req.params.restId;
-  if (!restId) return res.status(404).send({ error: "Provide Restaurant ID" });
+  if (!restId) return res.status(404).send({ error: 'Provide Restaurant ID' });
 
   const restDetails = await Restaurant.findOne({
     _id: mongoose.Types.ObjectId(String(restId)),
@@ -252,16 +216,14 @@ const getRestaurantDetails = async (req, res) => {
 
   if (restDetails) return res.status(201).send(restDetails);
 
-  return res
-    .status(404)
-    .send({ error: "Restaurant Does not exist with given Id" });
+  return res.status(404).send({ error: 'Restaurant Does not exist with given Id' });
 };
 
 const getRestaurantBySearch = async (req, res) => {
   const { keyWord } = req.query;
   const custId = req.headers.id;
   if (!custId) {
-    return res.status(403).send({ error: "login Again!!" });
+    return res.status(403).send({ error: 'login Again!!' });
   }
 
   const restaurants = await Restaurant.find({
@@ -269,12 +231,12 @@ const getRestaurantBySearch = async (req, res) => {
       { name: new RegExp(`.*${keyWord}.*`, 'i') },
       { desc: new RegExp(`.*${keyWord}.*`, 'i') },
       {
-        dishes:{
-          $elemMatch:{
+        dishes: {
+          $elemMatch: {
             name: new RegExp(`.*${keyWord}.*`, 'i'),
-          }
-        }
-      }
+          },
+        },
+      },
     ],
   });
 
@@ -287,11 +249,11 @@ const getAllRestaurants = async (req, res) => {
     const { dishType } = req.query;
     let { deliveryType } = req.query;
 
-    if (deliveryType === "Pickup") {
-      deliveryType = ["Both", "Pickup"];
+    if (deliveryType === 'Pickup') {
+      deliveryType = ['Both', 'Pickup'];
     }
-    if (deliveryType === "Delivery") {
-      deliveryType = ["Both", "Delivery"];
+    if (deliveryType === 'Delivery') {
+      deliveryType = ['Both', 'Delivery'];
     }
 
     const searchObject = {
@@ -302,7 +264,7 @@ const getAllRestaurants = async (req, res) => {
 
     const checkProperties = (obj) => {
       Object.keys(obj).forEach((key) => {
-        if (obj[key] === null || obj[key] === "" || obj[key] === undefined) {
+        if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
           // eslint-disable-next-line no-param-reassign
           delete obj[key];
         }
@@ -313,9 +275,7 @@ const getAllRestaurants = async (req, res) => {
     let filteredRestaurants = await Restaurant.find({
       // limit,
       // offset,
-      $and: [
-        searchObject,
-      ],
+      $and: [searchObject],
     });
     return res.status(200).json({ filteredRestaurants });
   } catch (error) {
