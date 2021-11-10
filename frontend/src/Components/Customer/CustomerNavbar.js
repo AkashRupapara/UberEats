@@ -532,7 +532,7 @@ function CustomerNavbar() {
                         <Col>{item?.name}</Col>
                         <Col>{item?.qty}</Col>
                         <Col>${(item?.totalPrice / item?.qty).toFixed(2)}</Col>
-                        <Col>${item?.totalPrice}</Col>
+                        <Col>${(item?.totalPrice)}</Col>
                         <hr />
                       </Row>
                     );
@@ -541,7 +541,7 @@ function CustomerNavbar() {
               <div style={{ textAlign: 'right', marginRight: '50px' }}>
                 Final Price:
                 <H6>
-                  <b>${orderPrice}</b>
+                  <b>${orderPrice.toFixed(2)}</b>
                 </H6>
               </div>
             </ModalBody>
