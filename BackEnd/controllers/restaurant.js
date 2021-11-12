@@ -1,19 +1,9 @@
 /* eslint-disable consistent-return */
 /* eslint-disable camelcase */
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const _ = require('underscore');
 const mongoose = require('mongoose');
 const { make_request } = require('../kafka/client');
 
-const {
-  restaurants,
-  restaurant_dishtypes,
-  dish_imgs,
-  dishes,
-  sequelize,
-  restaurant_imgs,
-} = require('../models/data.model');
 const Restaurant = require('../models/Restaurant');
 
 const createRestaurant = async (req, res) => {
@@ -26,8 +16,11 @@ const createRestaurant = async (req, res) => {
 };
 
 const restaurantLogin = async (req, res) => {
-  make_request('restaurant.login', req.body, (err, response)=>{
+  make_request('restaurant.login', req.body, (err, response) => {
     if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
+      }
       return res.status(500).send({ err });
     }
     return res.status(201).send({ token: response.token });
@@ -35,152 +28,39 @@ const restaurantLogin = async (req, res) => {
 };
 
 const updateRestaurant = async (req, res) => {
-  try {
-    const restId = req.params.restId;
-    const imgLink = req.body.link;
-
-    const rest = await Restaurant.findOne({
-      _id: mongoose.Types.ObjectId(String(restId)),
-    });
-
-    if (!rest) return res.status(404).send({ error: 'Restaurant Not Found' });
-
-    if (req.body.email && req.body.email !== rest.email) {
-      const checkRest = await Restaurant.findOne({
-        email: req.body.email,
-      });
-
-      if (checkRest) {
-        return res.status(403).send('Restaurant already exist with given email');
+  make_request('restaurant.update', { ...req.params, body: req.body }, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
       }
+      return res.status(500).send({error: err.message});
     }
-
-    try {
-      await Restaurant.findOneAndUpdate(
-        {
-          _id: mongoose.Types.ObjectId(String(restId)),
-        },
-        {
-          $set: req.body,
-        },
-        {
-          new: true,
-        }
-      );
-
-      if (req.body.dish_type && req.body.dish_type.length > 0) {
-        await Restaurant.findOneAndUpdate(
-          {
-            _id: mongoose.Types.ObjectId(String(restId)),
-          },
-          {
-            $set: { dish_type: [] },
-          }
-        );
-
-        await Restaurant.findOneAndUpdate(
-          {
-            _id: mongoose.Types.ObjectId(String(restId)),
-          },
-          {
-            $addToSet: { dish_type },
-          },
-          {
-            new: true,
-          }
-        );
-      }
-
-      if (imgLink) {
-        await Restaurant.findOneAndUpdate(
-          {
-            _id: mongoose.Types.ObjectId(String(restId)),
-          },
-          {
-            $push: { restaurantImages: imgLink },
-          },
-          {
-            new: true,
-          }
-        );
-      }
-
-      return res.status(200).send({ message: 'Restaurant Updated' });
-    } catch (err) {
-      console.log(err);
-      return res.status(404).send(err);
-    }
-  } catch (err) {
-    console.log(err);
-
-    return res.status(404).send(err);
-  }
+    return res.status(201).send({ token: response.token });
+  });
 };
 
 const deleteRestaurant = async (req, res) => {
-  try {
-    const findEntry = await restaurants.findOne({
-      where: {
-        r_id: req.params.rid,
-      },
-    });
-    if (!findEntry) {
-      res.status(404).send('Restaurant Does not Exist to delete');
-    } else {
-      await restaurants.destroy({
-        where: {
-          r_id: req.params.rid,
-        },
-      });
-      res.status(201).send({});
+  make_request('restaurant.update', req.params, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
+      }
+      return res.status(500).send({error: err.message});
     }
-  } catch (err) {
-    res.status(404).send(err);
-  }
+    return res.status(201).send({ token: response.token });
+  });
 };
 
 const addRestaurantImage = async (req, res) => {
-  const restId = req.headers.id;
-  const imgLink = req.body.link;
-  if (imgLink) {
-    await Restaurant.findOneAndUpdate(
-      {
-        _id: mongoose.Types.ObjectId(String(restId)),
-      },
-      {
-        $push: { restaurantImages: imgLink },
-      },
-      {
-        new: true,
+  make_request('restaurant.addImage', {body: req.body, id: req.headers.id }, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
       }
-    );
-    return res.status(200).send({ message: 'Image Added' });
-  }
-
-  return res.status(500).send({ error: 'Could not add Image' });
-};
-
-const deleteRestaurantImage = async (req, res) => {
-  const restId = req.headers.id;
-  const id = req.params.imgId;
-
-  const img = await restaurant_imgs.findOne({
-    where: {
-      ri_id: id,
-      r_id: restId,
-    },
+      return res.status(500).send({error: err.message});
+    }
+    return res.status(201).send({ token: response.token });
   });
-
-  if (!img) {
-    return res.status(404).send({ error: 'Image not found' });
-  }
-
-  try {
-    await img.destroy();
-    return res.status(200).send({ message: 'Restaurant Image deleted' });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
 };
 
 const getRestaurantDetails = async (req, res) => {
@@ -266,7 +146,6 @@ module.exports = {
   updateRestaurant,
   deleteRestaurant,
   getRestaurantDetails,
-  deleteRestaurantImage,
   addRestaurantImage,
   getAllRestaurants,
   getRestaurantBySearch,

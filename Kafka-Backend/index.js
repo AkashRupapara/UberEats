@@ -12,6 +12,10 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 // topics files
 const createRestaurant = require('./services/restaurants/create');
 const loginRestaurant = require('./services/restaurants/login');
+const updateRestaurant = require('./services/restaurants/update');
+const addRestaurantImage = require('./services/restaurants/addImage');
+
+
 
 function handleTopicRequest(topic_name, fname) {
   const consumer = connection.getConsumer(topic_name);
@@ -87,3 +91,7 @@ mongoose.connect(
 
 handleTopicRequest('restaurant.create', createRestaurant);
 handleTopicRequest('restaurant.login', loginRestaurant);
+handleTopicRequest('restaurant.update', updateRestaurant);
+handleTopicRequest('restaurant.addImage', addRestaurantImage);
+
+

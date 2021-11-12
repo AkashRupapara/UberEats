@@ -19,6 +19,18 @@ const createKafkaTopics = () => {
         topic: 'restaurant.login',
         partitions: 1,
         replicationFactor: 1,
+      },{
+        topic: 'restaurant.update',
+        partitions: 1,
+        replicationFactor: 1,
+      },{
+        topic: 'restaurant.delete',
+        partitions: 1,
+        replicationFactor: 1,
+      },{
+        topic: 'restaurant.addImage',
+        partitions: 1,
+        replicationFactor: 1,
       },
     ],
     (err) => {

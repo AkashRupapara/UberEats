@@ -84,5 +84,4 @@ router.get('/all/search?', getRestaurantBySearch);
  */
 router.get('/all?', getAllRestaurants);
 router.post('/restImages/', addRestaurantImage)
-router.delete('/restImages/:imgId', deleteRestaurantImage);
 module.exports = router;
