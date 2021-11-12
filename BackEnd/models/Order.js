@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema({
   restId: {
@@ -21,37 +21,38 @@ const OrderSchema = new mongoose.Schema({
       dishId: { type: mongoose.Schema.Types.ObjectId },
       qty: { type: Number },
       totalPrice: { type: Number },
-      name: {type: String},
+      name: { type: String },
     },
   ],
   orderType: {
     type: String,
-    enum: ['Delivery',
-    'Pickup',]
+    enum: ['Delivery', 'Pickup'],
   },
-  status:{
+  status: {
     type: String,
-    enum: ['Initialized',
-    'Placed',
-    'Preparing',
-    'Ready',
-    'Picked Up',
-    'On the Way',
-    'Delivered',
-    'Cancelled',],
+    enum: [
+      'Initialized',
+      'Placed',
+      'Preparing',
+      'Ready',
+      'Picked Up',
+      'On the Way',
+      'Delivered',
+      'Cancelled',
+    ],
   },
   orderAddress: {
     type: String,
   },
-  createdAt:{
-    type: Date
+  createdAt: {
+    type: Date,
   },
-  updatedAt:{
-    type: Date
+  updatedAt: {
+    type: Date,
   },
-  notes:{
-    type: String
-  }
+  notes: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model('Order', OrderSchema);

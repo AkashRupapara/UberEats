@@ -8,7 +8,14 @@ const jwt = require('jsonwebtoken');
 const handle_request = (msg, callback) => {
   // Validate user input
   if (!(msg.name && msg.email && msg.password)) {
-    res.status(400).send({ error: 'All input is required' });
+    callback(
+      {
+        isError: true,
+        error: 'All input is required',
+        status: 400
+      },
+      null
+    );
   }
 
   // check if Restaurant already exist

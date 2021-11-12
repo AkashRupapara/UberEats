@@ -459,7 +459,6 @@ function CustomerNavbar() {
                                     +
                                   </Button>
                                 </div>
-                                
                               </div>
                             </div>
                             <div className="col-md-3">
@@ -472,12 +471,8 @@ function CustomerNavbar() {
                                   Delete
                                 </Button>
                               </div>
-                              <div>
-                                Total Price: 
-                              </div>
-                              <H5>
-                                ${item.totalPrice} 
-                              </H5>
+                              <div>Total Price:</div>
+                              <H5>${item.totalPrice}</H5>
                             </div>
                           </div>
                         </div>
@@ -532,7 +527,7 @@ function CustomerNavbar() {
                         <Col>{item?.name}</Col>
                         <Col>{item?.qty}</Col>
                         <Col>${(item?.totalPrice / item?.qty).toFixed(2)}</Col>
-                        <Col>${(item?.totalPrice)}</Col>
+                        <Col>${item?.totalPrice}</Col>
                         <hr />
                       </Row>
                     );

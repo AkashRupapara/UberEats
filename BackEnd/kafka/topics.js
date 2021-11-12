@@ -15,12 +15,17 @@ const createKafkaTopics = () => {
         partitions: 1,
         replicationFactor: 1,
       },
+      {
+        topic: 'restaurant.login',
+        partitions: 1,
+        replicationFactor: 1,
+      },
     ],
     (err) => {
       if (err) {
         console.error(err);
       }
-    },
+    }
   );
 };
 

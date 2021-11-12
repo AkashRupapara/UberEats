@@ -273,8 +273,24 @@ function CustomerOrders() {
                                 cancelOrder(order._id);
                                 setIsCancelled(!isCancelled);
                               }}
+                              style={{width: '100%'}}
                             >
                               Cancel Order
+                            </Button>
+                          ) : (
+                            ''
+                          )}
+                        </div>
+                        <div style={{ justifyContent: 'center', marginTop:'5%' }}>
+                          { order.status === 'Initialized' ? (
+                            <Button
+                              onClick={() => {
+                                history.push(`/customer/placeorder/${order._id}`)
+                              }}
+
+                              style={{width: '100%'}}
+                            >
+                              Place Order
                             </Button>
                           ) : (
                             ''

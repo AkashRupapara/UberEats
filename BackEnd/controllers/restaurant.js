@@ -26,35 +26,12 @@ const createRestaurant = async (req, res) => {
 };
 
 const restaurantLogin = async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!(email && password)) res.status(400).send('All input is required');
-
-  const rest = await Restaurant.findOne({
-    email,
-  }).select('password');
-
-  if (!rest) {
-    res.status(409).send({ error: 'Restaurant does not exist' });
-  } else {
-    bcrypt.compare(password, rest.password, (err, result) => {
-      if (err) {
-        // handle error
-        res.status(409).send({ error: 'Error Verifying details!!!' });
-      }
-      if (result) {
-        // Send JWT
-        // Create token
-        const token = jwt.sign({ r_id: rest._id, email, role: 'restaurant' }, 'UberEats', {
-          expiresIn: '2h',
-        });
-        // save customer token
-        rest.token = token;
-        return res.status(201).json({ token });
-      }
-      return res.json({ success: false, message: 'passwords do not match' });
-    });
-  }
+  make_request('restaurant.login', req.body, (err, response)=>{
+    if (err || !response) {
+      return res.status(500).send({ err });
+    }
+    return res.status(201).send({ token: response.token });
+  });
 };
 
 const updateRestaurant = async (req, res) => {

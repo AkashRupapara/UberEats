@@ -57,7 +57,7 @@ function PlaceOrder({ match }) {
         setAddressOptions(addrOpt);
       })
       .catch((err) => {
-        if (err.response.status === 401) {
+        if (err.response?.status === 401) {
           toast.error('Session Expired! Please Login Again!');
           history.push('/customer/login');
         }
