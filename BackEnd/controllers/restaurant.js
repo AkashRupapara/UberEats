@@ -84,7 +84,7 @@ const getRestaurantBySearch = async (req, res) => {
   }
 
   const restaurants = await Restaurant.find({
-    $or: [
+    $or: [  
       { name: new RegExp(`.*${keyWord}.*`, 'i') },
       { desc: new RegExp(`.*${keyWord}.*`, 'i') },
       {
@@ -130,8 +130,6 @@ const getAllRestaurants = async (req, res) => {
 
     checkProperties(searchObject);
     let filteredRestaurants = await Restaurant.find({
-      // limit,
-      // offset,
       $and: [searchObject],
     });
     return res.status(200).json({ filteredRestaurants });

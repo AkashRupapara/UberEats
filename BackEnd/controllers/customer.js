@@ -5,142 +5,62 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Customer = require('../models/Customer');
+const { make_request } = require('../kafka/client');
 
 const createCustomer = async (req, res) => {
-  try {
-    // Get user input
-    // eslint-disable-next-line object-curly-newline
-    // Validate user input
-    if (!(req.body.name && req.body.email && req.body.password)) {
-      res.status(400).send({ error: 'All input is required' });
+  make_request('customer.create', req.body, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
+      }
+      return res.status(500).send({ error: err.message });
     }
-
-    // check if user already exist
-    // Validate if user exist in our database
-    const oldCust = await Customer.findOne({
-      email: req.body.email,
-    });
-
-    if (oldCust) {
-      return res.status(409).send({ error: 'User Already Exist. Please Login' });
-    }
-
-    // Encrypt user password
-    const encryptedPassword = await bcrypt.hash(req.body.password, 10);
-    // Create user in our database---------------
-    req.body.password = encryptedPassword;
-
-    const newCustomer = new Customer(req.body);
-    const createdCust = await newCustomer.save();
-    const email = req.body.email;
-
-    console.log(createdCust._id);
-    const token = jwt.sign({ c_id: createdCust._id, email, role: 'customer' }, 'UberEats', {
-      expiresIn: '2h',
-    });
-    return res.status(201).json({ token });
-  } catch (err) {
-    console.log(err);
-    return res.status(400).send(err);
-  }
+    return res.status(201).send({ token: response.token });
+  });
 };
 
 const customerLogin = async (req, res) => {
-  if (!(req.body.email && req.body.password))
-    res.status(400).send({ error: 'All input is required' });
-
-  const cust = await Customer.findOne({
-    email: req.body.email,
-  }).select('password');
-
-  if (!cust) {
-    res.status(409).send({ error: 'User does not exist' });
-  } else {
-    bcrypt.compare(req.body.password, cust.password, (err, result) => {
-      if (err) {
-        // handle error
-        res.status(409).send({ error: 'Error Verifying details!' });
+  make_request('customer.login', req.body, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
       }
-      const email = req.body.email;
-      if (result) {
-        // Send JWT
-        const token = jwt.sign({ c_id: cust._id, email, role: 'customer' }, 'UberEats', {
-          expiresIn: '2h',
-        });
-        cust.token = token;
-        res.status(201).json({ token });
-      } else {
-        return res.json({ success: false, message: 'passwords do not match' });
-      }
-    });
-  }
+      return res.status(500).send({ error: err.message });
+    }
+    return res.status(201).send({ token: response.token });
+  });
 };
 
 const updateCustomer = async (req, res) => {
-  const custId = req.headers.id;
-  if (String(custId) !== String(req.params.cid)) return res.status(401).send('Unauthorised');
-  try {
-    await Customer.findOneAndUpdate(
-      {
-        _id: mongoose.Types.ObjectId(String(custId)),
-      },
-      {
-        $set: req.body,
-      },
-      {
-        new: true,
+  make_request(
+    'customer.update',
+    { body: req.body, id: req.headers.id, custId: req.params.cid },
+    (err, response) => {
+      if (err || !response) {
+        if ('status' in err) {
+          return res.status(err.status).send({ error: err.error });
+        }
+        return res.status(500).send({ error: err.message });
       }
-    );
-    return res.status(201).send({ message: 'Customer Updated' });
-  } catch (err) {
-    return res.status(404).send(err);
-  }
+      return res.status(201).send({ token: response.token });
+    }
+  );
 };
 
 const addAddress = async (req, res) => {
-  try {
-    const custId = req.headers.id;
-    const { role } = req.headers;
-    const { address, zipcode } = req.body;
-
-    if (!custId || role === 'restaurant') {
-      return res.status(403).send({ error: 'Unauthorised Access' });
-    }
-    if (role === 'customer') {
-      const existingAddress = await Customer.findOne(
-        {
-          _id: mongoose.Types.ObjectId(String(custId)),
-        },
-        {
-          addresses: {
-            $elemMatch: {
-              address_line: address,
-              zipcode: zipcode,
-            },
-          },
+  make_request(
+    'customer.addAddress',
+    {body: req.body, ...req.headers},
+    (err, response) => {
+      if (err || !response) {
+        if ('status' in err) {
+          return res.status(err.status).send({ error: err.error });
         }
-      );
-
-      if (existingAddress.addresses.length > 0) {
-        return res.status(409).send({ error: 'Address Already Exists' });
+        return res.status(500).send({ error: err.message });
       }
-
-      await Customer.findOneAndUpdate(
-        {
-          _id: mongoose.Types.ObjectId(String(custId)),
-        },
-        {
-          $push: { addresses: { address_line: address, zipcode: zipcode } },
-        },
-        {
-          new: true,
-        }
-      );
+      return res.status(201).send({ token: response.token });
     }
-    res.status(201).send({ message: 'Address Added' });
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  );
 };
 
 const getAddress = async (req, res) => {
@@ -161,17 +81,19 @@ const getAddress = async (req, res) => {
 };
 
 const deleteCustomer = async (req, res) => {
-  const custId = req.params.cid;
-  if (!custId) return res.status(404).send('Need Customer ID');
-  try { 
-    const cust = await Customer.findOneAndDelete({
-      _id: mongoose.Types.ObjectId(String(custId)),
-    });
-
-    return res.status(201).send('Customer deleted');
-  } catch (err) {
-    return res.status(404).send(err);
-  }
+  make_request(
+    'customer.delete',
+    ...req.params,
+    (err, response) => {
+      if (err || !response) {
+        if ('status' in err) {
+          return res.status(err.status).send({ error: err.error });
+        }
+        return res.status(500).send({ error: err.message });
+      }
+      return res.status(201).send({ token: response.token });
+    }
+  );
 };
 
 const getCustomerProfile = async (req, res) => {
@@ -221,58 +143,35 @@ const getAllCustomers = async (req, res) => {
 };
 
 const addToFavorites = async (req, res) => {
-  const custId = req.headers.id;
-  const restId = req.body.restId;
-
-  if (!custId) {
-    return res.status(404).send({ error: 'Customer Id Not Found' });
-  }
-
-  try {
-    const existingFvrt = await Customer.findOne({
-      _id: mongoose.Types.ObjectId(String(custId)),
-    });
-
-    if (existingFvrt.fvrts.includes(mongoose.Types.ObjectId(restId))) {
-      return res.status(200).send({ message: 'Restaurant is already added to fvrts' });
-    }
-
-    const addFavorite = await Customer.findOneAndUpdate(
-      {
-        _id: mongoose.Types.ObjectId(String(custId)),
-      },
-      {
-        $addToSet: {
-          fvrts: { _id: mongoose.Types.ObjectId(String(restId)) },
-        },
-      },
-      {
-        new: true,
+  make_request(
+    'customer.addFavorites',
+    {...req.headers,...req.body },
+    (err, response) => {
+      if (err || !response) {
+        if ('status' in err) {
+          return res.status(err.status).send({ error: err.error });
+        }
+        return res.status(500).send({ error: err.message });
       }
-    );
-    return res.status(201).send({ message: 'Added to Favorites', addFavorite });
-  } catch (err) {
-    return res.status(500).send(err);
-  }
+      return res.status(201).send({ token: response.token });
+    }
+  );
 };
 
 const deleteFromFavorites = async (req, res) => {
-  const custId = req.headers.id;
-  const restId = req.params.rid;
-  if (!custId) {
-    return res.status(404).send({ error: 'Customer Id Not FOund' });
-  }
-
-  try {
-    await Customer.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(custId)) },
-      { $pull: { fvrts: { restId: mongoose.Types.ObjectId(String(restId)) } } },
-      { new: true }
-    );
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-  return res.status(200).send({ message: 'Removed from Favorites' });
+  make_request(
+    'customer.deleteFavorites',
+    {...req.headers,...req.body },
+    (err, response) => {
+      if (err || !response) {
+        if ('status' in err) {
+          return res.status(err.status).send({ error: err.error });
+        }
+        return res.status(500).send({ error: err.message });
+      }
+      return res.status(201).send({ token: response.token });
+    }
+  );
 };
 
 const getAllFavorites = async (req, res) => {

@@ -197,6 +197,7 @@ function CustomerNavbar() {
         }
       )
       .then((res) => {
+        console.log('res',res)
         history.push(`/customer/placeorder/${res.data.orderId}`);
       })
       .catch((err) => {

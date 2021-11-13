@@ -14,6 +14,18 @@ const createRestaurant = require('./services/restaurants/create');
 const loginRestaurant = require('./services/restaurants/login');
 const updateRestaurant = require('./services/restaurants/update');
 const addRestaurantImage = require('./services/restaurants/addImage');
+const createCustomer = require('./services/customers/create');
+const loginCustomer = require('./services/customers/login');
+const updateCustomer = require('./services/customers/update');
+const addAddress = require('./services/customers/addAddress');
+const deleteCustomer = require('./services/customers/delete');
+const addFavorites = require('./services/customers/addFavorites');
+const deleteFavorites = require('./services/customers/deleteFavorites');
+const createOrder = require('./services/orders/create');
+
+
+
+
 
 
 
@@ -93,5 +105,17 @@ handleTopicRequest('restaurant.create', createRestaurant);
 handleTopicRequest('restaurant.login', loginRestaurant);
 handleTopicRequest('restaurant.update', updateRestaurant);
 handleTopicRequest('restaurant.addImage', addRestaurantImage);
+handleTopicRequest('customer.create', createCustomer);
+handleTopicRequest('customer.login', loginCustomer);
+handleTopicRequest('customer.update', updateCustomer);
+handleTopicRequest('customer.addAddress', addAddress);
+handleTopicRequest('customer.delete', deleteCustomer);
+handleTopicRequest('customer.addFavorites', addFavorites);
+handleTopicRequest('customer.deleteFavorites', deleteFavorites);
+handleTopicRequest('order.create', createOrder);
+
+
+
+
 
 

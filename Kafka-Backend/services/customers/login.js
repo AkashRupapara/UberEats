@@ -2,10 +2,8 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable camelcase */
 const bcrypt = require('bcrypt');
-const Restaurant = require('../../models/Restaurant');
+const Customer = require('../../models/Customer');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-
 
 const handle_request = (msg, callback) => {
   const { email, password } = msg;
@@ -21,20 +19,20 @@ const handle_request = (msg, callback) => {
     );
   }
 
-  Restaurant.findOne({
+  Customer.findOne({
     email,
-  }).select('password').then((rest)=>{
-    if (!rest) {
+  }).select('password').then((cust)=>{
+    if (!cust) {
       callback(
         {
           isError: true,
-          error: 'Restaurant does not exist',
+          error: 'Customer does not exist',
           status: 409
         },
         null
       );
     } else {
-      bcrypt.compare(password, rest.password, (err, result) => {
+      bcrypt.compare(password, cust.password, (err, result) => {
         if (err) {
           // handle error
           callback(
@@ -49,11 +47,11 @@ const handle_request = (msg, callback) => {
         if (result) {
           // Send JWT
           // Create token
-          const token = jwt.sign({ r_id: rest._id, email, role: 'restaurant' }, 'UberEats', {
+          const token = jwt.sign({ c_id: cust._id, email, role: 'customer' }, 'UberEats', {
             expiresIn: '2h',
           });
           // save customer token
-          rest.token = token;
+          cust.token = token;
           callback(
            null,
             {

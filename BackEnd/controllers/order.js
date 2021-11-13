@@ -2,85 +2,21 @@
 /* eslint-disable camelcase */
 /* eslint-disable consistent-return */
 const mongoose = require('mongoose');
+const { make_request } = require('../kafka/client');
 
-const Cart = require('../models/Cart');
 
 const Order = require('../models/Order');
 
 const createOrder = async (req, res) => {
-  const custId = req.headers.id;
-  const cartDetails = await Cart.aggregate([
-    {
-      $match: {
-        custId: mongoose.Types.ObjectId(String(custId)),
-      },
-    },
-    {
-      $lookup: {
-        from: 'restaurants',
-        localField: 'restId',
-        foreignField: '_id',
-        as: 'restaurants',
-      },
-    },
-    {
-      $unwind: {
-        path: '$restaurants',
-      },
-    },
-  ]);
-
-  if (cartDetails.length === 0) {
-    return res.status(404).send({ error: 'No Items in Cart' });
-  }
-
-  let dishes = new Map();
-  if (
-    cartDetails &&
-    cartDetails.length > 0 &&
-    cartDetails[0].restaurants &&
-    cartDetails[0].restaurants.dishes &&
-    cartDetails[0].restaurants.dishes.length > 0
-  ) {
-    cartDetails[0].restaurants.dishes.forEach((dish) => {
-      dishes.set(dish._id.toString(), dish);
-    });
-  }
-
-  let sumTotal = 0;
-  let orderDishArray = [];
-
-  cartDetails.forEach((item) => {
-    sumTotal += item.totalPrice;
-    orderDishArray.push({
-      dishId: item.dishId,
-      qty: item.qty,
-      totalPrice: item.totalPrice,
-      name: dishes.get(item.dishId.toString()).name,
-    });
+  make_request('order.create', req.headers, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
+      }
+      return res.status(500).send({ error: err.message });
+    }
+    return res.status(201).send({ ...response });
   });
-
-  let orderObj = {};
-  orderObj['restId'] = cartDetails[0].restaurants._id;
-  orderObj['custId'] = cartDetails[0].custId;
-  orderObj['totalOrderPrice'] = sumTotal;
-  orderObj['tax'] = (sumTotal * 0.18).toFixed(2);
-  orderObj['finalOrderPrice'] = (sumTotal * 1.18).toFixed(2);
-  orderObj['dishes'] = orderDishArray;
-  orderObj['status'] = 'Initialized';
-  orderObj['createdAt'] = new Date();
-  orderObj['updatedAt'] = new Date();
-
-  const newOrder = new Order(orderObj);
-  const createdOrder = await newOrder.save();
-
-  if (createdOrder) {
-    await Cart.find({
-      custId: mongoose.Types.ObjectId(String(custId)),
-    }).remove();
-    return res.status(201).send({ orderId: createdOrder._id, message: 'Order Created' });
-  }
-  return res.status(500).send({ error: 'Error Creating Order' });
 };
 
 const placeOrder = async (req, res) => {
