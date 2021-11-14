@@ -30,14 +30,14 @@ const handle_request = async (msg, callback) => {
   ]);
 
   if (cartDetails.length === 0) {
-    callback(
-      {
-        isError: true,
-        error: 'No Items in Cart',
-        status: 404,
-      },
-      null
-    );
+      callback(
+        {
+          isError: true,
+          error: 'No Items in Cart',
+          status: 404,
+        },
+        null
+      );
   }
 
   let dishes = new Map();
@@ -81,9 +81,9 @@ const handle_request = async (msg, callback) => {
   const createdOrder = await newOrder.save();
 
   if (createdOrder) {
-    // await Cart.find({
-    //   custId: mongoose.Types.ObjectId(String(custId)),
-    // }).remove();
+    await Cart.find({
+      custId: mongoose.Types.ObjectId(String(custId)),
+    }).remove();
     callback(null, {
       status: 201,
       orderId: createdOrder._id,

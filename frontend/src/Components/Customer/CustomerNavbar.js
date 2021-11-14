@@ -197,7 +197,7 @@ function CustomerNavbar() {
         }
       )
       .then((res) => {
-        console.log('res',res)
+        console.log('res', res);
         history.push(`/customer/placeorder/${res.data.orderId}`);
       })
       .catch((err) => {
@@ -354,6 +354,7 @@ function CustomerNavbar() {
                 >
                   <option value="">Location</option>
                   <option value="San Jose">San Jose</option>
+                  <option value="Dublin">Dublin</option>
                   <option value="San Francisco">San Francisco</option>
                   <option value="Santa Cruz">Santa Cruz</option>
                   <option value="Santa Clara">Santa Clara</option>

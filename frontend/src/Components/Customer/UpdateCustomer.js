@@ -270,6 +270,7 @@ function UpdateCustomer() {
                     options={[
                       { city: "San Jose" },
                       { city: "San Francisco" },
+                      { city: "Dublin" },
                       { city: "New York" },
                       { city: "Santa Clara" },
                     ]}

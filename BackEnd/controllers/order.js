@@ -4,7 +4,6 @@
 const mongoose = require('mongoose');
 const { make_request } = require('../kafka/client');
 
-
 const Order = require('../models/Order');
 
 const createOrder = async (req, res) => {
@@ -20,68 +19,27 @@ const createOrder = async (req, res) => {
 };
 
 const placeOrder = async (req, res) => {
-  const { type, address, id, notes } = req.body;
-
-  let newAddr = '';
-  if (type === 'Pickup') {
-    newAddr = 'Pickup From Restaurant';
-  } else {
-    newAddr = address;
-  }
-  try {
-    const updateOrder = await Order.findOneAndUpdate(
-      {
-        _id: mongoose.Types.ObjectId(String(id)),
-      },
-      {
-        status: 'Placed',
-        orderType: type,
-        orderAddress: newAddr,
-        updatedAt: new Date(),
-        notes,
+  make_request('order.place', req.body, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
       }
-    );
-    return res.status(201).send({ message: 'Order Placed' });
-  } catch (err) {
-    return res.status(400).send(err);
-  }
+      return res.status(500).send({ error: err.message });
+    }
+    return res.status(201).send({ response });
+  });
 };
 
 const updateOrder = async (req, res) => {
-  const { status } = req.body;
-  const { oid } = req.params;
-
-  const orderDetails = await Order.findOne({
-    _id: mongoose.Types.ObjectId(String(oid)),
-  });
-
-  const orderStatus = orderDetails.status;
-
-  if (
-    req.headers.role === 'customer' &&
-    status === 'Cancelled' &&
-    orderStatus !== 'Initialized' &&
-    orderStatus !== 'Placed'
-  ) {
-    return res.status(400).send({ error: 'Order cannot be Cancelled' });
-  }
-  try {
-    const updateStatus = await Order.updateOne(
-      {
-        _id: mongoose.Types.ObjectId(String(oid)),
-      },
-      {
-        status,
-      },
-      {
-        new: true,
+  make_request('order.update', { ...req.params, ...req.headers, ...req.body }, (err, response) => {
+    if (err || !response) {
+      if ('status' in err) {
+        return res.status(err.status).send({ error: err.error });
       }
-    );
-
-    return res.status(201).send({ message: 'Order Status Updated' });
-  } catch (err) {
-    return res.status(404).send(err);
-  }
+      return res.status(500).send({ error: err.message });
+    }
+    return res.status(201).send({ response });
+  });
 };
 
 const filterOrders = async (req, res) => {
@@ -121,7 +79,7 @@ const filterOrders = async (req, res) => {
       },
       {
         $sort: {
-          'createdAt': -1,
+          createdAt: -1,
         },
       },
       {
@@ -165,7 +123,7 @@ const filterOrders = async (req, res) => {
       },
       {
         $sort: {
-          'createdAt': -1,
+          createdAt: -1,
         },
       },
       {

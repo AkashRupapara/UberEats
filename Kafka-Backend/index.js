@@ -22,11 +22,8 @@ const deleteCustomer = require('./services/customers/delete');
 const addFavorites = require('./services/customers/addFavorites');
 const deleteFavorites = require('./services/customers/deleteFavorites');
 const createOrder = require('./services/orders/create');
-
-
-
-
-
+const placeOrder = require('./services/orders/place');
+const updateOrder = require('./services/orders/update');
 
 
 function handleTopicRequest(topic_name, fname) {
@@ -113,6 +110,10 @@ handleTopicRequest('customer.delete', deleteCustomer);
 handleTopicRequest('customer.addFavorites', addFavorites);
 handleTopicRequest('customer.deleteFavorites', deleteFavorites);
 handleTopicRequest('order.create', createOrder);
+handleTopicRequest('order.place', placeOrder);
+handleTopicRequest('order.update', updateOrder);
+
+
 
 
 

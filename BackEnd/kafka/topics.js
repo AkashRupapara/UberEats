@@ -63,6 +63,14 @@ const createKafkaTopics = () => {
         topic: 'order.create',
         partitions: 1,
         replicationFactor: 1,
+      },{
+        topic: 'order.place',
+        partitions: 1,
+        replicationFactor: 1,
+      },{
+        topic: 'order.update',
+        partitions: 1,
+        replicationFactor: 1,
       }
     ],
     (err) => {

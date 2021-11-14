@@ -19,6 +19,7 @@ function CustomerOrders() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [limit, setLimit] = useState('5');
   const [pages, setPages] = useState(1);
+  const [pagination, setPagination] = useState({});
 
   const history = useHistory();
 
@@ -30,13 +31,11 @@ function CustomerOrders() {
     let orderStatus = filterOrderStatus ? filterOrderStatus : null;
     const token = localStorage.getItem('token');
 
+    console.log('limit', limit);
     if (filterOrderStatus === 'All') {
       orderStatus = null;
     }
-    console.log('status', filterOrderStatus);
 
-    console.log('currentPage',currentPage);
-    console.log('limit',limit);
     axiosConfig
       .get(`/orders/filterorders`, {
         params: {
@@ -46,12 +45,17 @@ function CustomerOrders() {
         },
         headers: {
           Authorization: token,
-        },
+        }, 
       })
       .then((res) => {
         console.log(res.data);
+        setPagination({
+          currentPage: res.data.currentPage,
+          totalPages: res.data.totalPages,
+
+        });
         setAllOrderDetails(res.data.orders);
-        setPages(res.data.totalPages);
+        // setPages(res.data.totalPages);
         // setCurrentPage(res.data.currentPage);
       })
       .catch((err) => {
@@ -152,7 +156,7 @@ function CustomerOrders() {
         </Col>
         <Col>
           <Pagination
-            numPages={pages}
+            numPages={pagination.totalPages}
             currentPage={currentPage}
             onPageChange={({ nextPage }) => {
               setCurrentPage(Math.min(Math.max(nextPage, 1), 20));
@@ -168,10 +172,9 @@ function CustomerOrders() {
             ]}
             value={[{ label: limit }]}
             placeholder="Select Page Limit"
-            onChange={({ value }) => {
-              setLimit(value[0].label);
-              setCurrentPage(1);
-              getFilteredOrders();
+            onChange={async({ value }) => {
+              await setLimit(value[0].label);
+              await setCurrentPage(1);
             }}
           />
         </Col>
@@ -273,7 +276,7 @@ function CustomerOrders() {
                                 cancelOrder(order._id);
                                 setIsCancelled(!isCancelled);
                               }}
-                              style={{width: '100%'}}
+                              style={{ width: '100%' }}
                             >
                               Cancel Order
                             </Button>
@@ -281,14 +284,13 @@ function CustomerOrders() {
                             ''
                           )}
                         </div>
-                        <div style={{ justifyContent: 'center', marginTop:'5%' }}>
-                          { order.status === 'Initialized' ? (
+                        <div style={{ justifyContent: 'center', marginTop: '5%' }}>
+                          {order.status === 'Initialized' ? (
                             <Button
                               onClick={() => {
-                                history.push(`/customer/placeorder/${order._id}`)
+                                history.push(`/customer/placeorder/${order._id}`);
                               }}
-
-                              style={{width: '100%'}}
+                              style={{ width: '100%' }}
                             >
                               Place Order
                             </Button>
